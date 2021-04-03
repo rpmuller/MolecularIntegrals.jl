@@ -1,0 +1,4 @@
+name = "MolecularIntegrals"
+uuid = "225505cd-5332-488d-8ccd-aeccaa6842ac"
+authors = ["Richard P. Muller <rmuller@sandia.gov>"]
+version = "0.1.0"
