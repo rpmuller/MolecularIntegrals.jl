@@ -1,3 +1,6 @@
+
+export pgbf, cgbf
+
 type PGBF
     expn::Float64
     x::Float64
@@ -20,6 +23,7 @@ function amplitude(bf::PGBF,x,y,z)
     r2 = dist2(dx,dy,dz)
     return bf.norm*(dx^bf.I)*(dy^bf.J)*(dz^bf.K)*exp(-bf.expn*r2)
 end
+(bf::PGBF)(x,y,z) = amplitude(bf::PGBF,x,y,z)
 
 function normalize!(pbf::PGBF)
     pbf.norm /= sqrt(overlap(pbf,pbf))
@@ -46,6 +50,7 @@ function amplitude(bf::CGBF,x,y,z)
     end
     return bf.norm*s
 end
+(bf::CGBF)(x,y,z) = amplitude(bf::CGBF,x,y,z)
 
 function normalize!(bf::CGBF)
     bf.norm /= sqrt(overlap(bf,bf))
