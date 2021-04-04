@@ -23,3 +23,12 @@ end
     addbf!(c2,0.5,0.2)
     @test overlap(c2,c2) ≈ 1
 end
+
+@testset "One Electron Integrals" begin
+    @test kinetic(1.0, 0.0,0.0,0.0, 0,0,0, 1.0, 0.0,0.0,0.0, 0,0,0) ≈ 2.9530518648229536
+    s = pgbf(1.0)
+    @test kinetic(s,s) ≈ 1.5
+    c = cgbf(0.0,0.0,0.0)
+    addbf!(c,1,1)
+    @test kinetic(c,c) ≈ 1.5
+end
