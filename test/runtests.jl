@@ -1,5 +1,15 @@
 using MolecularIntegrals, Test
 
+@testset "Utils" begin
+    @test factorial2(6)==48
+    @test collect(ipairs(3)) == [(1,1),(2,1),(2,2),(3,1),(3,2),(3,3)]
+    @test collect(spairs(3))== [(2,1),(3,1),(3,2)]
+    @test collect(rpairs(2)) == [(1,1),(1,2),(2,1),(2,2)]
+    @test iindex(1,1,1,1) == 1
+    @test iindex(1,1,1,2) == iindex(1,1,2,1) == iindex(1,2,1,1) == iindex(2,1,1,1) == 2
+    @test iindex(1,1,2,2) == iindex(2,2,1,1) == 4
+end
+
 @testset "Basis" begin
     s = pgbf(1.0)
     px = pgbf(1.0,0,0,0,1,0,0)
