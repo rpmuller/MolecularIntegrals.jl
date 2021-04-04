@@ -1,6 +1,7 @@
 using SpecialFunctions
 
-export overlap, kinetic, nuclear_attraction
+export overlap, kinetic, nuclear_attraction, overlap1d,
+    gaussian_product_center, binomial_prefactor
 
 function overlap(a::PGBF,b::PGBF)
     return a.norm*b.norm*overlap(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,

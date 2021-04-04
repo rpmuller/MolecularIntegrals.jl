@@ -27,10 +27,19 @@ end
 @testset "One Electron Integrals" begin
     @test kinetic(1.0, 0.0,0.0,0.0, 0,0,0, 1.0, 0.0,0.0,0.0, 0,0,0) ≈ 2.9530518648229536
     s = pgbf(1.0)
+    px = pgbf(1.0,0,0,0,1,0,0)
     @test kinetic(s,s) ≈ 1.5
     c = cgbf(0.0,0.0,0.0)
     addbf!(c,1,1)
     @test kinetic(c,c) ≈ 1.5
     @test nuclear_attraction(s,s,0.0,0.0,0.0) ≈ -1.59576912
     @test nuclear_attraction(c,c,0.0,0.0,0.0) ≈ -1.59576912
+
+    @test overlap1d(0,0,0.0,0.0,1.0) == 1
+    @test gaussian_product_center(s,s) == [0,0,0]
+    @test overlap(s,s) ≈ 1
+    @test overlap(px,px) ≈ 1
+    @test overlap(s,px) ≈ 0
+    @test binomial_prefactor(0,0,0,0.0,0.0) == 1
+    @test overlap(c,c) ≈ 1
 end
