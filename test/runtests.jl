@@ -43,3 +43,18 @@ end
     @test binomial_prefactor(0,0,0,0.0,0.0) == 1
     @test overlap(c,c) ≈ 1
 end
+
+@testset "Aterm/Aarray" begin
+    @test Aterm(0,0,0,0,0,0,0,0,0) == 1.0
+    @test Aarray(0,0,0,0,0,1) == [1.0]
+    @test Aarray(0,1,1,1,1,1) == [1.0, -1.0]
+    @test Aarray(1,1,1,1,1,1) == [1.5, -2.5, 1.0]
+    @test Aterm(0,0,0,0,0,0,0,0,1) == 1.0
+    @test Aterm(0,0,0,0,1,1,1,1,1) == 1.0
+    @test Aterm(1,0,0,0,1,1,1,1,1) == -1.0
+    @test Aterm(0,0,0,1,1,1,1,1,1) == 1.0
+    @test Aterm(1,0,0,1,1,1,1,1,1) == -2.0
+    @test Aterm(2,0,0,1,1,1,1,1,1) == 1.0
+    @test Aterm(2,0,1,1,1,1,1,1,1) == -0.5
+    @test Aterm(2,1,0,1,1,1,1,1,1) == 0.5
+end

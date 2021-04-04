@@ -1,7 +1,7 @@
 using SpecialFunctions
 
 export overlap, kinetic, nuclear_attraction, overlap1d,
-    gaussian_product_center, binomial_prefactor
+    gaussian_product_center, binomial_prefactor, Aterm, Aarray
 
 function overlap(a::PGBF,b::PGBF)
     return a.norm*b.norm*overlap(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
@@ -25,12 +25,12 @@ function gaussian_product_center(a::PGBF,b::PGBF)
     return (a.expn*[a.x,a.y,a.z]+b.expn*[b.x,b.y,b.z])/(a.expn+b.expn)
 end
 
-function gaussian_product_center(aexpn::Float64,ax::Float64,ay::Float64,az::Float64,
-        bexpn::Float64,bx::Float64,by::Float64,bz::Float64)
+function gaussian_product_center(aexpn,ax,ay,az,
+        bexpn,bx,by,bz)
     return (aexpn*[ax,ay,az]+bexpn*[bx,by,bz])/(aexpn+bexpn)    
 end
 
-function overlap1d(la::Int64,lb::Int64,ax::Float64,bx::Float64,gamma::Float64)
+function overlap1d(la,lb,ax,bx,gamma)
     total = 0
     for i in 0:div(la+lb,2)
         total += binomial_prefactor(2i,la,lb,ax,bx)*factorial2(2i-1)/(2gamma)^i
@@ -38,7 +38,7 @@ function overlap1d(la::Int64,lb::Int64,ax::Float64,bx::Float64,gamma::Float64)
     return total
 end
 
-function binomial_prefactor(s::Int64,ia::Int64,ib::Int64,xpa::Float64,xpb::Float64)
+function binomial_prefactor(s,ia,ib,xpa,xpb)
     #println("binomial_prefactor($s,$ia,$ib,$xpa,$xpb)")
     total = 0
     for t in 0:s
@@ -54,9 +54,9 @@ function kinetic(a::PGBF,b::PGBF)
                                 b.expn,b.x,b.y,b.z,b.I,b.J,b.K)
 end
 
-function kinetic(aexpn::Float64,ax::Float64,ay::Float64,az::Float64,
-                 aI::Int,aJ::Int,aK::Int,bexpn::Float64,bx::Float64,
-                 by::Float64,bz::Float64,bI::Int,bJ::Int,bK::Int)
+function kinetic(aexpn,ax,ay,az,
+                 aI,aJ,aK,bexpn,bx,
+                 by,bz,bI,bJ,bK)
     overlap0 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
     overlapx1 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI+2,bJ,bK)
     overlapy1 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ+2,bK)
@@ -93,11 +93,11 @@ function Aarray(l1,l2,a,b,c,g)
     return A
 end
 
-function nuclear_attraction(aexpn::Float64,ax::Float64,ay::Float64,az::Float64,
-                            aI::Int64,aJ::Int64,aK::Int64,
-                            bexpn::Float64,bx::Float64,by::Float64,bz::Float64,
-                            bI::Int64,bJ::Int64,bK::Int64,
-                            cx::Float64,cy::Float64,cz::Float64)
+function nuclear_attraction(aexpn,ax,ay,az,
+                            aI,aJ,aK,
+                            bexpn,bx,by,bz,
+                            bI,bJ,bK,
+                            cx,cy,cz)
     px,py,pz = gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
     gamma = aexpn+bexpn
     rab2 = dist2(ax-bx,ay-by,az-bz)
@@ -117,7 +117,7 @@ function nuclear_attraction(aexpn::Float64,ax::Float64,ay::Float64,az::Float64,
     return val
 end
 
-function nuclear_attraction(a::PGBF,b::PGBF,cx::Float64,cy::Float64,cz::Float64)
+function nuclear_attraction(a::PGBF,b::PGBF,cx,cy,cz)
     return a.norm*b.norm*nuclear_attraction(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
                                             b.expn,b.x,b.y,b.z,b.I,b.J,b.K,cx,cy,cz)
 end
@@ -129,7 +129,7 @@ function Fgamma(m,x,SMALL=1e-12)
     return 0.5*x^(-m-0.5)*gammainc(m+0.5,x)
 end
 
-function gammainc(a::Float64,x::Float64)
+function gammainc(a,x)
     # This is the series version of gamma from pyquante. For reasons I don't get, it 
     # doesn't work around a=1. This works alright, but is only a stopgap solution
     # until Julia gets an incomplete gamma function programmed
@@ -148,7 +148,7 @@ function gammainc(a::Float64,x::Float64)
 end
 
 function gser(a,x,ITMAX=100,EPS=3e-9)
-    # Series representation of Gamma. NumRec sect 6.1.
+    # Series representation of Gamma. NumberRec sect 6.1.
     gln=loggamma(a)
     if x == 0
         return 0,gln
@@ -166,7 +166,7 @@ function gser(a,x,ITMAX=100,EPS=3e-9)
     return s*exp(-x+a*log(x)-gln),gln
 end
 
-function gcf(a::Float64,x::Float64,ITMAX::Int64=200,EPS::Float64=3e-9,FPMIN::Float64=1e-30)
+function gcf(a,x,ITMAX=200,EPS=3e-9,FPMIN=1e-30)
     #Continued fraction representation of Gamma. NumRec sect 6.1"
     gln=loggamma(a)
     b=x+1.0-a
