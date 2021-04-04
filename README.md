@@ -2,7 +2,7 @@
 
 | Status | Coverage |
 | :----: | :----: |
-| [![Build Status](https://travis-ci.org/rpmuller/MolecularIntegrals.jl.svg?branch=master)](https://travis-ci.org/rpmuller/MolecularIntegrals.jl) | [![codecov.io](http://codecov.io/github/rpmuller/MolecularIntegrals.jl/coverage.svg?branch=master)](http://codecov.io/github/rpmuller/MolecularIntegrals.jl?branch=master) |
+| [![Build Status](https://travis-ci.com/rpmuller/MolecularIntegrals.jl.svg?branch=master)](https://travis-ci.org/rpmuller/MolecularIntegrals.jl) | [![codecov.io](http://codecov.io/github/rpmuller/MolecularIntegrals.jl/coverage.svg?branch=master)](http://codecov.io/github/rpmuller/MolecularIntegrals.jl?branch=master) |
 
 
 The goal of MolecularIntegrals.jl is to supply **fast** and
