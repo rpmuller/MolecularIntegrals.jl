@@ -69,6 +69,8 @@ end
     @test coulomb(s,s,s,s) ≈ 1.128379167
     @test coulomb(c,c,c,c) ≈ 1.128379167
     @test coulomb(1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0) ≈ 1.6088672396
+    @test coulomb(c,c,c2,c2) ≈ 1.0343247
+    @test coulomb(s,s,px,px) ≈ 1.16599181
 end
 
 end
