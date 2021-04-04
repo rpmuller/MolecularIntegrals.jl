@@ -123,10 +123,15 @@ end
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
 nuclear_attraction(a::PGBF,b::PGBF,m::Molecule) = sum([nuclear_attraction(a,b,c) for c in m.atomlist])
 
-function Fgamma(m,x,SMALL=1e-12)
+function Fgamma(m,x,SMALL=1e-18)
     x = max(x,SMALL) # Evidently needs underflow protection
     return 0.5*x^(-m-0.5)*gammainc(m+0.5,x)
 end
+
+"gammainc returns the lower incomplete gamma function"
+gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
+
+#= Commenting out old gammainc code:
 
 function gammainc(a,x)
     # This is the series version of gamma from pyquante. For reasons I
@@ -194,6 +199,7 @@ function gcf(a,x,ITMAX=200,EPS=3e-9,FPMIN=1e-30)
     gammcf = exp(-x+a*log(x)-gln)*h
     return gammcf,gln
 end
+=#
 
 # Need a nested scope to squeeze this into the contract function
 function nuclear_attraction(a::CGBF,b::CGBF,cx,cy,cz)
