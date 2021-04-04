@@ -113,8 +113,6 @@ function nuclear_attraction(aexpn::Float64,ax::Float64,ay::Float64,az::Float64,
         end
     end
     val=-2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
-    #println(val)
-    #println((Ax,Ay,Az,rcp2*gamma,Fgamma(0,rcp2*gamma)))
     return val
 end
 
@@ -122,11 +120,10 @@ function nuclear_attraction(a::PGBF,b::PGBF,cx::Float64,cy::Float64,cz::Float64)
     return a.norm*b.norm*nuclear_attraction(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
                                             b.expn,b.x,b.y,b.z,b.I,b.J,b.K,cx,cy,cz)
 end
-#nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
-#nuclear_attraction(a::PGBF,b::PGBF,m::Molecule) = sum([nuclear_attraction(a,b,c) for c in m.atomlist])
+nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
+nuclear_attraction(a::PGBF,b::PGBF,m::Molecule) = sum([nuclear_attraction(a,b,c) for c in m.atomlist])
 
 function Fgamma(m,x,SMALL=1e-12)
-    #println("Fgamma($m,$x)")
     x = max(x,SMALL) # Evidently needs underflow protection
     return 0.5*x^(-m-0.5)*gammainc(m+0.5,x)
 end
@@ -202,11 +199,11 @@ function nuclear_attraction(a::CGBF,b::CGBF,cx,cy,cz)
     na(a,b) = nuclear_attraction(a,b,cx,cy,cz)
     contract(na,a,b)
 end
-#function nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
-#    na(a,b) = nuclear_attraction(a,b,c)
-#    contract(na,a,b)
-#end
-#function nuclear_attraction(a::CGBF,b::CGBF,m::Molecule)
-#    na(a,b) = nuclear_attraction(a,b,m)
-#    contract(na,a,b)
-#end
+function nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
+    na(a,b) = nuclear_attraction(a,b,c)
+    contract(na,a,b)
+end
+function nuclear_attraction(a::CGBF,b::CGBF,m::Molecule)
+    na(a,b) = nuclear_attraction(a,b,m)
+    contract(na,a,b)
+end
