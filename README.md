@@ -1,5 +1,10 @@
 # MolecularIntegrals.jl
 
+| Status | Coverage |
+| :----: | :----: |
+| [![Build Status](https://travis-ci.org/rpmuller/MolecularIntegrals.jl.svg?branch=master)](https://travis-ci.org/rpmuller/MolecularIntegrals.jl) | [![codecov.io](http://codecov.io/github/rpmuller/MolecularIntegrals.jl/coverage.svg?branch=master)](http://codecov.io/github/rpmuller/MolecularIntegrals.jl?branch=master) |
+
+
 The goal of MolecularIntegrals.jl is to supply **fast** and
 **hackable** one- and two-electron integrals. There are a lot of
 excellent molecular integral packages in Julia, but few are written
