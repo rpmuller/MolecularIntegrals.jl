@@ -129,9 +129,10 @@ function Fgamma(m,x,SMALL=1e-12)
 end
 
 function gammainc(a,x)
-    # This is the series version of gamma from pyquante. For reasons I don't get, it 
-    # doesn't work around a=1. This works alright, but is only a stopgap solution
-    # until Julia gets an incomplete gamma function programmed
+    # This is the series version of gamma from pyquante. For reasons I
+    # don't get, it doesn't work around a=1. This works alright, but
+    # is only a stopgap solution until Julia gets an incomplete gamma
+    # function programmed
     if abs(a-1) < 1e-3
         println("Warning: gammainc_series is known to have problems for a ~ 1")
     end
