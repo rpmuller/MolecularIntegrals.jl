@@ -1,7 +1,7 @@
 
-export pgbf, cgbf
+export pgbf, cgbf, contract
 
-type PGBF
+mutable struct PGBF
     expn::Float64
     x::Float64
     y::Float64
@@ -29,7 +29,7 @@ function normalize!(pbf::PGBF)
     pbf.norm /= sqrt(overlap(pbf,pbf))
 end
 
-type CGBF
+mutable struct CGBF
     x::Float64
     y::Float64
     z::Float64
@@ -37,11 +37,11 @@ type CGBF
     J::Int64
     K::Int64
     norm::Float64
-    pgbfs::Array{PGBF,1}
-    coefs::Array{Float64,1}
+    pgbfs::Vector{PGBF}
+    coefs::Vector{Float64}
 end
 
-cgbf(x=0,y=0,z=0,I=0,J=0,K=0) = CGBF(x,y,z,I,J,K,1.0,PGBF[],Float64[])
+cgbf(x=0,y=0,z=0,I=0,J=0,K=0) = CGBF(x,y,z,I,J,K,1.0,[],[])
 
 function amplitude(bf::CGBF,x,y,z)
     s = 0
