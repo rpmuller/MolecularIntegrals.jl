@@ -15,8 +15,8 @@ MolecularIntegrals.jl will do its best to leverage the wonderful work done by ma
 
 - [libints](https://github.com/evaleev/libint) and its Julia bindings [Lints.jl](https://github.com/FermiQC/Lints.jl)
 - [Pyscf](https://github.com/pyscf/pyscf), the [libcint](https://github.com/sunqm/libcint) package, and the Julia bindings ???
-- JuliaChem.jl's JERI bindings
-- PyQuante's python and c integrals, and the experimental Julia version
+- [JuliaChem.jl](https://github.com/davpoolechem/JuliaChem.jl)'s [JERI bindings](https://github.com/davpoolechem/JuliaChem.jl/tree/development/deps/src)
+- [PyQuante](https://github.com/rpmuller/pyquante2)'s [python](https://github.com/rpmuller/pyquante2/tree/master/pyquante2/ints) and [c/cython](https://github.com/rpmuller/pyquante2/tree/master/cython) integrals, and the experimental [Julia version](https://github.com/rpmuller/pyquante2/tree/master/julia)
 
 
 ## Timing comparison
