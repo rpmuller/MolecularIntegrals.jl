@@ -1,5 +1,5 @@
 
-export pgbf, cgbf, contract, addbf!#, PGBF, CGBF
+export pgbf, cgbf, contract, addbf!, PGBF, CGBF
 
 mutable struct PGBF
     expn::Float64

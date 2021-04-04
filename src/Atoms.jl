@@ -1,3 +1,5 @@
+export Atom, Molecule
+
 mutable struct Atom
     atno::Int
     x::Float64
