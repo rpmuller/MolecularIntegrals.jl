@@ -35,26 +35,26 @@ end
     @test nuclear_attraction(s,s,0.0,0.0,0.0) ≈ -1.59576912
     @test nuclear_attraction(c,c,0.0,0.0,0.0) ≈ -1.59576912
 
-    @test overlap1d(0,0,0.0,0.0,1.0) == 1
-    @test gaussian_product_center(s,s) == [0,0,0]
+    @test MolecularIntegrals.overlap1d(0,0,0.0,0.0,1.0) == 1
+    @test MolecularIntegrals.gaussian_product_center(s,s) == [0,0,0]
     @test overlap(s,s) ≈ 1
     @test overlap(px,px) ≈ 1
     @test overlap(s,px) ≈ 0
-    @test binomial_prefactor(0,0,0,0.0,0.0) == 1
+    @test MolecularIntegrals.binomial_prefactor(0,0,0,0.0,0.0) == 1
     @test overlap(c,c) ≈ 1
 end
 
 @testset "Aterm/Aarray" begin
-    @test Aterm(0,0,0,0,0,0,0,0,0) == 1.0
-    @test Aarray(0,0,0,0,0,1) == [1.0]
-    @test Aarray(0,1,1,1,1,1) == [1.0, -1.0]
-    @test Aarray(1,1,1,1,1,1) == [1.5, -2.5, 1.0]
-    @test Aterm(0,0,0,0,0,0,0,0,1) == 1.0
-    @test Aterm(0,0,0,0,1,1,1,1,1) == 1.0
-    @test Aterm(1,0,0,0,1,1,1,1,1) == -1.0
-    @test Aterm(0,0,0,1,1,1,1,1,1) == 1.0
-    @test Aterm(1,0,0,1,1,1,1,1,1) == -2.0
-    @test Aterm(2,0,0,1,1,1,1,1,1) == 1.0
-    @test Aterm(2,0,1,1,1,1,1,1,1) == -0.5
-    @test Aterm(2,1,0,1,1,1,1,1,1) == 0.5
+    @test MolecularIntegrals.Aterm(0,0,0,0,0,0,0,0,0) == 1.0
+    @test MolecularIntegrals.MolecularIntegrals.Aarray(0,0,0,0,0,1) == [1.0]
+    @test MolecularIntegrals.Aarray(0,1,1,1,1,1) == [1.0, -1.0]
+    @test MolecularIntegrals.Aarray(1,1,1,1,1,1) == [1.5, -2.5, 1.0]
+    @test MolecularIntegrals.Aterm(0,0,0,0,0,0,0,0,1) == 1.0
+    @test MolecularIntegrals.Aterm(0,0,0,0,1,1,1,1,1) == 1.0
+    @test MolecularIntegrals.Aterm(1,0,0,0,1,1,1,1,1) == -1.0
+    @test MolecularIntegrals.Aterm(0,0,0,1,1,1,1,1,1) == 1.0
+    @test MolecularIntegrals.Aterm(1,0,0,1,1,1,1,1,1) == -2.0
+    @test MolecularIntegrals.Aterm(2,0,0,1,1,1,1,1,1) == 1.0
+    @test MolecularIntegrals.Aterm(2,0,1,1,1,1,1,1,1) == -0.5
+    @test MolecularIntegrals.Aterm(2,1,0,1,1,1,1,1,1) == 0.5
 end
