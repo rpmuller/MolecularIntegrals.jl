@@ -1,5 +1,5 @@
 
-export pgbf, cgbf, contract, addbf!, PGBF, CGBF
+export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
 mutable struct PGBF
     expn::Float64
@@ -108,7 +108,7 @@ function build_basis(mol::Molecule,name="sto3g")
                 cbf = cgbf(atom.x,atom.y,atom.z,I,J,K)
                 push!(basis_set,cbf)
                 for (expn,coef) in primlist
-                    push!(cbf,expn,coef)
+                    addbf!(cbf,expn,coef)
                 end
             end
         end

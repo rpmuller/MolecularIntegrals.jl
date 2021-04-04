@@ -1,3 +1,5 @@
+export sto3g, h2, h2o, ch4, c6h6, lih
+
 # TODO: Move these into appropriate places, e.g. a data directory
 
 sto3g = [
