@@ -1,5 +1,5 @@
 
-export pgbf, cgbf, contract
+export pgbf, cgbf, contract, addbf!#, PGBF, CGBF
 
 mutable struct PGBF
     expn::Float64
@@ -58,7 +58,7 @@ end
 
 primitives(a::CGBF) = zip(a.coefs,a.pgbfs)
 
-function push!(cbf::CGBF,expn,coef)
+function addbf!(cbf::CGBF,expn,coef)
     Base.push!(cbf.pgbfs,pgbf(expn,cbf.x,cbf.y,cbf.z,cbf.I,cbf.J,cbf.K))
     Base.push!(cbf.coefs,coef)
     normalize!(cbf)
