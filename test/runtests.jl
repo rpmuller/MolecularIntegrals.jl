@@ -31,4 +31,6 @@ end
     c = cgbf(0.0,0.0,0.0)
     addbf!(c,1,1)
     @test kinetic(c,c) ≈ 1.5
+    @test nuclear_attraction(s,s,0.0,0.0,0.0) ≈ -1.59576912
+    @test nuclear_attraction(c,c,0.0,0.0,0.0) ≈ -1.59576912
 end
