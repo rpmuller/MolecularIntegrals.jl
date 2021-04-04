@@ -1,7 +1,7 @@
 module MolecularIntegrals
 
-include("Basis.jl")
 include("Atoms.jl")
+include("Basis.jl")
 include("OneInts.jl")
 include("Utils.jl")
 include("ERI.jl")
