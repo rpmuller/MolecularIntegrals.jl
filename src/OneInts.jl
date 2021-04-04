@@ -123,6 +123,7 @@ end
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
 nuclear_attraction(a::PGBF,b::PGBF,m::Molecule) = sum([nuclear_attraction(a,b,c) for c in m.atomlist])
 
+"Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18)
     x = max(x,SMALL) # Evidently needs underflow protection
     return 0.5*x^(-m-0.5)*gammainc(m+0.5,x)
