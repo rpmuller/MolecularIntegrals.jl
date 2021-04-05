@@ -62,7 +62,8 @@ function Barray(l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
                 for r2 in 0:div(i2,2)
                     for u in 0:(div(i1+i2,2)-r1-r2)
                         I = i1+i2-2*(r1+r2)-u
-                        B[I+1] += Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
+                        B[I+1] += Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,
+                                        p,a,b,q,c,d,g1,g2,delta)
                     end
                 end
             end

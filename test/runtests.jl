@@ -115,14 +115,6 @@ addbf!(c2,0.5,0.2)
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,M)
             @test isapprox(val1,val2)
             @test isapprox(val1,result)
-            val3 = MolecularIntegrals.vrr_iter(
-                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,M)
-            val4 = MolecularIntegrals.vrr_iter(
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,
-                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,M)
-            #@test isapprox(val3,val4)
-            #@test isapprox(val3,result)
         end
         
     end
@@ -160,8 +152,6 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 0,1,1, 0,1,1, 2.5333243119843164e-7),
             (3.,2.,1., 1,0,1, 1,0,1, 2.452115184675799e-6)
         ]
-            #println("hrr($aexpn,$ax,$ay,$az,$aI,$aJ,$aK,$bexpn,$bx,$by,$bz,$bI,$bJ,$bK,")
-            #println("    $cexpn,$cx,$cy,$cz,$cI,$cJ,$cK,$dexpn,$dx,$dy,$dz,$dI,$dJ,$dK)")
             val1 = MolecularIntegrals.hrr(
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
                 cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
