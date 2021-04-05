@@ -215,3 +215,17 @@ function nuclear_attraction(a::CGBF,b::CGBF,m::Molecule)
     na(a,b) = nuclear_attraction(a,b,m)
     contract(na,a,b)
 end
+
+function all_1e_ints(bfs::BasisSet,mol::Molecule)
+    n = length(bfs.bfs)
+    S = Array{Float64}(n,n)
+    T = Array{Float64}(n,n)
+    V = Array{Float64}(n,n)
+    for (i,j) in pairs(n)
+        a,b = bfs.bfs[i],bfs.bfs[j]
+        S[i,j] = S[j,i] = overlap(a,b)
+        T[i,j] = T[j,i] = kinetic(a,b)
+        V[i,j] = V[j,i] = nuclear_attraction(a,b,mol)
+    end
+    return S,T,V
+end

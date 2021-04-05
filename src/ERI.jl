@@ -72,3 +72,31 @@ function Barray(l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
 end
 
 coulomb(a::CGBF,b::CGBF,c::CGBF,d::CGBF) = contract(coulomb,a,b,c,d)
+
+function all_twoe_ints(bflist,ERI=coulomb)
+    n = length(bflist.bfs)
+    totlen = div(n*(n+1)*(n*n+n+2),8)
+    ints2e = Array{Float64}(totlen)
+    for (i,j,k,l) in iiterator(n)
+        ints2e[iindex(i,j,k,l)] = ERI(bflist.bfs[i],bflist.bfs[j],bflist.bfs[k],bflist.bfs[l])
+    end
+    return ints2e
+end
+
+function make2JmK(D::Array{Float64,2},Ints::Array{Float64,1})
+    n = size(D,1)
+    G = Array{Float64}(n,n)
+    D1 = reshape(D,n*n)
+    temp = Array{Float64}(n*n)
+    for (i,j) in pairs(n)
+        kl = 1
+        for (k,l) in rpairs(n)
+            temp[kl] = 2*Ints[iindex(i,j,k,l)]-Ints[iindex(i,k,j,l)]
+            kl += 1
+        end
+        G[i,j] = G[j,i] = dot(D1,temp)
+    end
+    return G
+end
+
+dmat(U::Array{Float64,2},nocc::Int64) = U[:,1:nocc]*U[:,1:nocc]'
