@@ -71,7 +71,107 @@ addbf!(c2,0.5,0.2)
         @test coulomb(1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0) ≈ 1.6088672396
         @test coulomb(c,c,c2,c2) ≈ 1.0343247
         @test coulomb(s,s,px,px) ≈ 1.16599181
-end
+    end
+
+    @testset "VRR tests" begin
+        ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
+        aexpn=bexpn=cexpn=dexpn=1.0
+        aI=aJ=aK=0
+        cI=cJ=cK=0
+        M=0
+
+        for (ax,ay,az, aI,aJ,aK, cI,cJ,cK, result) in [
+            (0.,0.,0., 0,0,0, 0,0,0, 4.37335456733),
+            (0.,0.,0., 1,0,0, 1,0,0, 0.182223107579),
+            (0.,0.,0., 0,1,0, 0,1,0, 0.182223107579),
+            (0.,0.,0., 0,0,1, 0,0,1, 0.182223107579),
+
+            (0.,0.,0., 2,0,0, 2,0,0,  0.223223306785),
+            (0.,0.,0., 0,2,0, 0,2,0,  0.223223306785),
+            (0.,0.,0., 0,0,2, 0,0,2,  0.223223306785),
+
+            (1.,2.,3., 1,0,0, 1,0,0, -5.63387712455e-06),
+            (1.,2.,3., 0,1,0, 0,1,0, -0.000116463120359),
+            (1.,2.,3., 0,0,1, 0,0,1, -0.000301178525749),
+
+            (1.,2.,3., 2,0,0, 2,0,0, 0.00022503308545040895),
+            (1.,2.,3., 0,2,0, 0,2,0, 0.0006102470883881907),
+            (1.,2.,3., 0,0,2, 0,0,2, 0.0013427831014563411),
+
+            (0.,0.,0., 1,1,0, 1,1,0, 0.0136667330685),
+            (0.,0.,0., 0,1,1, 0,1,1, 0.0136667330685),
+            (0.,0.,0., 1,0,1, 1,0,1, 0.0136667330685),
+
+            (3.,2.,1., 1,1,0, 1,1,0, 5.976771621486971e-5),
+            (3.,2.,1., 0,1,1, 0,1,1, 1.5742904443905067e-6),
+            (3.,2.,1., 1,0,1, 1,0,1, 4.00292848649699e-6)
+        ]
+
+            val1 = MolecularIntegrals.vrr(
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,M)
+            val2 = MolecularIntegrals.vrr(
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,M)
+            @test isapprox(val1,val2)
+            @test isapprox(val1,result)
+            val3 = MolecularIntegrals.vrr_iter(
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,M)
+            val4 = MolecularIntegrals.vrr_iter(
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,M)
+            #@test isapprox(val3,val4)
+            #@test isapprox(val3,result)
+        end
+        
+    end
+    @testset "HRR tests" begin
+        ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
+        aexpn=bexpn=cexpn=dexpn=1.0
+        aI=aJ=aK=0
+        bI,bJ,bK = 1,0,1
+        cI=cJ=cK=0
+        dI,dJ,dK = 1,0,1
+
+        for (ax,ay,az, aI,aJ,aK, cI,cJ,cK, result) in [
+            (0.,0.,0., 0,0,0, 0,0,0, 0.0136667330685),
+            (0.,0.,0., 1,0,0, 1,0,0, 0.00821630976139),
+            (0.,0.,0., 0,1,0, 0,1,0, 0.00122024402397),
+            (0.,0.,0., 0,0,1, 0,0,1, 0.00821630976139),
+
+            (0.,0.,0., 2,0,0, 2,0,0,   0.0039759617781),
+            (0.,0.,0., 0,2,0, 0,2,0,   0.000599953311785),
+            (0.,0.,0., 0,0,2, 0,0,2,  0.0039759617781),
+
+            (1.,2.,3., 1,0,0, 1,0,0, -1.1851316496333975e-6),
+            (1.,2.,3., 0,1,0, 0,1,0,  -4.669991667384835e-6),
+            (1.,2.,3., 0,0,1, 0,0,1, -3.474373852654044e-5),
+
+            (1.,2.,3., 2,0,0, 2,0,0, 2.81002247462e-6),
+            (1.,2.,3., 0,2,0, 0,2,0, 7.09856891538e-6),
+            (1.,2.,3., 0,0,2, 0,0,2, 3.62153023224e-5),
+
+            (0.,0.,0., 1,1,0, 1,1,0, 0.000599953311785),
+            (0.,0.,0., 0,1,1, 0,1,1, 0.000599953311785),
+            (0.,0.,0., 1,0,1, 1,0,1, 0.0116431617287),
+
+            (3.,2.,1., 1,1,0, 1,1,0, 7.37307761485e-6),
+            (3.,2.,1., 0,1,1, 0,1,1, 2.5333243119843164e-7),
+            (3.,2.,1., 1,0,1, 1,0,1, 2.452115184675799e-6)
+        ]
+            #println("hrr($aexpn,$ax,$ay,$az,$aI,$aJ,$aK,$bexpn,$bx,$by,$bz,$bI,$bJ,$bK,")
+            #println("    $cexpn,$cx,$cy,$cz,$cI,$cJ,$cK,$dexpn,$dx,$dy,$dz,$dI,$dJ,$dK)")
+            val1 = MolecularIntegrals.hrr(
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
+            val2 = MolecularIntegrals.hrr(
+                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK,
+                aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
+            @test isapprox(val1,val2)
+            @test isapprox(val1,result)
+        end
+    end
 
     @testset "Molecular basis" begin
         bfs = build_basis(h2)
