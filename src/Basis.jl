@@ -99,7 +99,7 @@ function push!(basis::BasisSet,cbf::CGBF)
 end
 
 function build_basis(mol::Molecule,name="sto3g")
-    data = basis_set_data[name]
+    data = basis_data[name]
     basis_set = basisset()
     for atom in mol.atomlist
         for btuple in data[atom.atno]
