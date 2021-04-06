@@ -69,12 +69,25 @@ c6h6 = Molecule([ Atom(6,  0.98735329,     0.98735329,     0.00000000),
 lih = Molecule([Atom(3,    0.00000000,     0.00000000,    -0.53999756),
                 Atom(1,    0.00000000,     0.00000000,     1.08999756)])
 
+ethane = Molecule([Atom(6,   -0.759130,   0.027045,  -0.000000),
+                   Atom(6,    0.759130,  -0.027045,  -0.000000),
+                   Atom(1,   -1.125990,   0.306235,   1.010150),
+                   Atom(1,   -1.171340,  -0.966695,  -0.274750),
+                   Atom(1,   -1.109050,   0.781825,  -0.735390),
+                   Atom(1,    1.109040,  -0.781815,   0.735390),
+                   Atom(1,    1.171340,   0.966695,   0.274760),
+                   Atom(1,    1.125990,  -0.306235,  -1.010150)])
+
+
+         
+
 # Convert to atomic units (bohr)
 tobohr!(h2)
 tobohr!(h2o)
 tobohr!(ch4)
 tobohr!(c6h6)
 tobohr!(lih)
+tobohr!(ethane)
 
 # Other molecule methods to implement
 # nocc, nclosed, nopen, nup, ndown, stoich, mass,
