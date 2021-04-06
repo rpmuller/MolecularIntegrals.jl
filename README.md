@@ -33,3 +33,15 @@ As a starting point to motivate the development, we will consider Table 5 from t
 | aug-cc-pVTZ | 230  | 26.03  | 23.12  | 12.40   | 9.27   |
 | cc-pVQZ     | 290  | 81.24  | 65.12  | 31.51   | 22.60  |
 | aug-cc-pVQZ | 436  | 444.23 | 324.29 | 151.04  | 107.24 |
+
+### Preliminary Julia Timings for Ethane/6-31G
+Compare to roughly 0.1 sec albeit on completely different hardware. This is mostly just to set a crude benchmark to compare coding improvements to.
+
+| Method           | Timing |
+| ---------------- | ------ |
+| Huzinaga/Coulomb | 7.33   |
+| HGP              | 44.1   |
+
+Seriously?! The Huzinaga and HGP methods show 7.1 and 44.1 seconds, respectively. The HGP time is very surprising: this was once relatively fast. I guess it shouldn't be too hard to find efficiencies!
+
+Using StaticArrays in Barray appears to slow things down?

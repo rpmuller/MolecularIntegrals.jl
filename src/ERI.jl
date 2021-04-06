@@ -1,5 +1,7 @@
 export coulomb
 
+#using StaticArrays
+
 function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     bexpn,bx,by,bz,bI,bJ,bK,
     cexpn,cx,cy,cz,cI,cJ,cK,
@@ -21,17 +23,24 @@ function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     Bx = Barray(aI,bI,cI,dI,px,ax,bx,qx,cx,dx,g1,g2,delta)
     By = Barray(aJ,bJ,cJ,dJ,py,ay,by,qy,cy,dy,g1,g2,delta)
     Bz = Barray(aK,bK,cK,dK,pz,az,bz,qz,cz,dz,g1,g2,delta)
-    
+
+    Isum = aI+bI+cI+dI
+    Jsum = aJ+bJ+cJ+dJ
+    Ksum = aK+bK+cK+dK
+    x = 0.25*rpq2/delta
+
     s = 0
-    for I in 0:(aI+bI+cI+dI)
-        for J in 0:(aJ+bJ+cJ+dJ)
-            for K in 0:(aK+bK+cK+dK)
-                s += Bx[I+1]*By[J+1]*Bz[K+1]*Fgamma(I+J+K,0.25*rpq2/delta)
+    for I in 0:Isum
+        for J in 0:Jsum
+            for K in 0:Ksum
+                s += Bx[I+1]*By[J+1]*Bz[K+1]*Fgamma(I+J+K,x)
             end
         end
     end
+
     return 2*pi^(2.5)/(g1*g2*sqrt(g1+g2))*exp(-aexpn*bexpn*rab2/g1)*exp(-cexpn*dexpn*rcd2/g2)*s
 end
+
 
 function coulomb(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
     return a.norm*b.norm*c.norm*d.norm*coulomb(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
@@ -77,7 +86,7 @@ coulomb(a::CGBF,b::CGBF,c::CGBF,d::CGBF) = contract(coulomb,a,b,c,d)
 function all_twoe_ints(bflist,ERI=coulomb)
     n = length(bflist.bfs)
     totlen = div(n*(n+1)*(n*n+n+2),8)
-    ints2e = Array{Float64}(totlen)
+    ints2e = zeros(Float64,totlen)
     for (i,j,k,l) in iiterator(n)
         ints2e[iindex(i,j,k,l)] = ERI(bflist.bfs[i],bflist.bfs[j],bflist.bfs[k],bflist.bfs[l])
     end

@@ -56,7 +56,6 @@ function vrr(aexpn,ax,ay,az,aI,aJ,aK,
     qx,qy,qz = gaussian_product_center(cexpn,cx,cy,cz,dexpn,dx,dy,dz)
     zeta,eta = aexpn+bexpn,cexpn+dexpn
     wx,wy,wz = gaussian_product_center(zeta,px,py,pz,eta,qx,qy,qz)
-    #println("P: $px,$py,$pz, Q: $qx,$qy,$qz, W: $wx,$wy,$wz, $zeta,$eta")
     
     val = 0
     if cK>0
@@ -64,7 +63,6 @@ function vrr(aexpn,ax,ay,az,aI,aJ,aK,
             cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m) +
             (wz-qz)*vrr(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
                 cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m+1)
-        #println("val1=$val")
         if cK>1
             val += 0.5*(cK-1)/eta*(
                 vrr(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
@@ -72,14 +70,12 @@ function vrr(aexpn,ax,ay,az,aI,aJ,aK,
             zeta/(zeta+eta)*
                 vrr(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
                     cexpn,cx,cy,cz,cI,cJ,cK-2,dexpn,dx,dy,dz,m+1) )
-        #println("val2=$val")
         end
         if aK>0
             val += 0.5*aK/(zeta+eta)*
                 vrr(aexpn,ax,ay,az,aI,aJ,aK-1,bexpn,bx,by,bz,
                     cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m+1)
         end
-        #println("val3=$val")
         return val
     elseif cJ>0
         val = (qy-cy)*vrr(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
