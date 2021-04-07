@@ -36,8 +36,7 @@ function overlap1d(la,lb,ax,bx,gamma)
     return total
 end
 
-function binomial_prefactor(s,ia,ib,xpa,xpb)
-    #println("binomial_prefactor($s,$ia,$ib,$xpa,$xpb)")
+function binomial_prefactor_old(s,ia,ib,xpa,xpb)
     total = 0
     for t in 0:s
         if (s-ia) <= t <= ib
@@ -46,6 +45,10 @@ function binomial_prefactor(s,ia,ib,xpa,xpb)
     end
     return total
 end
+
+# Experimenting with whether these are faster:
+binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_kernal(ib,t,xpb) for t in 0:s if (s-ia) <= t <= ib)
+binomial_kernel(i,t,x)=binomial(i,t)x^(i-t)
 
 function kinetic(a::PGBF,b::PGBF)
     return a.norm*b.norm*kinetic(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
