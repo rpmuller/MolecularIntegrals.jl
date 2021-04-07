@@ -121,7 +121,7 @@ function nuclear_attraction(a::PGBF,b::PGBF,cx,cy,cz)
                                             b.expn,b.x,b.y,b.z,b.I,b.J,b.K,cx,cy,cz)
 end
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
-nuclear_attraction(a::PGBF,b::PGBF,m::Molecule) = sum([nuclear_attraction(a,b,c) for c in m.atomlist])
+nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
 
 "Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18)
@@ -211,12 +211,12 @@ function nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
     na(a,b) = nuclear_attraction(a,b,c)
     contract(na,a,b)
 end
-function nuclear_attraction(a::CGBF,b::CGBF,m::Molecule)
+function nuclear_attraction(a::CGBF,b::CGBF,m::Vector{Atom})
     na(a,b) = nuclear_attraction(a,b,m)
     contract(na,a,b)
 end
 
-function all_1e_ints(bfs::BasisSet,mol::Molecule)
+function all_1e_ints(bfs::BasisSet,mol::Vector{Atom})
     n = length(bfs.bfs)
     S = Array{Float64}(n,n)
     T = Array{Float64}(n,n)
