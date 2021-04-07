@@ -24,9 +24,8 @@ function gaussian_product_center(a::PGBF,b::PGBF)
     return (a.expn*[a.x,a.y,a.z]+b.expn*[b.x,b.y,b.z])/(a.expn+b.expn)
 end
 
-function gaussian_product_center(aexpn,ax,ay,az,
-        bexpn,bx,by,bz)
-    return (aexpn*[ax,ay,az]+bexpn*[bx,by,bz])/(aexpn+bexpn)    
+function gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
+         return (aexpn*[ax,ay,az]+bexpn*[bx,by,bz])/(aexpn+bexpn)    
 end
 
 function overlap1d(la,lb,ax,bx,gamma)
