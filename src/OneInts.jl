@@ -36,6 +36,7 @@ function overlap1d(la,lb,ax,bx,gamma)
     return total
 end
 
+#=
 function binomial_prefactor_old(s,ia,ib,xpa,xpb)
     total = 0
     for t in 0:s
@@ -45,6 +46,7 @@ function binomial_prefactor_old(s,ia,ib,xpa,xpb)
     end
     return total
 end
+=#
 
 # Experimenting with whether these are faster:
 binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_kernal(ib,t,xpb) for t in 0:s if (s-ia) <= t <= ib)
