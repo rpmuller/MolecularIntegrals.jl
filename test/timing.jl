@@ -1,5 +1,4 @@
-using MolecularIntegrals, BenchmarkTools
-
+using MolecularIntegrals
 
 bfs = build_basis(ethane,"6-31G")
 @time MolecularIntegrals.all_twoe_ints(bfs);
