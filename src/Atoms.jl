@@ -1,4 +1,4 @@
-export Atom, Molecule
+export Atom
 
 mutable struct Atom
     atno::Int
@@ -7,13 +7,6 @@ mutable struct Atom
     z::Float64
 end
 
-mutable struct Molecule
-    atomlist::Array{Atom,1}
-end
-
-function push!(mol::Molecule,at::Atom)
-    Base.push!(atomlist,at)
-end
 
 tobohr(x::Float64) = x/0.52918
 function tobohr!(at::Atom)
@@ -21,23 +14,23 @@ function tobohr!(at::Atom)
     at.y /= 0.52918
     at.z /= 0.52918
 end
-function tobohr!(mol::Molecule)
-    for at in mol.atomlist
+function tobohr!(mol::Vector{Atom})
+    for at in mol
         tobohr!(at)
     end
 end
 
 nuclear_repulsion(a::Atom,b::Atom)= a.atno*b.atno/sqrt(dist2(a.x-b.x,a.y-b.y,a.z-b.z))
-function nuclear_repulsion(mol::Molecule)
+function nuclear_repulsion(mol::Vector{Atom})
     nr = 0
     for (i,j) in spairs(nat(mol))
-        nr += nuclear_repulsion(mol.atomlist[i],mol.atomlist[j])
+        nr += nuclear_repulsion(mol[i],mol[j])
     end
     return nr
 end
 
-nel(mol::Molecule) = sum([at.atno for at in mol.atomlist])
-nat(mol::Molecule) = length(mol.atomlist)
+nel(mol::Vector{Atom}) = sum([at.atno for at in mol])
+nat(mol::Vector{Atom}) = length(mol)
 
 # Other molecule methods to implement
 # nocc, nclosed, nopen, nup, ndown, stoich, mass,
