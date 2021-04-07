@@ -1,14 +1,11 @@
 ### A Pluto.jl notebook ###
-# v0.14.0
+# v0.14.1
 
 using Markdown
 using InteractiveUtils
 
 # ╔═╡ b7a5404c-9570-11eb-0562-47e5f0701cd0
-using MolecularIntegrals, Plots
-
-# ╔═╡ 18fdb77c-1c00-40f0-998b-131e17e55d77
-using Profile, ProfileSVG
+using MolecularIntegrals, Profile, ProfileSVG
 
 # ╔═╡ f49f47dd-cad0-49e8-9dd4-04ae57a8fb28
 md"""
@@ -35,10 +32,10 @@ bfs = build_basis(ethane,"6-31G")
 length(bfs.bfs)
 
 # ╔═╡ 5d3b0917-97d6-4588-8d0c-921288051428
-@time MolecularIntegrals.all_twoe_ints(bfs)
+MolecularIntegrals.all_twoe_ints(bfs)
 
 # ╔═╡ 731fee55-4688-467b-b703-5e0a9d94c9e3
-#@time MolecularIntegrals.all_twoe_ints(bfs,MolecularIntegrals.coulomb_hgp)
+MolecularIntegrals.all_twoe_ints(bfs,MolecularIntegrals.coulomb_hgp)
 
 # ╔═╡ aa89c6af-49d9-41db-94a6-3c87a92a4298
 md"The Huzinaga and HGP methods showed 7.1 and 44.1 seconds, respectively. The HGP time is very surprising. This was once relatively fast. I guess it shouldn't be too hard to find efficiencies!"
@@ -50,7 +47,6 @@ md"The Huzinaga and HGP methods showed 7.1 and 44.1 seconds, respectively. The H
 # ╠═b7a5404c-9570-11eb-0562-47e5f0701cd0
 # ╟─f49f47dd-cad0-49e8-9dd4-04ae57a8fb28
 # ╟─6f3be0b3-856d-45d8-a870-187f09587195
-# ╠═18fdb77c-1c00-40f0-998b-131e17e55d77
 # ╠═3b737810-5ac7-4c9e-9307-6e04763ca3d1
 # ╠═11bb6095-c88e-41b1-a569-bc705005db32
 # ╠═5d3b0917-97d6-4588-8d0c-921288051428
