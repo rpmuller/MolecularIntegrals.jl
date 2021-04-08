@@ -10,8 +10,10 @@ end
 overlap(a::CGBF,b::CGBF) = contract(overlap,a,b)
 
 function overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
+    axyz = [ax,ay,az]
+    bxyz = [bx,by,bz]
     gamma = aexpn+bexpn
-    px,py,pz = gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
+    px,py,pz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     rab2 = dist2(ax-bx,ay-by,az-bz) 
     pre = (pi/gamma)^1.5*exp(-aexpn*bexpn*rab2/gamma)
     wx = overlap1d(aI,bI,px-ax,px-bx,gamma)
