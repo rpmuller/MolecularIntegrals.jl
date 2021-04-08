@@ -1,4 +1,4 @@
-# HGP2 - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [refs]
+# HGP2 - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrance relations.
 #
 # We're going to break this into several steps:
@@ -16,7 +16,7 @@
 # an electronic structure theory code.
 #
 #
-# 
+# 4. Future optimizations
 # Gill's work on PRISM suggests [refs] being more flexible about when the basis function
 # contraction is performed can reduce the operations count, but this will be simple and 
 # likely fast.
@@ -30,6 +30,11 @@
 # Since I can't use [] or () in function names, I'm going to use a,b,c for primitive
 # basis shells, and A,B,C for contracted shells. Therefore, we'll define routines
 # like `ssss`, `psps`, `SSSS`, etc.
+#
+# 5. References
+# [^1]: A method for two-electron Gaussian integral and integral derivative
+#       evaluation using recurrence relations. Martin Head-Gordon and John
+#       A. Pople. JCP, 89 (9), 5777, 1988.
 
 
 # 0. Warm up
@@ -38,6 +43,21 @@
 #    Therefore, here are a few simple warm up exercises:
 #
 #    A. ssss and SSSS generation
+
+function ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,m=0)
+    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
+    rab2 = dist2(axyz-bxyz)
+    rcd2 = dist2(cxyz-dxyz)
+    rpq2 = dist2(pxyz-qxyz)
+    T = zeta*eta/(zeta+eta)*rpq2
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    return Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)   # HGP eq 12
+end
+
 #    B. pppp and PPPP generation
 #    B'. Consider whether llll or LLLL is appropriate for sto-3g
 #    C. Integral array generation for h2o/sto-3g, which should be do-able with the above.
@@ -45,7 +65,11 @@
 # 1. Primitive shell generation [ab,cd]
 #
 #    A. [0]m generation
-#    B. [a+b,c+d] generation (VRR)
+#    B. [a,c] generation (VRR)
+#       Rewriting eq 6 from HGP with b=d=0 gives:
+#           [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+#               + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)
+#               + ci/2(zeta+eta)[a,c-1]m+1
 #    C. [ab,cd] generation (HRR)
 #
 

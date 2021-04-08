@@ -2,6 +2,7 @@ using MolecularIntegrals, Test
 
 # Define functions to be used throughout
 s = pgbf(1.0)
+sxyz = [0.,0.,0.]
 px = pgbf(1.0,0,0,0,1,0,0)
 
 c = cgbf(0.0,0.0,0.0)
@@ -178,6 +179,10 @@ addbf!(c2,0.5,0.2)
         @test coulomb(l,l,r,r) ≈ 0.5727937653511646
         @test coulomb(l,l,l,r) ≈ 0.4488373301593464
         @test coulomb(l,r,l,r) ≈ 0.3025451156654606
+    end
+
+    @testset "HGP2 tests" begin
+        @test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
     end
 
 end
