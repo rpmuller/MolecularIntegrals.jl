@@ -20,7 +20,9 @@
 # likely fast.
 # 
 # There are many other recurrence relations to consider (MD [ref], LRL [ref], 
-# OS [ref], Rys [refs]) but this should be a template for those others.
+# OS [ref], Rys [refs]) but this should be a template for those others. In particular,
+# several other schemes for the VRR have been proposed. For now, we'll just stick with the
+# HGP version, since that is a well-written and reasonably self-contained paper.
 # 
 
 
