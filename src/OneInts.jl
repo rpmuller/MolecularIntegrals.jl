@@ -28,6 +28,13 @@ function gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
          return (aexpn*[ax,ay,az]+bexpn*[bx,by,bz])/(aexpn+bexpn)    
 end
 
+function gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+    ab = aexpn+bexpn
+    a = aexpn/ab
+    b = bexpn/ab
+    return a*axyz+b*bxyz
+end
+
 function overlap1d(la,lb,ax,bx,gamma)
     total = 0
     for i in 0:div(la+lb,2)
