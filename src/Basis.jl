@@ -88,32 +88,23 @@ function contract(f,a::CGBF,b::CGBF,c::CGBF,d::CGBF)
     return a.norm*b.norm*c.norm*d.norm*s
 end
 
-struct BasisSet # list of CGBFs
-    bfs::Array{CGBF,1}
-end
-
-basisset() = BasisSet(CGBF[])
-
-function push!(basis::BasisSet,cbf::CGBF)
-    Base.push!(basis.bfs,cbf)
-end
 
 function build_basis(mol::Vector{Atom},name="sto3g")
     data = basis_data[name]
-    basis_set = basisset()
+    bfs = []
     for atom in mol
         for btuple in data[atom.atno]
             sym,primlist = btuple
             for (I,J,K) in sym2power[sym]
                 cbf = cgbf(atom.x,atom.y,atom.z,I,J,K)
-                push!(basis_set,cbf)
+                push!(bfs,cbf)
                 for (expn,coef) in primlist
                     addbf!(cbf,expn,coef)
                 end
             end
         end
     end
-    return basis_set
+    return bfs
 end
 
 sym2power = Dict(

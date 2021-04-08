@@ -165,8 +165,8 @@ addbf!(c2,0.5,0.2)
 
     @testset "Molecular basis" begin
         bfs = build_basis(h2)
-        @test length(bfs.bfs)==2
-        l,r = bfs.bfs
+        @test length(bfs)==2
+        l,r = bfs
         @test overlap(l,l) ≈ 1
         @test overlap(r,r) ≈ 1
         @test overlap(l,r) ≈ 0.6647387449282997

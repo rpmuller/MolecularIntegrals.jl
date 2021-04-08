@@ -29,7 +29,7 @@ md"## Profiling and Timing"
 bfs = build_basis(ethane,"6-31G")
 
 # ╔═╡ 11bb6095-c88e-41b1-a569-bc705005db32
-length(bfs.bfs)
+length(bfs)
 
 # ╔═╡ 5d3b0917-97d6-4588-8d0c-921288051428
 MolecularIntegrals.all_twoe_ints(bfs)
