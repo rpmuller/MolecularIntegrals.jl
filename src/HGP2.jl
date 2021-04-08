@@ -14,6 +14,8 @@
 # 
 # Populate an integral record with the relevant terms for use in 
 # an electronic structure theory code.
+#
+#
 # 
 # Gill's work on PRISM suggests [refs] being more flexible about when the basis function
 # contraction is performed can reduce the operations count, but this will be simple and 
@@ -24,6 +26,10 @@
 # several other schemes for the VRR have been proposed. For now, we'll just stick with the
 # HGP version, since that is a well-written and reasonably self-contained paper.
 # 
+# Notation:
+# Since I can't use [] or () in function names, I'm going to use a,b,c for primitive
+# basis shells, and A,B,C for contracted shells. Therefore, we'll define routines
+# like `ssss`, `psps`, `SSSS`, etc.
 
 
 # 0. Warm up
@@ -31,8 +37,9 @@
 #    simple cases and run them through steps 1-3 to see what's wrong with the plan.
 #    Therefore, here are a few simple warm up exercises:
 #
-#    A. (00,00) generation aka (ss,ss)
-#    B. (11,11) generation aka (pp,pp)
+#    A. ssss and SSSS generation
+#    B. pppp and PPPP generation
+#    B'. Consider whether llll or LLLL is appropriate for sto-3g
 #    C. Integral array generation for h2o/sto-3g, which should be do-able with the above.
 
 # 1. Primitive shell generation [ab,cd]
