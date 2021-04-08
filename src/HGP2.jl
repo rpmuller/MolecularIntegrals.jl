@@ -44,7 +44,8 @@
 #
 #    A. ssss and SSSS generation
 
-function ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,m=0)
+"ssss - Calculate the [0]m terms for VRR equations for a range of m values"
+function ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,ms)
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
     zeta,eta = aexpn+bexpn,cexpn+dexpn
@@ -55,7 +56,23 @@ function ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,m=0)
     T = zeta*eta/(zeta+eta)*rpq2
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
-    return Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)   # HGP eq 12
+    return Kab*Kcd/sqrt(zeta+eta)*[Fgamma(m,T) for m in ms]   # HGP eq 12
+end
+ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz) = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,[0])[1]
+
+function psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz)
+    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,[0,1])
+    @show sarray
+    # Recalculate a number of terms from ssss. When the code works, be more
+    # judicious in what we recalculate.
+    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
+    xsss = (pxyz[1]-axyz[1])*sarray[1] + (wxyz[1]-pxyz[1])*sarray[2]
+    ysss = (pxyz[2]-axyz[2])*sarray[1] + (wxyz[2]-pxyz[2])*sarray[2]
+    zsss = (pxyz[3]-axyz[3])*sarray[1] + (wxyz[3]-pxyz[3])*sarray[2]
+    return [xsss,ysss,zsss]
 end
 
 #    B. pppp and PPPP generation

@@ -183,6 +183,8 @@ addbf!(c2,0.5,0.2)
 
     @testset "HGP2 tests" begin
         @test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
+        @test coulomb(px,s,s,s) ≈ (s.norm^3*px.norm)*MolecularIntegrals.psss(px.expn,sxyz,  s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)[1]
+        #println((s.norm^3*px.norm)*MolecularIntegrals.psss(px.expn,sxyz,  s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)) # all 3 zero
     end
 
 end
