@@ -98,18 +98,21 @@ function Aarray(l1,l2,a,b,c,g)
     return A
 end
 
-function nuclear_attraction(aexpn,ax,ay,az,
-                            aI,aJ,aK,
-                            bexpn,bx,by,bz,
-                            bI,bJ,bK,
-                            cx,cy,cz)
-    px,py,pz = gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
+function nuclear_attraction(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,cx,cy,cz)
+    return nuclear_attraction(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK,[cx,cy,cz])
+end
+
+function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
+    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     gamma = aexpn+bexpn
-    rab2 = dist2(ax-bx,ay-by,az-bz)
-    rcp2 = dist2(cx-px,cy-py,cz-pz)
-    Ax = Aarray(aI,bI,px-ax,px-bx,px-cx,gamma)
-    Ay = Aarray(aJ,bJ,py-ay,py-by,py-cy,gamma)
-    Az = Aarray(aK,bK,pz-az,pz-bz,pz-cz,gamma)
+    pa = pxyz-axyz
+    pb = pxyz-bxyz
+    pc = pxyz-cxyz
+    rab2 = dist2(axyz-bxyz)
+    rcp2 = dist2(pc)
+    Ax = Aarray(aI,bI,pa[1],pb[1],pc[1],gamma)
+    Ay = Aarray(aJ,bJ,pa[2],pb[2],pc[2],gamma)
+    Az = Aarray(aK,bK,pa[3],pb[3],pc[3],gamma)
     total = 0
     for I in 0:(aI+bI)
         for J in 0:(aJ+bJ)
@@ -118,13 +121,12 @@ function nuclear_attraction(aexpn,ax,ay,az,
             end
         end
     end
-    val=-2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
-    return val
+    return -2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
 end
 
 function nuclear_attraction(a::PGBF,b::PGBF,cx,cy,cz)
-    return a.norm*b.norm*nuclear_attraction(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
-                                            b.expn,b.x,b.y,b.z,b.I,b.J,b.K,cx,cy,cz)
+    return a.norm*b.norm*nuclear_attraction(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
+                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,[cx,cy,cz])
 end
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
 nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
