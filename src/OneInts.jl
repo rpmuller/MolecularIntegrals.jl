@@ -3,28 +3,11 @@ using SpecialFunctions
 export overlap, kinetic, nuclear_attraction
 
 function overlap(a::PGBF,b::PGBF)
-    return a.norm*b.norm*overlap(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
-    b.expn,b.x,b.y,b.z,b.I,b.J,b.K)
+    return a.norm*b.norm*overlap(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
+    b.expn,[b.x,b.y,b.z],b.I,b.J,b.K)
 end
 
 overlap(a::CGBF,b::CGBF) = contract(overlap,a,b)
-
-#=
-function overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
-    axyz = [ax,ay,az]
-    bxyz = [bx,by,bz]
-    gamma = aexpn+bexpn
-    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
-    pa = pxyz-axyz
-    pb = pxyz-bxyz
-    rab2 = dist2(axyz-bxyz) 
-    pre = (pi/gamma)^1.5*exp(-aexpn*bexpn*rab2/gamma)
-    wx = overlap1d(aI,bI,pa[1],pb[1],gamma)
-    wy = overlap1d(aJ,bJ,pa[2],pb[2],gamma)
-    wz = overlap1d(aK,bK,pa[3],pb[3],gamma)
-    return pre*wx*wy*wz
-end
-=#
 
 function overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
     return overlap(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK)
@@ -66,15 +49,6 @@ function overlap1d(la,lb,ax,bx,gamma)
     return total
 end
 
-#=function binomial_prefactor(s,ia,ib,xpa,xpb)
-    total = 0
-    for t in 0:s 
-        if (s-ia) <= t <= ib
-            total += binomial_kernel(ia,s-t,xpa)*binomial_kernel(ib,t,xpb) 
-        end
-    end
-    return total
-end=#
 binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_kernel(ib,t,xpb) for t in 0:s if (s-ia) <= t <= ib)
 binomial_kernel(i,t,x) = binomial(i,t)x^(i-t)
 
@@ -83,16 +57,18 @@ function kinetic(a::PGBF,b::PGBF)
                                 b.expn,b.x,b.y,b.z,b.I,b.J,b.K)
 end
 
-function kinetic(aexpn,ax,ay,az,
-                 aI,aJ,aK,bexpn,bx,
-                 by,bz,bI,bJ,bK)
-    overlap0 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
-    overlapx1 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI+2,bJ,bK)
-    overlapy1 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ+2,bK)
-    overlapz1 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK+2)
-    overlapx2 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI-2,bJ,bK)
-    overlapy2 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ-2,bK)
-    overlapz2 = overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK-2)
+function kinetic(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
+    return kinetic(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK)
+end
+
+function kinetic(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
+    overlap0 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
+    overlapx1 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI+2,bJ,bK)
+    overlapy1 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ+2,bK)
+    overlapz1 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK+2)
+    overlapx2 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI-2,bJ,bK)
+    overlapy2 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ-2,bK)
+    overlapz2 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK-2)
     term0 = bexpn*(2*(bI+bJ+bK)+3)*overlap0
     term1 = -2*(bexpn^2)*(overlapx1+overlapy1+overlapz1)
     term2 = -0.5*(bI*(bI-1)*overlapx2+bJ*(bJ-1)*overlapy2+bK*(bK-1)*overlapz2)
