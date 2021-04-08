@@ -7,12 +7,12 @@ mutable struct Atom
     z::Float64
 end
 
-
-tobohr(x::Float64) = x/0.52918
+const BOHR = 0.52918
+tobohr(x::Float64) = x/BOHR
 function tobohr!(at::Atom)
-    at.x /= 0.52918
-    at.y /= 0.52918
-    at.z /= 0.52918
+    at.x /= BOHR
+    at.y /= BOHR
+    at.z /= BOHR
 end
 function tobohr!(mol::Vector{Atom})
     for at in mol
