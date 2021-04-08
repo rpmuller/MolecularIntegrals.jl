@@ -53,8 +53,8 @@ binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_k
 binomial_kernel(i,t,x) = binomial(i,t)x^(i-t)
 
 function kinetic(a::PGBF,b::PGBF)
-    return a.norm*b.norm*kinetic(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
-                                b.expn,b.x,b.y,b.z,b.I,b.J,b.K)
+    return a.norm*b.norm*kinetic(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
+                                b.expn,[b.x,b.y,b.z],b.I,b.J,b.K)
 end
 
 function kinetic(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
