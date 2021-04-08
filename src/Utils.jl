@@ -1,7 +1,10 @@
+using LinearAlgebra
 export factorial2, dist2, ipairs, rpairs, spairs, iindex
 
 factorial2(n::Int64) = prod(n:-2:1) # double factorial !!
 dist2(dx,dy,dz) = dx*dx+dy*dy+dz*dz # TODO: use hypot()^2?
+dist2(dxyz) = dot(dxyz,dxyz)
+dist2(xyz1,xyz2) = dist2(xyz1-xyz2)
 
 ipairs(n::Int64) = ((i, j) for i = 1:n for j = 1:i)
 rpairs(n::Int64) = ((i,j) for i in 1:n for j in 1:n) # rectangular option to old pairs
