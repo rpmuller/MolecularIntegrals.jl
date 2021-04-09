@@ -1,4 +1,4 @@
-# TODOs
+# TODO and notes
 - Reconcile coulomb(px,s,s,s) with psss(): see note in runtests.jl
 - Note on the interface: currently the new vrr routines are returning multidimensional 
     arrays over angular momentum states and m. If mmax=0 is submitted, this will reduce the return value by 1,
