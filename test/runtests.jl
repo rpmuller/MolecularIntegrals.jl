@@ -191,8 +191,9 @@ addbf!(c2,0.5,0.2)
     #   something to investigate and fix later.
 
     @testset "HGP2 tests" begin
-        @test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
-        @test MolecularIntegrals.vrr(1.0,0,0,0,1,0,0,1.0,0,0,0,1.0,0,0,0,0,0,0,1.0,0,0,0,0) ≈ MolecularIntegrals.psss(px.expn,pxyz,  s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)[1]
+        #@test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
+        @test MolecularIntegrals.vrr(1.0, 0,0,0, 0,0,0, 1.0, 0,0,0, 1.0, 0,0,0, 0,0,0, 1.0, 0,0,0,0) ≈ MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz,0)[1]
+        @test MolecularIntegrals.vrr(1.0, 0,0,0, 1,0,0, 1.0, 0,0,0, 1.0, 0,0,0, 0,0,0, 1.0, 0,0,0,0) ≈ MolecularIntegrals.psss(px.expn,pxyz,  s.expn, sxyz, s.expn, sxyz, s.expn, sxyz,0)[1]
     end
 
 end
