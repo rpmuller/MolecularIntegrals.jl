@@ -76,6 +76,26 @@ function psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
     return values
 end
 
+function psps(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
+    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,mmax+1)
+    parray = psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,mmax+1)
+    # Recalculate a number of terms from ssss. When the code works, be more
+    # judicious in what we recalculate.
+    values = zeros(Float64,(3,3,mmax+1))
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
+    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
+    for i in 1:3
+        for j in 1:3
+            for m in 0:mmax
+                values[i,j,m+1] = (qxyz[j]-bxyz[j])*parray[i,m+1] + (wxyz[j]-qxyz[j])*parray[i,m+2] + 1/2/(zeta+eta)*sarray[m+2] 
+            end
+        end
+    end
+    return values
+end
+
 #    B. pppp and PPPP generation
 #    B'. Consider whether llll or LLLL is appropriate for sto-3g
 #    C. Integral array generation for h2o/sto-3g, which should be do-able with the above.

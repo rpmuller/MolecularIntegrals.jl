@@ -2,9 +2,7 @@ using MolecularIntegrals, Test
 
 # Define functions to be used throughout
 s = pgbf(1.0)
-sxyz = [s.x,s.y,s.z]
 px = pgbf(1.0,0,0,0,1,0,0)
-pxyz = [px.x,px.y,px.z]
 
 c = cgbf(0.0,0.0,0.0)
 addbf!(c,1,1)
@@ -192,8 +190,14 @@ addbf!(c2,0.5,0.2)
 
     @testset "HGP2 tests" begin
         #@test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
-        @test MolecularIntegrals.vrr(1.0, 0,0,0, 0,0,0, 1.0, 0,0,0, 1.0, 0,0,0, 0,0,0, 1.0, 0,0,0,0) ≈ MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz,0)[1]
-        @test MolecularIntegrals.vrr(1.0, 0,0,0, 1,0,0, 1.0, 0,0,0, 1.0, 0,0,0, 0,0,0, 1.0, 0,0,0,0) ≈ MolecularIntegrals.psss(px.expn,pxyz,  s.expn, sxyz, s.expn, sxyz, s.expn, sxyz,0)[1]
+        x=y=z=0
+        xyz = [x,y,z]
+        ex = 1
+        @test MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, x,y,z, 0,0,0, ex, x,y,z,0) ≈ MolecularIntegrals.ssss(ex,xyz, ex, xyz, ex, xyz, ex, xyz,0)[1]
+        @test MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, x,y,z, 0,0,0, ex, 0,0,0,0) ≈ MolecularIntegrals.psss(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)[1]
+        x0x0 = MolecularIntegrals.vrr(ex, 0,0,0, 1,0,0, ex, 0,0,0, ex, 0,0,0, 1,0,0, ex, 0,0,0,0)
+        vals = MolecularIntegrals.psps(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)
+        @test x0x0 ≈ vals[1,1,1]
     end
 
 end
