@@ -61,13 +61,12 @@ end
 ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz) = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,[0])[1]
 
 function psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz)
-    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,[0,1])
-    @show sarray
+    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,0:1)
     # Recalculate a number of terms from ssss. When the code works, be more
     # judicious in what we recalculate.
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
-    zeta,eta = aexpn+bexpn,cexpn+dexpn
     wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
     xsss = (pxyz[1]-axyz[1])*sarray[1] + (wxyz[1]-pxyz[1])*sarray[2]
     ysss = (pxyz[2]-axyz[2])*sarray[1] + (wxyz[2]-pxyz[2])*sarray[2]
