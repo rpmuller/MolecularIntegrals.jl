@@ -130,8 +130,8 @@ end
 - (0,0,0,0,0,0,m),  
 - (ax,ay,az,0,0,0,m),  
 - (ax,ay,az,cx,cy,cz,m) 
-I think this is the most efficient way to go through the recurrance 
-relationships in practics. This version also adjusts the m terms based on a,c."
+This version also adjusts the m terms based on a,c. This is the most efficient way to 
+go through the recurrance relationships in practics."
 function vrrindices2(amax,cmax)
     indices = []
     mmax=amax+cmax
