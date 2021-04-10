@@ -204,6 +204,8 @@ addbf!(c2,0.5,0.2)
         # But at least test the length
         @test length(MolecularIntegrals.vrrindices(1,1,1)) == 32
         @test length(MolecularIntegrals.vrrindices(1,1,0)) == 16
+        @test length(MolecularIntegrals.vrrindices(0,0,0)) == 1
+        @test length(MolecularIntegrals.vrrindices(0,0,2)) == 3
     end
 
 end
