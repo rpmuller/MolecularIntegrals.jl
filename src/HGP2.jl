@@ -156,6 +156,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
     zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
     wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
     rab2 = dist2(axyz-bxyz)
     rcd2 = dist2(cxyz-dxyz)
@@ -185,7 +186,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
             for m in 0:(mmax-a-c)
                 values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[d]-axyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m)]+(wxyz[d]-pxyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m+1)]
                 if mv2[d] >= 0
-                    values[(av[1],av[2],av[3],0,0,0,m)] += av[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]-eta/(zeta+eta)*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
+                    values[(av[1],av[2],av[3],0,0,0,m)] += av[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]-eta/ze*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
                 end
             end
         end

@@ -199,8 +199,8 @@ addbf!(c2,0.5,0.2)
         vals = MolecularIntegrals.psps(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)
         @test x0x0 ≈ vals[1,1,1]
 
-        # Generate vrr recurrance schedules. Eyeball test:
-        @show MolecularIntegrals.vrrindices(1,1)
+        # Generate vrr recurrance schedules. Eyeball test (disabled):
+        #@show MolecularIntegrals.vrrindices(1,1)
         # Test the length
         @test length(MolecularIntegrals.vrrindices(1,1)) == 24
         @test length(MolecularIntegrals.vrrindices(1,0)) == 5
