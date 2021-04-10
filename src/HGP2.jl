@@ -150,7 +150,6 @@ end
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
-#=
 "vrr2 - iterative version of HGP vertical recurrance relations"
 function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     values = Dict()
@@ -174,11 +173,20 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
 
     # Now generate (ax,ay,az,0,0,0,m) 
     for a in 1:amax
-        for (ax,ay,az) in shell_indices[a]
-            dir = argmax((ax,ay,az))
-            m1 = 
+        for av in shell_indices[a]
+            # TODO: find a nicer way to compute the index differences. Currently I compute the argmax of the (ax,ay,az) values,
+            #   and use that to compute m = (ax,ay-1,az) or in whatever direction. But this is ugly code. I wrote the `unit` code
+            #   to try to make this more idiomatic julia, but I'm not using it now.
+            d = argmax(av)
+            mv = copy(av)
+            mv[d] -= 1
+            mv2 = copy(mv)
+            mv2[d] -= 1
             for m in 0:(mmax-a-c)
-                values[(ax,ay,az,0,0,0,m)] = values[()]
+                values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[d]-axyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m)]+(wxyz[d]-pxyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m+1)]
+                if mv2[d] >= 0
+                    values[(av[1],av[2],av[3],0,0,0,m)] += av[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]-eta/(zeta+eta)*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
+                end
             end
         end
     end
@@ -191,14 +199,14 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
                 for (cx,cy,cz) in shell_indices[c]
                     for m in 0:(mmax-a-c)
                         #values[(ax,ay,az,0,0,0,m)] = 
+                        continue
                     end
                 end
             end
         end 
     end
-
+    return prunem(values)
 end
-=#
 
 "unit(n,d) - create a n-dim unit vector in direction d"
 function unit(n,d) 
