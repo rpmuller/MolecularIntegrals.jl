@@ -150,6 +150,51 @@ end
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
+"vrr2 - iterative version of HGP vertical recurrance relations"
+function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
+    values = Dict()
+    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
+    rab2 = dist2(axyz-bxyz)
+    rcd2 = dist2(cxyz-dxyz)
+    rpq2 = dist2(pxyz-qxyz)
+    T = zeta*eta/(zeta+eta)*rpq2
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    mmax=amax+cmax
+
+    # First generate (0,0,0, 0,0,0, m) 
+    c=a=0
+    for m in 0:(mmax-a-c) 
+        values[(0,0,0, 0,0,0, m)] = Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)
+    end
+
+    # Now generate (ax,ay,az,0,0,0,m) 
+    for a in 1:amax
+        for (ax,ay,az) in shell_indices[a]
+            for m in 0:(mmax-a-c)
+                #values[(ax,ay,az,0,0,0,m)] = 
+            end
+        end
+    end
+
+    # Now build (ax,ay,az,cx,cy,cz,m)
+    for a in 0:amax
+        for (ax,ay,az) in shell_indices[a]
+            for c in 1:cmax
+                for (cx,cy,cz) in shell_indices[c]
+                    for m in 0:(mmax-a-c)
+                        #values[(ax,ay,az,0,0,0,m)] = 
+                    end
+                end
+            end
+        end 
+    end
+
+end
+
 # 1. Primitive shell generation [ab,cd]
 #
 #    A. [0]m generation
