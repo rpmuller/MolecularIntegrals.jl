@@ -97,15 +97,15 @@ function psps(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
 end
 
 shell_indices = Dict(
-    0 => [(0,0,0)], # 1
-    1 => [(1,0,0),(0,1,0),(0,0,1)], # 3
-    2 => [(2,0,0),(1,1,0),(1,0,1),(0,2,0),(0,1,1),(0,0,2)],
-    3 => [(3,0,0),(2,1,0),(2,0,1),
-            (1,2,0),(1,0,2),(1,1,1),
-            (0,3,0),(0,2,1),(0,1,2),(0,0,3)], # 10
-    4 => [(4,0,0),(3,1,0),(3,0,1),(2,2,0),(2,1,1),(2,0,2),
-            (1,3,0),(1,2,1),(1,1,2),(1,0,3),
-            (0,4,0),(0,3,1),(0,2,2),(0,1,3),(0,0,4)] # 15
+    0 => [[0,0,0]], # 1
+    1 => [[1,0,0],[0,1,0],[0,0,1]], # 3
+    2 => [[2,0,0],[1,1,0],[1,0,1],[0,2,0],[0,1,1],[0,0,2]],
+    3 => [[3,0,0],[2,1,0],[2,0,1],
+            [1,2,0],[1,0,2],[1,1,1],
+            [0,3,0],[0,2,1],[0,1,2],[0,0,3]], # 10
+    4 => [[4,0,0],[3,1,0],[3,0,1],[2,2,0],[2,1,1],[2,0,2],
+            [1,3,0],[1,2,1],[1,1,2],[1,0,3],
+            [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
 )
 
 "vrrindices - Generate indices for vrr in three steps:
@@ -150,6 +150,7 @@ end
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
+#=
 "vrr2 - iterative version of HGP vertical recurrance relations"
 function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     values = Dict()
@@ -174,8 +175,10 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     # Now generate (ax,ay,az,0,0,0,m) 
     for a in 1:amax
         for (ax,ay,az) in shell_indices[a]
+            dir = argmax((ax,ay,az))
+            m1 = 
             for m in 0:(mmax-a-c)
-                #values[(ax,ay,az,0,0,0,m)] = 
+                values[(ax,ay,az,0,0,0,m)] = values[()]
             end
         end
     end
@@ -183,6 +186,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     # Now build (ax,ay,az,cx,cy,cz,m)
     for a in 0:amax
         for (ax,ay,az) in shell_indices[a]
+            m1 = 
             for c in 1:cmax
                 for (cx,cy,cz) in shell_indices[c]
                     for m in 0:(mmax-a-c)
@@ -194,6 +198,13 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     end
 
 end
+"unit(n,d) - create a n-dim unit vector in direction d"
+function unit(n,d) 
+    v = zeros(Int,n)
+    v[d] = 1
+    return v
+end
+=#
 
 # 1. Primitive shell generation [ab,cd]
 #
