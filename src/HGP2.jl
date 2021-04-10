@@ -110,6 +110,42 @@ end
 #               + ci/2(zeta+eta)[a,c-1]m+1
 #    C. [ab,cd] generation (HRR)
 #
+#   What is this going to look like? We're going to have an atom with a basis set.
+#   Let's assume that the basis set looks something like a shell and a list of primitives.
+#   An atom has a shell that has a list of primitives. We might expand that to be something
+#   like what the MI.jl code currently uses.
+#
+#   HRR
+#   pppp: dspp pspp
+#   dspp: dsds dsps
+#   pspp: psds psps
+#   
+#   => dsds,dsps,psps,psds
+#
+#   VRR
+#   dsds0 = psds01 ssds01
+#   psds01 = ssds02
+#   ssds02 = ssps03 ssss03
+#   ssps03 = ssss04
+#
+#   => ssss04
+#
+#   What does the build up procedure look like:
+#   ssss04: [000,000,0:4]
+#   ssps03,psss03: [000,100,0:3] [000,010,0:3] [000,001,0:3] [100,000,0:3] [010,000,0:3] [001,000,0:3]
+#   psps02 etc.
+#   dsps01,psds01,
+#   dsds0
+#   => dsds, psds, dsps, psps
+#
+#   Simplify the VRR notation
+#   00_4
+#   10_3, 01_3
+#   11_2
+#   21_1, 12_1
+#   22_0
+
+
 
 # 2. Contraction to (ab,cd)
 # 
