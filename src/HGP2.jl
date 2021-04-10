@@ -147,6 +147,18 @@ function vrrindices(amax,cmax)
     return indices
 end
 
+"prunem - Keep only the dictionary keys with m (last index) = 0"
+prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
+#function prunem(d::Dict)
+#    newd = Dict()
+#    for (k,v) in d
+#        if k[end] == 0
+#            newd[k[1:end-1]] = v
+#        end
+#    end
+#    return newd
+#end
+
 # 1. Primitive shell generation [ab,cd]
 #
 #    A. [0]m generation

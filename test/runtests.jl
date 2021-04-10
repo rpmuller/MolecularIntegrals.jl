@@ -207,6 +207,10 @@ addbf!(c2,0.5,0.2)
         @test length(MolecularIntegrals.vrrindices(0,1)) == 5
         @test length(MolecularIntegrals.vrrindices(0,0)) == 1
 
+        # prunem function removes the m values, since at the end of vrr we only need the ones where m=0
+        testd = Dict((1,2,3) => 4, (1,2,0)=> 3)
+        @test MolecularIntegrals.prunem(testd) == Dict((1,2) => 3)
+
     end
 
     
