@@ -114,3 +114,22 @@ end
 # 2. Contraction to (ab,cd)
 # 
 # 3. Integral Array Generation
+#
+# Thoughts on storage:
+#  VRR lends itself to arrays of the form [ix,iy,iz,jx,jy,jz,m]. When we're done with integrals,
+#  we can remove the m≂̸0 parts. And we may only need a few of the integrals. The dense array
+#  isn't necessarily the best way to store things.
+#
+#  Supposed we have a p-shell. We would end up computing (ignoring m)
+#   [0,0,0, 0,0,0]
+#   [1,0,0, 0,0,0]
+#   [0,1,0, 0,0,0]
+#   [0,0,1, 0,0,0]
+#   [0,0,0, 1,0,0]
+#   [0,0,0, 0,1,0]
+#   [0,0,0, 0,0,1]
+#   [1,0,0, 1,0,0]
+#   [0,1,0, 0,1,0]
+#   [0,0,1, 0,0,1]
+# We would compute 10 different terms, but would allocate 2^6 = 64 elements. 
+# We could potentially use a dictionary of tuples.
