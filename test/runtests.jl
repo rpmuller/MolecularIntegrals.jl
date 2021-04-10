@@ -198,6 +198,12 @@ addbf!(c2,0.5,0.2)
         x0x0 = MolecularIntegrals.vrr(ex, 0,0,0, 1,0,0, ex, 0,0,0, ex, 0,0,0, 1,0,0, ex, 0,0,0,0)
         vals = MolecularIntegrals.psps(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)
         @test x0x0 ≈ vals[1,1,1]
+
+        # This is just an eyeball test:
+        @show MolecularIntegrals.vrrindices(1,1,1)
+        # But at least test the length
+        @test length(MolecularIntegrals.vrrindices(1,1,1)) == 32
+        @test length(MolecularIntegrals.vrrindices(1,1,0)) == 16
     end
 
 end

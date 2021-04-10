@@ -96,6 +96,35 @@ function psps(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
     return values
 end
 
+"Generate indices for vrr."
+function vrrindices(amax,cmax,mmax)
+    shell_indices = Dict(
+        0 => [(0,0,0)], # 1
+        1 => [(1,0,0),(0,1,0),(0,0,1)], # 3
+        2 => [(2,0,0),(1,1,0),(1,0,1),(0,2,0),(0,1,1),(0,0,2)],
+        3 => [(3,0,0),(2,1,0),(2,0,1),
+                (1,2,0),(1,0,2),(1,1,1),
+                (0,3,0),(0,2,1),(0,1,2),(0,0,3)], # 10
+        4 => [(4,0,0),(3,1,0),(3,0,1),(2,2,0),(2,1,1),(2,0,2),
+                (1,3,0),(1,2,1),(1,1,2),(1,0,3),
+                (0,4,0),(0,3,1),(0,2,2),(0,1,3),(0,0,4)] # 15
+    )
+    #indices = Dict()
+    indices = [] # just append the list to make it easier to search through. Real code will use dict.
+    for a in 0:amax
+        for (ax,ay,az) in shell_indices[a]
+            for c in 0:cmax
+                for (cx,cy,cz) in shell_indices[c]
+                    for m in 0:mmax
+                        push!(indices,(ax,ay,az,cx,cy,cz,m))
+                    end
+                end
+            end
+        end 
+    end
+    return indices
+end
+
 #    B. pppp and PPPP generation
 #    B'. Consider whether llll or LLLL is appropriate for sto-3g
 #    C. Integral array generation for h2o/sto-3g, which should be do-able with the above.
