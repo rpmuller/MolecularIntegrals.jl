@@ -129,13 +129,15 @@ end
 "vrrindices2 - Generate indices for vrr in an alternate way. 
 First generate (ax,ay,az,0,0,0,m),  terms and then build up the (ax,ay,az,cx,cy,cz,m) 
 terms. I think this is the most efficient way to go through the recurrance 
-relationships in practics."
-function vrrindices2(amax,cmax,mmax)
+relationships in practics. This version also adjusts the m terms based on a,c."
+function vrrindices2(amax,cmax)
     indices = []
-    # First generate (ax,ay,az,0,0,0,m)    
+    mmax=amax+cmax
+    # First generate (ax,ay,az,0,0,0,m) 
+    c=0   
     for a in 0:amax
         for (ax,ay,az) in shell_indices[a]
-            for m in 0:mmax # the higher a anb c get, the fewer m terms we need.
+            for m in 0:(mmax-a-c) # the higher a anb c get, the fewer m terms we need.
                 push!(indices,(ax,ay,az,0,0,0,m))
             end
         end
@@ -145,7 +147,7 @@ function vrrindices2(amax,cmax,mmax)
         for (ax,ay,az) in shell_indices[a]
             for c in 1:cmax
                 for (cx,cy,cz) in shell_indices[c]
-                    for m in 0:mmax # the higher a anb c get, the fewer m terms we need.
+                    for m in 0:(mmax-a-c) # the higher a anb c get, the fewer m terms we need.
                         push!(indices,(ax,ay,az,cx,cy,cz,m))
                     end
                 end

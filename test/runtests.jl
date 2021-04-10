@@ -208,12 +208,12 @@ addbf!(c2,0.5,0.2)
         @test length(MolecularIntegrals.vrrindices(0,0,2)) == 3
 
         # Alternate way to generate vrr recurrance schedules. Eyeball test:
-        @show MolecularIntegrals.vrrindices2(1,1,1)
+        @show MolecularIntegrals.vrrindices2(1,1)
         # But at least test the length
-        @test length(MolecularIntegrals.vrrindices2(1,1,1)) == 32
-        @test length(MolecularIntegrals.vrrindices2(1,1,0)) == 16
-        @test length(MolecularIntegrals.vrrindices2(0,0,0)) == 1
-        @test length(MolecularIntegrals.vrrindices2(0,0,2)) == 3
+        @test length(MolecularIntegrals.vrrindices2(1,1)) == 24
+        @test length(MolecularIntegrals.vrrindices2(1,0)) == 5
+        @test length(MolecularIntegrals.vrrindices2(0,1)) == 5
+        @test length(MolecularIntegrals.vrrindices2(0,0)) == 1
 
     end
 
