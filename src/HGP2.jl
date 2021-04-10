@@ -115,7 +115,7 @@ end
 # 
 # 3. Integral Array Generation
 #
-# Thoughts on storage:
+# 4. Thoughts on storage for VRR:
 #  VRR lends itself to arrays of the form [ix,iy,iz,jx,jy,jz,m]. When we're done with integrals,
 #  we can remove the m≂̸0 parts. And we may only need a few of the integrals. The dense array
 #  isn't necessarily the best way to store things.
