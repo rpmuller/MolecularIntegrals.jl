@@ -211,6 +211,8 @@ addbf!(c2,0.5,0.2)
         testd = Dict((1,2,3) => 4, (1,2,0)=> 3)
         @test MolecularIntegrals.prunem(testd) == Dict((1,2) => 3)
 
+        @test MolecularIntegrals.unit(3,1) == [1,0,0]
+
     end
 
     

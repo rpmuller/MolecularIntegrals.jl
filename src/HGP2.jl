@@ -198,13 +198,15 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     end
 
 end
+=#
+
 "unit(n,d) - create a n-dim unit vector in direction d"
 function unit(n,d) 
     v = zeros(Int,n)
     v[d] = 1
     return v
 end
-=#
+
 
 # 1. Primitive shell generation [ab,cd]
 #
