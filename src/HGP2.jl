@@ -166,13 +166,21 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
     mmax=amax+cmax
 
-    # First generate (0,0,0, 0,0,0, m) 
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (0,0,0, 0,0,0, m) using eq 12
     c=a=0
     for m in 0:(mmax-a-c) 
         values[(0,0,0, 0,0,0, m)] = Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)
     end
 
     # Now generate (ax,ay,az,0,0,0,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6c
     for a in 1:amax
         for av in shell_indices[a]
             # TODO: find a nicer way to compute the index differences. Currently I compute the argmax of the (ax,ay,az) values,
@@ -184,15 +192,21 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
             mv2 = copy(mv)
             mv2[d] -= 1
             for m in 0:(mmax-a-c)
-                values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[d]-axyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m)]+(wxyz[d]-pxyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m+1)]
+                values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[d]-axyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m)]
+                        +(wxyz[d]-pxyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m+1)]
                 if mv2[d] >= 0
-                    values[(av[1],av[2],av[3],0,0,0,m)] += mv[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]-eta/ze*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
+                    values[(av[1],av[2],av[3],0,0,0,m)] += mv[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]
+                        -eta/ze*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
                 end
             end
         end
     end
 
     # Now build (ax,ay,az,cx,cy,cz,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qi-Bi)[a,c]m + (Wi-Qi)[a,c]m+1
+    #       + c_i/2zeta ([a,c-1]m - eta/zeta+eta[a,c-1]m+1)         # eq 6b
+    #       + a_i/2(zeta+eta)[a-1,c]m+1
     for a in 0:amax
         for (ax,ay,az) in shell_indices[a]
             m1 = 
@@ -217,72 +231,3 @@ function unit(n,d)
 end
 
 
-# 1. Primitive shell generation [ab,cd]
-#
-#    A. [0]m generation
-#    B. [a,c] generation (VRR)
-#       Rewriting eq 6 from HGP with b=d=0 gives:
-#           [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
-#               + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)
-#               + ci/2(zeta+eta)[a,c-1]m+1
-#    C. [ab,cd] generation (HRR)
-#
-#   What is this going to look like? We're going to have an atom with a basis set.
-#   Let's assume that the basis set looks something like a shell and a list of primitives.
-#   An atom has a shell that has a list of primitives. We might expand that to be something
-#   like what the MI.jl code currently uses.
-#
-#   HRR
-#   pppp: dspp pspp
-#   dspp: dsds dsps
-#   pspp: psds psps
-#   
-#   => dsds,dsps,psps,psds
-#
-#   VRR
-#   dsds0 = psds01 ssds01
-#   psds01 = ssds02
-#   ssds02 = ssps03 ssss03
-#   ssps03 = ssss04
-#
-#   => ssss04
-#
-#   What does the build up procedure look like:
-#   ssss04: [000,000,0:4]
-#   ssps03,psss03: [000,100,0:3] [000,010,0:3] [000,001,0:3] [100,000,0:3] [010,000,0:3] [001,000,0:3]
-#   psps02 etc.
-#   dsps01,psds01,
-#   dsds0
-#   => dsds, psds, dsps, psps
-#
-#   Simplify the VRR notation
-#   00_4
-#   10_3, 01_3
-#   11_2
-#   21_1, 12_1
-#   22_0
-
-
-
-# 2. Contraction to (ab,cd)
-# 
-# 3. Integral Array Generation
-#
-# 4. Thoughts on storage for VRR:
-#  VRR lends itself to arrays of the form [ix,iy,iz,jx,jy,jz,m]. When we're done with integrals,
-#  we can remove the m≂̸0 parts. And we may only need a few of the integrals. The dense array
-#  isn't necessarily the best way to store things.
-#
-#  Supposed we have a p-shell. We would end up computing (ignoring m)
-#   [0,0,0, 0,0,0]
-#   [1,0,0, 0,0,0]
-#   [0,1,0, 0,0,0]
-#   [0,0,1, 0,0,0]
-#   [0,0,0, 1,0,0]
-#   [0,0,0, 0,1,0]
-#   [0,0,0, 0,0,1]
-#   [1,0,0, 1,0,0]
-#   [0,1,0, 0,1,0]
-#   [0,0,1, 0,0,1]
-# We would compute 10 different terms, but would allocate 2^6 = 64 elements. 
-# We could potentially use a dictionary of tuples.
