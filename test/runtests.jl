@@ -192,12 +192,14 @@ addbf!(c2,0.5,0.2)
         #@test coulomb(s,s,s,s) ≈ 1.128379167 ≈ (s.norm^4)*MolecularIntegrals.ssss(s.expn,sxyz, s.expn, sxyz, s.expn, sxyz, s.expn, sxyz)
         x=y=z=0
         xyz = [x,y,z]
+        xyza = xyz + [0.1,0.05,0.025]
+        xa,ya,za = xyza
         ex = 1
-        @test MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, x,y,z, 0,0,0, ex, x,y,z,0) ≈ MolecularIntegrals.ssss(ex,xyz, ex, xyz, ex, xyz, ex, xyz,0)[1]
-        @test MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, x,y,z, 0,0,0, ex, 0,0,0,0) ≈ MolecularIntegrals.psss(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)[1]
-        x0x0 = MolecularIntegrals.vrr(ex, 0,0,0, 1,0,0, ex, 0,0,0, ex, 0,0,0, 1,0,0, ex, 0,0,0,0)
-        vals = MolecularIntegrals.psps(ex,xyz,  ex, xyz, ex, xyz, ex, xyz,0)
-        @test x0x0 ≈ vals[1,1,1]
+        @test MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0) ≈ MolecularIntegrals.ssss(ex,xyz, ex, xyz, ex, xyza, ex, xyza,0)[1]
+        @test MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0) ≈ MolecularIntegrals.psss(ex,xyz,  ex, xyz, ex, xyza, ex, xyza,0)[1]
+        x0x0 = MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, xa,ya,za, 1,0,0, ex, xa,ya,za,0)
+        vals = MolecularIntegrals.psps(ex,xyz,  ex, xyz, ex, xyza, ex, xyza,0)
+        @test  vals[1,1,1] ≈ x0x0
 
         # Generate vrr recurrance schedules. Eyeball test (disabled):
         #@show MolecularIntegrals.vrrindices(1,1)
@@ -214,9 +216,25 @@ addbf!(c2,0.5,0.2)
         @test MolecularIntegrals.unit(3,1) == [1,0,0]
 
         # Test the vrr2 code:
-        val = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyz,xyz)
-        @test val[(2, 0, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, 0,0,0, 2,0,0, ex, 0,0,0, ex, 0,0,0, 0,0,0, ex, 0,0,0,0)
-        @test val[(2, 0, 0, 2, 0, 0)] == MolecularIntegrals.vrr(ex, 0,0,0, 2,0,0, ex, 0,0,0, ex, 0,0,0, 2,0,0, ex, 0,0,0,0)
+        val = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+        @test val[(1, 0, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 1, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,1,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 1, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,1, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 1, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 1,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 0, 1, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 0,1,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 0, 0, 1)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,1, ex, xa,ya,za,0)
+        @test val[(1, 0, 0, 1, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 1,0,0, ex, x,y,z, ex, xa,ya,za, 1,0,0, ex, xa,ya,za,0)
+        @test val[(0, 1, 0, 0, 1, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,1,0, ex, x,y,z, ex, xa,ya,za, 0,1,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 1, 0, 0, 1)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,1, ex, x,y,z, ex, xa,ya,za, 0,0,1, ex, xa,ya,za,0)
+        @test val[(2, 0, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 2,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 2, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,2,0, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 2, 0, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,2, ex, x,y,z, ex, xa,ya,za, 0,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 2, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 2,0,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 0, 2, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 0,2,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 0, 0, 0, 2)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,0, ex, x,y,z, ex, xa,ya,za, 0,0,2, ex, xa,ya,za,0)
+        @test val[(2, 0, 0, 2, 0, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 2,0,0, ex, x,y,z, ex, xa,ya,za, 2,0,0, ex, xa,ya,za,0)
+        @test val[(0, 2, 0, 0, 2, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,2,0, ex, x,y,z, ex, xa,ya,za, 0,2,0, ex, xa,ya,za,0)
+        @test val[(0, 0, 2, 0, 0, 2)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,2, ex, x,y,z, ex, xa,ya,za, 0,0,2, ex, xa,ya,za,0)
 
         # TODO after the above pass: make xyza = [a,a,a] and rerun tests that already pass btw (xyz|xyza). 
         # Also test (s,p) overlaps that should be nonzero.

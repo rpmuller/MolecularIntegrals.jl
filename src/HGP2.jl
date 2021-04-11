@@ -83,13 +83,14 @@ function psps(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
     # judicious in what we recalculate.
     values = zeros(Float64,(3,3,mmax+1))
     zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
     wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
     for i in 1:3
         for j in 1:3
             for m in 0:mmax
-                values[i,j,m+1] = (qxyz[j]-bxyz[j])*parray[i,m+1] + (wxyz[j]-qxyz[j])*parray[i,m+2] + 1/2/(zeta+eta)*sarray[m+2] 
+                values[i,j,m+1] = (qxyz[j]-bxyz[j])*parray[i,m+1] + (wxyz[j]-qxyz[j])*parray[i,m+2] + 1/(2ze)*sarray[m+2] 
             end
         end
     end
@@ -172,26 +173,48 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
     # First generate (0,0,0, 0,0,0, m) using eq 12
-    c=a=0
-    for m in 0:(mmax-a-c) 
-        values[(0,0,0, 0,0,0, m)] = Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)
+    for m in 0:mmax
+        values[(0,0,0, 0,0,0, m)] = Kab*Kcd/sqrt(ze)*Fgamma(m,T)
     end
 
     # Now generate (ax,ay,az,0,0,0,m) 
     # Eq 6a, with c=0 also:
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
-    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6c
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
     for a in 1:amax
-        for av in shell_indices[a]
+        for ap in shell_indices[a]
+            apx,apy,apz = ap
+            i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
+            av,am = vdiffs(ap,i) #am = ap-1i, am2 = ap-2i in eq 6-7; i direction of change
             avx,avy,avz = av
-            i = argmax(av) # Choose argmax(av) as the direction to use for building new terms
-            am,am2 = vdiffs(av,i) #am = av-1i, am2 = av-2i in eq 6-7; i direction of change
             amx,amy,amz = am
-            am2x,am2y,am2z = am2
-            for m in 0:(mmax-a-c)
-                values[(avx,avy,avz,0,0,0,m)] = (pxyz[i]-axyz[i])*values[(amx,amy,amz,0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(amx,amy,amz,0,0,0,m+1)]
-                if am2[i] >= 0
-                    values[(avx,avy,avz,0,0,0,m)] += am[i]/(2*zeta)*(values[(am2x,am2y,am2z,0,0,0,m)]-eta/ze*values[(am2x,am2y,am2z,0,0,0,m+1)])
+            for m in 0:(mmax-a)
+                values[(apx,apy,apz,0,0,0,m)] = (pxyz[i]-axyz[i])*values[(avx,avy,avz,0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(avx,avy,avz,0,0,0,m+1)]
+                if am[i] >= 0
+                    values[(apx,apy,apz,0,0,0,m)] += av[i]/(2*zeta)*(values[(amx,amy,amz,0,0,0,m)]-eta/ze*values[(amx,amy,amz,0,0,0,m+1)])
+                end
+            end
+        end
+    end
+
+    # Next build (0,0,0,cx,cy,cz,m)
+    # The c-based version of 6a is:
+    #   [0,c+1]m = (Qj-Bi)[0,c]m + (Wj-Qj)[0,c]m+1
+    #       + c_j/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
+    # 
+    for c in 1:cmax
+        for cp in shell_indices[c]
+            cpx,cpy,cpz = cp
+            j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+            cv,cm = vdiffs(cp,j)
+            cvx,cvy,cvz = cv
+            cmx,cmy,cmz = cm
+            for m in 0:(mmax-c)
+                values[(0,0,0,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(0,0,0,cvx,cvy,cvz,m)]
+                    +(wxyz[j]-qxyz[j])*values[(0,0,0,cvx,cvy,cvz,m+1)]
+                if cm[j] >= 0
+                    values[(0,0,0,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(0,0,0,cmx,cmy,cmz,m)]
+                        -zeta/ze*values[(0,0,0,cmx,cmy,cmz,m+1)])
                 end
             end
         end
@@ -200,31 +223,31 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     # Now build (ax,ay,az,cx,cy,cz,m)
     # The c-based version of 6a is:
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
-    #       + c_j/2zeta ([a,c-1]m - eta/zeta+eta[a,c-1]m+1)         # eq 6b
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
-    for a in 0:amax
+    for a in 1:amax
         for av in shell_indices[a]
             avx,avy,avz = av
             for c in 1:cmax
-                for cv in shell_indices[c]
+                for cp in shell_indices[c]
+                    cpx,cpy,cpz = cp
+                    j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+                    cv,cm = vdiffs(cp,j)
                     cvx,cvy,cvz = cv
-                    j = argmax(cv)  # Choose argmax(cv) as the direction to use for building new terms
-                    cm,cm2 = vdiffs(cv,j)
                     cmx,cmy,cmz = cm
-                    cm2x,cm2y,cm2z = cm2
-                    # Need up update after change:
-                    am,am2 = vdiffs(av,j) #am = av-1j, am2 = av-2j in eq 6-7; i direction of change
+
+                    am,am2 = vdiffs(av,j) #am = av-1j, am2 = av-2j in eq 6-7
                     amx,amy,amz = am
-                    am2x,am2y,am2z = am2
+                    #am2x,am2y,am2z = am2
                     for m in 0:(mmax-a-c)
-                        values[(avx,avy,avz,cvx,cvy,cvz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m)]
-                            +(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m+1)]
-                        if cm2[j] >= 0
-                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += cm[j]/(2*zeta)*(values[(avx,avy,avz,cm2x,cm2y,cm2z,m)]
-                                -eta/ze*values[(avx,avy,avz,cm2x,cm2y,cm2z,m+1)])
+                        values[(avx,avy,avz,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m)]
+                            +(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m+1)]
+                        if cm[j] >= 0
+                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(avx,avy,avz,cmx,cmy,cmz,m)]
+                                -zeta/ze*values[(avx,avy,avz,cmx,cmy,cmz,m+1)])
                         end
                         if am[j] >= 0 
-                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += av[j]/(2*ze)*(values[(amx,amy,amz,cmx,cmy,cmz,m+1)])
+                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += av[j]/(2*ze)*(values[(amx,amy,amz,cvx,cvy,cvz,m+1)])
                         end                             
                     end
                 end
