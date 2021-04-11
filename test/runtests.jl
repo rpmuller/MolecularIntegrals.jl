@@ -211,9 +211,6 @@ addbf!(c2,0.5,0.2)
         testd = Dict((1,2,3) => 4, (1,2,0)=> 3)
         @test MolecularIntegrals.prunem(testd) == Dict((1,2) => 3)
 
-        @test MolecularIntegrals.unit(3,1) == [1,0,0]
-
-
         # Test the vrr2 code:
         val = MolecularIntegrals.vrr2(2,0, ex,ex,ex,ex, xyz,xyz,xyz,xyz)
         @test val[(2, 0, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, 0,0,0, 2,0,0, ex, 0,0,0, ex, 0,0,0, 0,0,0, ex, 0,0,0,0)
