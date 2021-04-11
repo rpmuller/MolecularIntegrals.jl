@@ -217,6 +217,10 @@ addbf!(c2,0.5,0.2)
         val = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyz,xyz)
         @test val[(2, 0, 0, 0, 0, 0)] == MolecularIntegrals.vrr(ex, 0,0,0, 2,0,0, ex, 0,0,0, ex, 0,0,0, 0,0,0, ex, 0,0,0,0)
         @test val[(2, 0, 0, 2, 0, 0)] == MolecularIntegrals.vrr(ex, 0,0,0, 2,0,0, ex, 0,0,0, ex, 0,0,0, 2,0,0, ex, 0,0,0,0)
+
+        # TODO after the above pass: make xyza = [a,a,a] and rerun tests that already pass btw (xyz|xyza). 
+        # Also test (s,p) overlaps that should be nonzero.
+        # Run full test against coulomb
    end
 
     

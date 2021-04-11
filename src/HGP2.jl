@@ -199,9 +199,9 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
 
     # Now build (ax,ay,az,cx,cy,cz,m)
     # The c-based version of 6a is:
-    #   [a,c+1]m = (Qi-Bi)[a,c]m + (Wi-Qi)[a,c]m+1
-    #       + c_i/2zeta ([a,c-1]m - eta/zeta+eta[a,c-1]m+1)         # eq 6b
-    #       + a_i/2(zeta+eta)[a-1,c]m+1
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2zeta ([a,c-1]m - eta/zeta+eta[a,c-1]m+1)         # eq 6b
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
     for a in 0:amax
         for av in shell_indices[a]
             avx,avy,avz = av
@@ -223,9 +223,8 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
                             values[(avx,avy,avz,cvx,cvy,cvz,m)] += cm[j]/(2*zeta)*(values[(avx,avy,avz,cm2x,cm2y,cm2z,m)]
                                 -eta/ze*values[(avx,avy,avz,cm2x,cm2y,cm2z,m+1)])
                         end
-                        if am[j] >= 0 # Confused: don't know whether this is av[i],av[j],am[i],am[j],am2[i],am2[j]
-                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += am[j]/(2*ze)*(values[(amx,amy,amz,cmx,cmy,cmz,m)]
-                                -eta/ze*values[(amx,amy,amz,cmx,cmy,cmz,m+1)])
+                        if am[j] >= 0 
+                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += av[j]/(2*ze)*(values[(amx,amy,amz,cmx,cmy,cmz,m+1)])
                         end                             
                     end
                 end
