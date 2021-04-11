@@ -109,45 +109,6 @@ shell_indices = Dict(
             [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
 )
 
-"vrrindices - Generate indices for vrr in three steps:
-- (0,0,0,0,0,0,m),  
-- (ax,ay,az,0,0,0,m),  
-- (ax,ay,az,cx,cy,cz,m) 
-This version also adjusts the m terms based on a,c. This is the most efficient way to 
-go through the recurrance relationships in practics."
-function vrrindices(amax,cmax)
-    indices = []
-    mmax=amax+cmax
-    # First generate (0,0,0, 0,0,0, m) 
-    c=a=0
-    for m in 0:(mmax-a-c) 
-        push!(indices,(0,0,0,0,0,0,m))
-    end
-
-    # Now generate (ax,ay,az,0,0,0,m) 
-    for a in 1:amax
-        for (ax,ay,az) in shell_indices[a]
-            for m in 0:(mmax-a-c)
-                push!(indices,(ax,ay,az,0,0,0,m))
-            end
-        end
-    end
-
-    # Now build (ax,ay,az,cx,cy,cz,m)
-    for a in 0:amax
-        for (ax,ay,az) in shell_indices[a]
-            for c in 1:cmax
-                for (cx,cy,cz) in shell_indices[c]
-                    for m in 0:(mmax-a-c)
-                        push!(indices,(ax,ay,az,cx,cy,cz,m))
-                    end
-                end
-            end
-        end 
-    end
-    return indices
-end
-
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
@@ -174,7 +135,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
 
     # First generate (0,0,0, 0,0,0, m) using eq 12
     for m in 0:mmax
-        values[(0,0,0, 0,0,0, m)] = Kab*Kcd/sqrt(ze)*Fgamma(m,T)
+        values[(0,0,0, 0,0,0, m)] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
     end
 
     # Now generate (ax,ay,az,0,0,0,m) 
@@ -210,11 +171,9 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
             cvx,cvy,cvz = cv
             cmx,cmy,cmz = cm
             for m in 0:(mmax-c)
-                values[(0,0,0,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(0,0,0,cvx,cvy,cvz,m)]
-                    +(wxyz[j]-qxyz[j])*values[(0,0,0,cvx,cvy,cvz,m+1)]
+                values[(0,0,0,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(0,0,0,cvx,cvy,cvz,m)]+(wxyz[j]-qxyz[j])*values[(0,0,0,cvx,cvy,cvz,m+1)]
                 if cm[j] >= 0
-                    values[(0,0,0,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(0,0,0,cmx,cmy,cmz,m)]
-                        -zeta/ze*values[(0,0,0,cmx,cmy,cmz,m+1)])
+                    values[(0,0,0,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(0,0,0,cmx,cmy,cmz,m)]-zeta/ze*values[(0,0,0,cmx,cmy,cmz,m+1)])
                 end
             end
         end
@@ -240,11 +199,9 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
                     amx,amy,amz = am
                     #am2x,am2y,am2z = am2
                     for m in 0:(mmax-a-c)
-                        values[(avx,avy,avz,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m)]
-                            +(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m+1)]
+                        values[(avx,avy,avz,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m)]+(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m+1)]
                         if cm[j] >= 0
-                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(avx,avy,avz,cmx,cmy,cmz,m)]
-                                -zeta/ze*values[(avx,avy,avz,cmx,cmy,cmz,m+1)])
+                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(avx,avy,avz,cmx,cmy,cmz,m)]-zeta/ze*values[(avx,avy,avz,cmx,cmy,cmz,m+1)])
                         end
                         if am[j] >= 0 
                             values[(avx,avy,avz,cpx,cpy,cpz,m)] += av[j]/(2*ze)*(values[(amx,amy,amz,cvx,cvy,cvz,m+1)])
