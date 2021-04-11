@@ -186,17 +186,15 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
             # TODO: find a nicer way to compute the index differences. Currently I compute the argmax of the (ax,ay,az) values,
             #   and use that to compute m = (ax,ay-1,az) or in whatever direction. But this is ugly code. I wrote the `unit` code
             #   to try to make this more idiomatic julia, but I'm not using it now.
-            d = argmax(av)
-            mv = copy(av)
-            mv[d] -= 1
-            mv2 = copy(mv)
-            mv2[d] -= 1
+            i = argmax(av)
+            am = copy(av)
+            am[i] -= 1
+            am2 = copy(am)
+            am2[i] -= 1
             for m in 0:(mmax-a-c)
-                values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[d]-axyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m)]
-                        +(wxyz[d]-pxyz[d])*values[(mv[1],mv[2],mv[3],0,0,0,m+1)]
-                if mv2[d] >= 0
-                    values[(av[1],av[2],av[3],0,0,0,m)] += mv[d]/(2*zeta)*(values[(mv2[1],mv2[2],mv2[3],0,0,0,m)]
-                        -eta/ze*values[(mv2[1],mv2[2],mv2[3],0,0,0,m+1)])
+                values[(av[1],av[2],av[3],0,0,0,m)] = (pxyz[i]-axyz[i])*values[(am[1],am[2],am[3],0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(am[1],am[2],am[3],0,0,0,m+1)]
+                if am2[i] >= 0
+                    values[(av[1],av[2],av[3],0,0,0,m)] += am[i]/(2*zeta)*(values[(am2[1],am2[2],am2[3],0,0,0,m)]-eta/ze*values[(am2[1],am2[2],am2[3],0,0,0,m+1)])
                 end
             end
         end
@@ -208,13 +206,25 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     #       + c_i/2zeta ([a,c-1]m - eta/zeta+eta[a,c-1]m+1)         # eq 6b
     #       + a_i/2(zeta+eta)[a-1,c]m+1
     for a in 0:amax
-        for (ax,ay,az) in shell_indices[a]
-            m1 = 
+        for av in shell_indices[a]
+            i = argmax(av)
+            am = copy(av)
+            am[i] -= 1
+            am2 = copy(am)
+            am2[i] -= 1
             for c in 1:cmax
-                for (cx,cy,cz) in shell_indices[c]
+                for cv in shell_indices[c]
+                    j = argmax(cv)
+                    cm = copy(cv)
+                    cm[i] -= 1
+                    cm2 = copy(cm)
+                    cm2[i] -= 1
                     for m in 0:(mmax-a-c)
-                        #values[(ax,ay,az,0,0,0,m)] = 
-                        continue
+                        values[(av[1],av[2],av[3],cv[1]cv[2],cv[3],m)] = (qxyz[j]-bxyz[j])*values[(av[1],av[2],av[3],cm[1],cm[2],cm[3],m)]
+                            +(wxyz[j]-qxyz[j])*values[(av[1],av[2],av[3],cm[1],cm[2],cm[3],m+1)]
+                            if cm2[j] >= 0
+                                values[(av[1],av[2],av[3],0,0,0,m)] += am[i]/(2*zeta)*(values[(am2[1],am2[2],am2[3],0,0,0,m)]-eta/ze*values[(am2[1],am2[2],am2[3],0,0,0,m+1)])
+                            end                                    
                     end
                 end
             end
