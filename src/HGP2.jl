@@ -184,7 +184,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     for a in 1:amax
         for av in shell_indices[a]
             avx,avy,avz = av
-            i = argmax(av)
+            i = argmax(av) # Choose argmax(av) as the direction to use for building new terms
             am,am2 = vdiffs(av,i) #am = av-1i, am2 = av-2i in eq 6-7; i direction of change
             amx,amy,amz = am
             am2x,am2y,am2z = am2
@@ -208,7 +208,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
             for c in 1:cmax
                 for cv in shell_indices[c]
                     cvx,cvy,cvz = cv
-                    j = argmax(cv)
+                    j = argmax(cv)  # Choose argmax(cv) as the direction to use for building new terms
                     cm,cm2 = vdiffs(cv,j)
                     cmx,cmy,cmz = cm
                     cm2x,cm2y,cm2z = cm2
@@ -224,7 +224,6 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
                                 -eta/ze*values[(avx,avy,avz,cm2x,cm2y,cm2z,m+1)])
                         end
                         if am[j] >= 0 # Confused: don't know whether this is av[i],av[j],am[i],am[j],am2[i],am2[j]
-                            # the amx,amy,amz values might also need to be changed to be in direction j:
                             values[(avx,avy,avz,cvx,cvy,cvz,m)] += am[j]/(2*ze)*(values[(amx,amy,amz,cmx,cmy,cmz,m)]
                                 -eta/ze*values[(amx,amy,amz,cmx,cmy,cmz,m+1)])
                         end                             
