@@ -36,67 +36,6 @@
 #       evaluation using recurrence relations. Martin Head-Gordon and John
 #       A. Pople. JCP, 89 (9), 5777, 1988.
 
-
-# 0. Warm up
-#    To see how well this works in practice, it might be useful to generate a few
-#    simple cases and run them through steps 1-3 to see what's wrong with the plan.
-#    Therefore, here are a few simple warm up exercises:
-#
-#    A. ssss and SSSS generation
-
-"ssss - Calculate the [0]m terms for VRR equations for a range of m values"
-function ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
-    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
-    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
-    zeta,eta = aexpn+bexpn,cexpn+dexpn
-    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
-    rab2 = dist2(axyz-bxyz)
-    rcd2 = dist2(cxyz-dxyz)
-    rpq2 = dist2(pxyz-qxyz)
-    T = zeta*eta/(zeta+eta)*rpq2
-    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
-    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
-    return Kab*Kcd/sqrt(zeta+eta)*[Fgamma(m,T) for m in 0:mmax]   # HGP eq 12
-end
-
-function psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
-    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,mmax+1)
-    # Recalculate a number of terms from ssss. When the code works, be more
-    # judicious in what we recalculate.
-    values = zeros(Float64,(3,mmax+1))
-    zeta,eta = aexpn+bexpn,cexpn+dexpn
-    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
-    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
-    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
-    for i in 1:3
-        for m in 0:mmax
-            values[i,m+1] = (pxyz[i]-axyz[i])*sarray[m+1] + (wxyz[i]-pxyz[i])*sarray[m+2]
-        end
-    end
-    return values
-end
-
-function psps(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn,dxyz,mmax=0)
-    sarray = ssss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,mmax+1)
-    parray = psss(aexpn,axyz, bexpn,bxyz, cexpn,cxyz, dexpn, dxyz,mmax+1)
-    # Recalculate a number of terms from ssss. When the code works, be more
-    # judicious in what we recalculate.
-    values = zeros(Float64,(3,3,mmax+1))
-    zeta,eta = aexpn+bexpn,cexpn+dexpn
-    ze = zeta+eta
-    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
-    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
-    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
-    for i in 1:3
-        for j in 1:3
-            for m in 0:mmax
-                values[i,j,m+1] = (qxyz[j]-bxyz[j])*parray[i,m+1] + (wxyz[j]-qxyz[j])*parray[i,m+2] + 1/(2ze)*sarray[m+2] 
-            end
-        end
-    end
-    return values
-end
-
 shell_indices = Dict(
     0 => [[0,0,0]], # 1
     1 => [[1,0,0],[0,1,0],[0,0,1]], # 3
@@ -113,17 +52,17 @@ shell_indices = Dict(
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
 "vrr2 - iterative version of HGP vertical recurrance relations"
-function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
+function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     values = Dict()
-    pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
-    qxyz = gaussian_product_center(cexpn,cxyz,dexpn,dxyz)
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
     zeta,eta = aexpn+bexpn,cexpn+dexpn
     ze = zeta+eta
-    wxyz = gaussian_product_center(zeta,pxyz,eta,qxyz)
-    rab2 = dist2(axyz-bxyz)
-    rcd2 = dist2(cxyz-dxyz)
-    rpq2 = dist2(pxyz-qxyz)
-    T = zeta*eta/(zeta+eta)*rpq2
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
     mmax=amax+cmax
@@ -142,17 +81,17 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     # Eq 6a, with c=0 also:
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
-    for a in 1:amax
-        for ap in shell_indices[a]
+    for ashell in 1:amax
+        for ap in shell_indices[ashell]
             apx,apy,apz = ap
             i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
-            av,am = vdiffs(ap,i) #am = ap-1i, am2 = ap-2i in eq 6-7; i direction of change
-            avx,avy,avz = av
+            a,am = vdiffs(ap,i) #am = ap-1i, am2 = ap-2i in eq 6-7; i direction of change
+            ax,ay,az = a
             amx,amy,amz = am
-            for m in 0:(mmax-a)
-                values[(apx,apy,apz,0,0,0,m)] = (pxyz[i]-axyz[i])*values[(avx,avy,avz,0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(avx,avy,avz,0,0,0,m+1)]
+            for m in 0:(mmax-ashell)
+                values[(apx,apy,apz,0,0,0,m)] = (P[i]-A[i])*values[(ax,ay,az,0,0,0,m)]+(W[i]-P[i])*values[(ax,ay,az,0,0,0,m+1)]
                 if am[i] >= 0
-                    values[(apx,apy,apz,0,0,0,m)] += av[i]/(2*zeta)*(values[(amx,amy,amz,0,0,0,m)]-eta/ze*values[(amx,amy,amz,0,0,0,m+1)])
+                    values[(apx,apy,apz,0,0,0,m)] += a[i]/(2*zeta)*(values[(amx,amy,amz,0,0,0,m)]-eta/ze*values[(amx,amy,amz,0,0,0,m+1)])
                 end
             end
         end
@@ -160,20 +99,20 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
 
     # Next build (0,0,0,cx,cy,cz,m)
     # The c-based version of 6a is:
-    #   [0,c+1]m = (Qj-Bi)[0,c]m + (Wj-Qj)[0,c]m+1
-    #       + c_j/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
+    #   [0,c+1]m = (Qi-Bi)[0,c]m + (Wi-Qi)[0,c]m+1
+    #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
     # 
-    for c in 1:cmax
-        for cp in shell_indices[c]
+    for cshell in 1:cmax
+        for cp in shell_indices[cshell]
             cpx,cpy,cpz = cp
-            j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
-            cv,cm = vdiffs(cp,j)
-            cvx,cvy,cvz = cv
+            i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+            c,cm = vdiffs(cp,i)
+            cx,cy,cz = c
             cmx,cmy,cmz = cm
-            for m in 0:(mmax-c)
-                values[(0,0,0,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(0,0,0,cvx,cvy,cvz,m)]+(wxyz[j]-qxyz[j])*values[(0,0,0,cvx,cvy,cvz,m+1)]
-                if cm[j] >= 0
-                    values[(0,0,0,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(0,0,0,cmx,cmy,cmz,m)]-zeta/ze*values[(0,0,0,cmx,cmy,cmz,m+1)])
+            for m in 0:(mmax-cshell)
+                values[(0,0,0,cpx,cpy,cpz,m)] = (Q[i]-C[i])*values[(0,0,0,cx,cy,cz,m)]+(W[i]-Q[i])*values[(0,0,0,cx,cy,cz,m+1)]
+                if cm[i] >= 0
+                    values[(0,0,0,cpx,cpy,cpz,m)] += c[i]/(2*eta)*(values[(0,0,0,cmx,cmy,cmz,m)]-zeta/ze*values[(0,0,0,cmx,cmy,cmz,m+1)])
                 end
             end
         end
@@ -184,27 +123,27 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
-    for a in 1:amax
-        for av in shell_indices[a]
-            avx,avy,avz = av
-            for c in 1:cmax
-                for cp in shell_indices[c]
+    for ashell in 1:amax
+        for a in shell_indices[ashell]
+            ax,ay,az = a
+            for cshell in 1:cmax
+                for cp in shell_indices[cshell]
                     cpx,cpy,cpz = cp
                     j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
-                    cv,cm = vdiffs(cp,j)
-                    cvx,cvy,cvz = cv
+                    c,cm = vdiffs(cp,j)
+                    cx,cy,cz = c
                     cmx,cmy,cmz = cm
 
-                    am,am2 = vdiffs(av,j) #am = av-1j, am2 = av-2j in eq 6-7
+                    am,am2 = vdiffs(a,j) #am = a-1j, am2 = a-2j in eq 6-7
                     amx,amy,amz = am
                     #am2x,am2y,am2z = am2
-                    for m in 0:(mmax-a-c)
-                        values[(avx,avy,avz,cpx,cpy,cpz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m)]+(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cvx,cvy,cvz,m+1)]
+                    for m in 0:(mmax-ashell-cshell)
+                        values[(ax,ay,az,cpx,cpy,cpz,m)] = (Q[j]-C[j])*values[(ax,ay,az,cx,cy,cz,m)]+(W[j]-Q[j])*values[(ax,ay,az,cx,cy,cz,m+1)]
                         if cm[j] >= 0
-                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += cv[j]/(2*eta)*(values[(avx,avy,avz,cmx,cmy,cmz,m)]-zeta/ze*values[(avx,avy,avz,cmx,cmy,cmz,m+1)])
+                            values[(ax,ay,az,cpx,cpy,cpz,m)] += c[j]/(2*eta)*(values[(ax,ay,az,cmx,cmy,cmz,m)]-zeta/ze*values[(ax,ay,az,cmx,cmy,cmz,m+1)])
                         end
                         if am[j] >= 0 
-                            values[(avx,avy,avz,cpx,cpy,cpz,m)] += av[j]/(2*ze)*(values[(amx,amy,amz,cvx,cvy,cvz,m+1)])
+                            values[(ax,ay,az,cpx,cpy,cpz,m)] += a[j]/(2*ze)*(values[(amx,amy,amz,cx,cy,cz,m+1)])
                         end                             
                     end
                 end
