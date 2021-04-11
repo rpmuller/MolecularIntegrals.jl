@@ -183,22 +183,14 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6c
     for a in 1:amax
         for av in shell_indices[a]
-            ax,ay,az = av
-            i,am,am2 = vdiffs(av) #am = a-1, am2 = a-2 in eq 6-7; i direction of change
+            avx,avy,avz = av
+            i,am,am2 = vdiffs(av) #am = av-1, am2 = av-2 in eq 6-7; i direction of change
             amx,amy,amz = am
             am2x,am2y,am2z = am2
-            # TODO: find a nicer way to compute the index differences. Currently I compute the argmax of the (ax,ay,az) values,
-            #   and use that to compute m = (ax,ay-1,az) or in whatever direction. But this is ugly code. I wrote the `unit` code
-            #   to try to make this more idiomatic julia, but I'm not using it now.
-            #i = argmax(av)
-            #am = copy(av)
-            #am[i] -= 1
-            #am2 = copy(am)
-            #am2[i] -= 1
             for m in 0:(mmax-a-c)
-                values[(ax,ay,az,0,0,0,m)] = (pxyz[i]-axyz[i])*values[(amx,amy,amz,0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(amx,amy,amz,0,0,0,m+1)]
+                values[(avx,avy,avz,0,0,0,m)] = (pxyz[i]-axyz[i])*values[(amx,amy,amz,0,0,0,m)]+(wxyz[i]-pxyz[i])*values[(amx,amy,amz,0,0,0,m+1)]
                 if am2[i] >= 0
-                    values[(ax,ay,az,0,0,0,m)] += am[i]/(2*zeta)*(values[(am2x,am2y,am2z,0,0,0,m)]-eta/ze*values[(am2x,am2y,am2z,0,0,0,m+1)])
+                    values[(avx,avy,avz,0,0,0,m)] += am[i]/(2*zeta)*(values[(am2x,am2y,am2z,0,0,0,m)]-eta/ze*values[(am2x,am2y,am2z,0,0,0,m+1)])
                 end
             end
         end
@@ -211,28 +203,27 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     #       + a_i/2(zeta+eta)[a-1,c]m+1
     for a in 0:amax
         for av in shell_indices[a]
-            i = argmax(av)
-            am = copy(av)
-            am[i] -= 1
-            am2 = copy(am)
-            am2[i] -= 1
+            avx,avy,avz = av
+            i,am,am2 = vdiffs(av) #am = a-1, am2 = a-2 in eq 6-7; i direction of change
+            amx,amy,amz = am
+            am2x,am2y,am2z = am2
             for c in 1:cmax
                 for cv in shell_indices[c]
-                    j = argmax(cv)
-                    cm = copy(cv)
-                    cm[j] -= 1
-                    cm2 = copy(cm)
-                    cm2[j] -= 1
+                    cvx,cvy,cvz = cv
+                    j,cm,cm2 = vdiffs(cv)
+                    cmx,cmy,cmz = cm
+                    cm2x,cm2y,cm2z = cm2
                     for m in 0:(mmax-a-c)
-                        values[(av[1],av[2],av[3],cv[1]cv[2],cv[3],m)] = (qxyz[j]-bxyz[j])*values[(av[1],av[2],av[3],cm[1],cm[2],cm[3],m)]
-                            +(wxyz[j]-qxyz[j])*values[(av[1],av[2],av[3],cm[1],cm[2],cm[3],m+1)]
+                        values[(avx,avy,avz,cvx,cvy,cvz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m)]
+                            +(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m+1)]
                         if cm2[j] >= 0
-                            values[(av[1],av[2],av[3],cv[1]cv[2],cv[3],m)] += cm[j]/(2*zeta)*(values[(av[1],av[2],av[3],cm2[1],cm2[2],cm2[3],m)]
-                                -eta/ze*values[(av[1],av[2],av[3],cm2[1],cm2[2],cm2[3],m+1)])
+                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += cm[j]/(2*zeta)*(values[(avx,avy,avz,cm2x,cm2y,cm2z,m)]
+                                -eta/ze*values[(avx,avy,avz,cm2x,cm2y,cm2z,m+1)])
                         end
                         if am[j] >= 0 # Confused: don't know whether this is av[i],av[j],am[i],am[j],am2[i],am2[j]
-                            values[(av[1],av[2],av[3],cv[1]cv[2],cv[3],m)] += am[j]/(2*ze)*(values[(am[1],am[2],am[3],cm[1],cm[2],cm[3],m)]
-                                -eta/ze*values[(am[1],am[2],am[3],cm[1],cm[2],cm[3],m+1)])
+                            # the amx,amy,amz values might also need to be changed to be in direction j:
+                            values[(avx,avy,avz,cvx,cvy,cvz,m)] += am[j]/(2*ze)*(values[(amx,amy,amz,cmx,cmy,cmz,m)]
+                                -eta/ze*values[(amx,amy,amz,cmx,cmy,cmz,m+1)])
                         end                             
                     end
                 end
