@@ -184,7 +184,8 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     for a in 1:amax
         for av in shell_indices[a]
             avx,avy,avz = av
-            i,am,am2 = vdiffs(av) #am = av-1, am2 = av-2 in eq 6-7; i direction of change
+            i = argmax(av)
+            am,am2 = vdiffs(av,i) #am = av-1i, am2 = av-2i in eq 6-7; i direction of change
             amx,amy,amz = am
             am2x,am2y,am2z = am2
             for m in 0:(mmax-a-c)
@@ -204,15 +205,17 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, axyz,bxyz,cxyz,dxyz)
     for a in 0:amax
         for av in shell_indices[a]
             avx,avy,avz = av
-            i,am,am2 = vdiffs(av) #am = a-1, am2 = a-2 in eq 6-7; i direction of change
-            amx,amy,amz = am
-            am2x,am2y,am2z = am2
             for c in 1:cmax
                 for cv in shell_indices[c]
                     cvx,cvy,cvz = cv
-                    j,cm,cm2 = vdiffs(cv)
+                    j = argmax(cv)
+                    cm,cm2 = vdiffs(cv,j)
                     cmx,cmy,cmz = cm
                     cm2x,cm2y,cm2z = cm2
+                    # Need up update after change:
+                    am,am2 = vdiffs(av,j) #am = av-1j, am2 = av-2j in eq 6-7; i direction of change
+                    amx,amy,amz = am
+                    am2x,am2y,am2z = am2
                     for m in 0:(mmax-a-c)
                         values[(avx,avy,avz,cvx,cvy,cvz,m)] = (qxyz[j]-bxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m)]
                             +(wxyz[j]-qxyz[j])*values[(avx,avy,avz,cmx,cmy,cmz,m+1)]
@@ -235,13 +238,12 @@ end
 
 "vdiffs(a) - Compute vector differences (ax,ay-1,az) (ax,ay-2,az) where y is the amax(ax,ay,az)
     return y,am,am2"
-function vdiffs(a)
-    i = argmax(a)
-    am = copy(a)
-    am[i] -= 1
-    am2 = copy(am)
-    am2[i] -= 1 
-    return i,am,am2
-end
+vdiffs(a,i) = a-unit(3,i),a-2*unit(3,i)
 
+"unit(n,d) - create a n-dim unit vector in direction d"
+function unit(n,d) 
+    v = zeros(Int,n)
+    v[d] = 1
+    return v
+end
 
