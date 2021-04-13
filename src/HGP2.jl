@@ -48,6 +48,13 @@ shell_indices = Dict(
             [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
 )
 
+# Note that we can prune more aggressively than this, since in practice
+# we only need to return something like the VRRs from 
+# [min(amax,bmax),0|min(cmax,dmax)0] to [amax+bmax,0|cmax+dmax,0] rather 
+# than returning all terms starting from [00|00]. However, I don't know
+# whether there is a savings here since we need to compute all of these
+# anyway.
+
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
@@ -164,3 +171,19 @@ function unit(n,d)
     return v
 end
 
+"""
+hrr - compute two electron integrals using the horizontal recurrence relations
+
+The HRRs are given in HGP eq 18: 
+    (a(b+1),cd) = ((a+1)b,cd) + (Ai-Bi)(ab,cd)
+
+Note that the HRRs apply to either contracted or primitive integrals.
+"""
+function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+    # Get the relevant vrr terms
+    vrrs = vrr2(a+b,c+d, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+
+    # We will return a different data object: we want hrr[I,J,K,L] = (IJ,KL) where
+    # the indices I ∈ shell_index[ashell], J ∈ shell_index[bshell], etc.
+end
