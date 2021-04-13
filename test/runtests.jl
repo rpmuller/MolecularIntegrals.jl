@@ -215,6 +215,8 @@ addbf!(c2,0.5,0.2)
         @test val[(0, 2, 0, 0, 2, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,2,0, ex, x,y,z, ex, xa,ya,za, 0,2,0, ex, xa,ya,za,0)
         @test val[(0, 0, 2, 0, 0, 2)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,2, ex, x,y,z, ex, xa,ya,za, 0,0,2, ex, xa,ya,za,0)
 
+        #@show MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+
         # TODO: reconcile coulomb(px,s,s,s) with psss():
         #   While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
         #   that I originally assumed was a mistake in psss(), but which I later found matched
@@ -222,6 +224,7 @@ addbf!(c2,0.5,0.2)
         #   @test MolecularIntegrals.vrr(1.0,0,0,0,1,0,0,1.0,0,0,0,1.0,0,0,0,0,0,0,1.0,0,0,0,0) ≈ coulomb(px,s,s,s)
         #   I'm going to move forward with coding the vrr routines, but I'm flagging this as
         #   something to investigate and fix later.
+
 end
 
     

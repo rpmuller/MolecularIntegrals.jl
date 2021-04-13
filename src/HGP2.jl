@@ -92,7 +92,8 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         for ap in shell_indices[ashell]
             apx,apy,apz = ap
             i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
-            a,am = vdiffs(ap,i) #am = ap-1i, am2 = ap-2i in eq 6-7; i direction of change
+            a = vdiff(ap,i,-1)
+            am = vdiff(ap,i,-2)
             ax,ay,az = a
             amx,amy,amz = am
             for m in 0:(mmax-ashell)
@@ -113,7 +114,8 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         for cp in shell_indices[cshell]
             cpx,cpy,cpz = cp
             i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
-            c,cm = vdiffs(cp,i)
+            c = vdiff(cp,i,-1)
+            cm = vdiff(cp,i,-2)
             cx,cy,cz = c
             cmx,cmy,cmz = cm
             for m in 0:(mmax-cshell)
@@ -137,13 +139,13 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                 for cp in shell_indices[cshell]
                     cpx,cpy,cpz = cp
                     j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
-                    c,cm = vdiffs(cp,j)
+                    c = vdiff(cp,j,-1)
+                    cm = vdiff(cp,j,-2)
                     cx,cy,cz = c
                     cmx,cmy,cmz = cm
 
-                    am,am2 = vdiffs(a,j) #am = a-1j, am2 = a-2j in eq 6-7
+                    am = vdiff(a,j,-1)
                     amx,amy,amz = am
-                    #am2x,am2y,am2z = am2
                     for m in 0:(mmax-ashell-cshell)
                         values[(ax,ay,az,cpx,cpy,cpz,m)] = (Q[j]-C[j])*values[(ax,ay,az,cx,cy,cz,m)]+(W[j]-Q[j])*values[(ax,ay,az,cx,cy,cz,m+1)]
                         if cm[j] >= 0
@@ -160,9 +162,8 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return prunem(values)
 end
 
-"vdiffs(a) - Compute vector differences (ax,ay-1,az) (ax,ay-2,az) where y is the amax(ax,ay,az)
-    return y,am,am2"
-vdiffs(a,i) = a-unit(3,i),a-2*unit(3,i)
+"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
+vdiff(a,i,n) = a+n*unit(3,i)
 
 "unit(n,d) - create a n-dim unit vector in direction d"
 function unit(n,d) 
@@ -179,11 +180,54 @@ The HRRs are given in HGP eq 18:
 
 Note that the HRRs apply to either contracted or primitive integrals.
 """
-function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
-    # Get the relevant vrr terms
+    # Get the relevant vrr terms. 
+    # Interesting that the Gaussian exponents are simply a pass-through to vrr.
     vrrs = vrr2(a+b,c+d, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
-    # We will return a different data object: we want hrr[I,J,K,L] = (IJ,KL) where
-    # the indices I ∈ shell_index[ashell], J ∈ shell_index[bshell], etc.
+    # Put them into the values dictionary
+    for (ax,ay,az,cx,cy,cz) in keys(vrrs)
+        values[(ax,ay,az,0,0,0,cx,cy,cz,0,0,0)] = vrrs[(ax,ay,az,cx,cy,cz)]
+    end
+
+    # First build (ab,c0) from (a0,c0)
+    for a in shell_indices[ashell]
+        ax,ay,az = a
+        for c in shell_indices[cshell]
+            cx,cy,cz = c
+            for bs in 1:bshell
+                for bp in shell_indices[bs]
+                    bpx,bpy,bpz = bp
+                    j = argmax(cp)  # Choose argmax(bp) as the direction to use for building new terms
+                    bx,by,bz = vdiff(bp,j,-1)
+                    apx,apy,apz = vdiff(a,j,1)
+                    values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[((apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0))] +
+                        (A[j]-B[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0))]
+                end
+            end
+        end
+    end
+    # now build (ab,cd) from (ab,c0)
+    for a in shell_indices[ashell]
+        ax,ay,az = a
+        for b in shell_indices[bshell]
+            for c in shell_indices[cshell]
+                cx,cy,cz = c
+                for ds in 1:dshell
+                    for dp in shell_indices[ds]
+                        dpx,dpy,dpz = dp
+                        j = argmax(dp)
+                        dx,dy,dz = vdiff(dp,j,-1)
+                        cpx,cpy,cpz = vdiff(c,j,1)
+                        values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[((ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz))] +
+                            (C[j]-D[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz))]
+                    end
+                end
+            end
+        end
+    end
+    # We could also just return the subset of values where (b) = bshell and (d) = dshell.
+    # But we've already calculated them
+    return values
 end
