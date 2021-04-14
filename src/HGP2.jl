@@ -172,9 +172,10 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # Get the relevant vrr terms. 
     # Interesting that the Gaussian exponents are simply a pass-through to vrr.
-    vrrs = vrr2(a+b,c+d, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    vrrs = vrr2(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
-    # Put them into the values dictionary
+    values = Dict()
+    # Put vrr values into the hrr values dictionary
     for (ax,ay,az,cx,cy,cz) in keys(vrrs)
         values[(ax,ay,az,0,0,0,cx,cy,cz,0,0,0)] = vrrs[(ax,ay,az,cx,cy,cz)]
     end

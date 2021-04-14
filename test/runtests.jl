@@ -217,14 +217,23 @@ addbf!(c2,0.5,0.2)
 
         #@show MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
 
-        # TODO: reconcile coulomb(px,s,s,s) with psss():
-        #   While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
-        #   that I originally assumed was a mistake in psss(), but which I later found matched
-        #   vrr for this code. Which means that it is likely that the following test fails:
-        #   @test MolecularIntegrals.vrr(1.0,0,0,0,1,0,0,1.0,0,0,0,1.0,0,0,0,0,0,0,1.0,0,0,0,0) ≈ coulomb(px,s,s,s)
-        #   I'm going to move forward with coding the vrr routines, but I'm flagging this as
-        #   something to investigate and fix later.
 
+        # HRR tests:
+        A = B = xyz
+        ax,ay,az = bx,by,bz = xyz
+        C = D = xyza
+        cx,cy,cz = dx,dy,dz = xyza
+        aexpn=bexpn=cexpn=dexpn = ex
+
+        for (ashell,bshell,cshell,dshell) in [(0,0,0,0)]
+            ashell = bshell = cshell = dshell = 0   
+            aI,aJ,aK = bI,bJ,bK = cI,cJ,cK = dI,dJ,dK = MolecularIntegrals.shell_indices[ashell][1]
+            hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+            hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
+            @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
+        end
+
+    
 end
 
     
