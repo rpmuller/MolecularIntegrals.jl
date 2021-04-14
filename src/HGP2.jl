@@ -36,18 +36,6 @@
 #       evaluation using recurrence relations. Martin Head-Gordon and John
 #       A. Pople. JCP, 89 (9), 5777, 1988.
 
-shell_indices = Dict(
-    0 => [[0,0,0]], # 1
-    1 => [[1,0,0],[0,1,0],[0,0,1]], # 3
-    2 => [[2,0,0],[1,1,0],[1,0,1],[0,2,0],[0,1,1],[0,0,2]],
-    3 => [[3,0,0],[2,1,0],[2,0,1],
-            [1,2,0],[1,0,2],[1,1,1],
-            [0,3,0],[0,2,1],[0,1,2],[0,0,3]], # 10
-    4 => [[4,0,0],[3,1,0],[3,0,1],[2,2,0],[2,1,1],[2,0,2],
-            [1,3,0],[1,2,1],[1,1,2],[1,0,3],
-            [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
-)
-
 # Note that we can prune more aggressively than this, since in practice
 # we only need to return something like the VRRs from 
 # [min(amax,bmax),0|min(cmax,dmax)0] to [amax+bmax,0|cmax+dmax,0] rather 
@@ -196,7 +184,7 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         ax,ay,az = a
         for c in shell_indices[cshell]
             cx,cy,cz = c
-            for bs in 1:bshell
+            for bs in 1:bshell # Should this loop be on the outside?
                 for bp in shell_indices[bs]
                     bpx,bpy,bpz = bp
                     j = argmax(cp)  # Choose argmax(bp) as the direction to use for building new terms
@@ -214,7 +202,7 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         for b in shell_indices[bshell]
             for c in shell_indices[cshell]
                 cx,cy,cz = c
-                for ds in 1:dshell
+                for ds in 1:dshell  # Should this loop be on the outside?
                     for dp in shell_indices[ds]
                         dpx,dpy,dpz = dp
                         j = argmax(dp)
