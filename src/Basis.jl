@@ -134,7 +134,7 @@ shell_indices = Dict(
 )
 
 # Basis function labeling routines. Work with CGBF or PBGF. Maybe assign a type union.
-llabel = Dict(0=>"s",1=>"p",2=>"d",3=>"f",4=>"g",5=>"h")
+llabel = Dict(0=>"s",1=>"p",2=>"d",3=>"f",4=>"g",5=>"h") # Could replace with an offset array, if desired
 bflabel(bf) = llabel[bf.I+bf.J+bf.K]*bfpow("x",bf.I)*bfpow("y",bf.J)*bfpow("z",bf.K)
 function bfpow(s,j) 
 	if j == 0

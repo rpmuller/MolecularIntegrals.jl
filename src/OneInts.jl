@@ -85,6 +85,7 @@ function Aterm(i,r,u,l1,l2,ax,bx,cx,gamma)
 end
 
 function Aarray(l1,l2,a,b,c,g)
+    # TODO: Replace A with an offset array
     Imax = l1+l2+1
     A = zeros(Float64,Imax)
     for i in 0:(Imax-1)
@@ -117,6 +118,7 @@ function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     for I in 0:(aI+bI)
         for J in 0:(aJ+bJ)
             for K in 0:(aK+bK)
+                # TODO: Replace A with an offset array
                 total += Ax[I+1]*Ay[J+1]*Az[K+1]*Fgamma(I+J+K,rcp2*gamma)
             end
         end
