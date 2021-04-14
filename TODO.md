@@ -5,7 +5,17 @@
     allowing, for example, a 3x1 maxtrix to be accessed as a 3 vector. Could cause problems with higher dimension
     returns (3x3x1, e.g.)
 - The ultimate new vrr code will return a [ix,iy,iz,jx,jy,jz,m] matrix. Each term of this will be a primitive 
-    integral. We will need to find a way to do the contraction over multiple primitives, potentially introducing another
-    index that we'll contract over: [k,ix,iy,iz,jx,jy,jz,m]. Although an 8-dimensional array is large, none of the 
-    dimensions will have very many terms. Still 4^8 is a lot of terms. I wonder whether this will require a more
+    integral. We will need to find a way to do the contraction over multiple primitives, potentially introducing another index that we'll contract over: [k,ix,iy,iz,jx,jy,jz,m]. Although an 8-dimensional array is large, none of the dimensions will have very many terms. Still 4^8 is a lot of terms. I wonder whether this will require a more
     intelligent data structure.
+- Such a data structure could be using the ao l,m indices to map the I,J,K. There's preliminary code in Basis.jl 
+    for these transformations.
+- Explore use of OffsetArray to simplify code in OneInts that should start at 0 index.
+
+
+ # TODO: reconcile coulomb(px,s,s,s) with psss():
+ #   While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
+ #   that I originally assumed was a mistake in psss(), but which I later found matched
+ #   vrr for this code. Which means that it is likely that the following test fails:
+ #   @test MolecularIntegrals.vrr(1.0,0,0,0,1,0,0,1.0,0,0,0,1.0,0,0,0,0,0,0,1.0,0,0,0,0) ≈ coulomb(px,s,s,s)
+ #   I'm going to move forward with coding the vrr routines, but I'm flagging this as
+ #   something to investigate and fix later.
