@@ -12,6 +12,7 @@ mutable struct PGBF
     norm::Float64
 end
 
+
 function pgbf(expn,x=0,y=0,z=0,I=0,J=0,K=0,norm=1)
     p = PGBF(expn,x,y,z,I,J,K,norm)
     normalize!(p)
@@ -28,6 +29,18 @@ end
 function normalize!(pbf::PGBF)
     pbf.norm /= sqrt(overlap(pbf,pbf))
 end
+
+# Basis function labeling routines
+llabel = Dict(0=>"s",1=>"p",2=>"d",3=>"f",4=>"g",5=>"h")
+bflabel(bf) = llabel[bf.I+bf.J+bf.K]*xpow("x",bf.I)*xpow("y",bf.J)*xpow("z",bf.K)
+function xpow(s,j) 
+	if j == 0
+		return ""
+	elseif j == 1
+		return s
+	end
+	return "$s$j"
+end	
 
 mutable struct CGBF
     x::Float64
