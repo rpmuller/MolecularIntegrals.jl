@@ -174,6 +174,9 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Interesting that the Gaussian exponents are simply a pass-through to vrr.
     vrrs = vrr2(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
+    println("Calling vrr2 with $(ashell+bshell), $(cshell+dshell)")
+    @show vrrs
+
     values = Dict()
     # Put vrr values into the hrr values dictionary
     for (ax,ay,az,cx,cy,cz) in keys(vrrs)
@@ -183,16 +186,18 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # First build (ab,c0) from (a0,c0)
     for a in shell_indices[ashell]
         ax,ay,az = a
-        for c in shell_indices[cshell]
-            cx,cy,cz = c
-            for bs in 1:bshell # Should this loop be on the outside?
-                for bp in shell_indices[bs]
-                    bpx,bpy,bpz = bp
-                    j = argmax(cp)  # Choose argmax(bp) as the direction to use for building new terms
-                    bx,by,bz = vdiff(bp,j,-1)
-                    apx,apy,apz = vdiff(a,j,1)
-                    values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[((apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0))] +
-                        (A[j]-B[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0))]
+        for cs in 0:(cshell+dshell)
+            for c in shell_indices[cs] # Here's the mistake; actually have to loop over cshell+dshell, I think.
+                cx,cy,cz = c
+                for bs in 1:bshell # Should this loop be on the outside?
+                    for bp in shell_indices[bs]
+                        bpx,bpy,bpz = bp
+                        j = argmax(bp)  # Choose argmax(bp) as the direction to use for building new terms
+                        bx,by,bz = vdiff(bp,j,-1)
+                        apx,apy,apz = vdiff(a,j,1)
+                        values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[((apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0))] +
+                            (A[j]-B[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0))]
+                    end
                 end
             end
         end
@@ -201,6 +206,7 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     for a in shell_indices[ashell]
         ax,ay,az = a
         for b in shell_indices[bshell]
+            bx,by,bz = b
             for c in shell_indices[cshell]
                 cx,cy,cz = c
                 for ds in 1:dshell  # Should this loop be on the outside?

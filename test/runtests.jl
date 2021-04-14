@@ -225,9 +225,13 @@ addbf!(c2,0.5,0.2)
         cx,cy,cz = dx,dy,dz = xyza
         aexpn=bexpn=cexpn=dexpn = ex
 
-        for (ashell,bshell,cshell,dshell) in [(0,0,0,0)]
-            ashell = bshell = cshell = dshell = 0   
-            aI,aJ,aK = bI,bJ,bK = cI,cJ,cK = dI,dJ,dK = MolecularIntegrals.shell_indices[ashell][1]
+#        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1),(2,1,0,1)] # these pass
+         for (ashell,bshell,cshell,dshell) in [(2,1,0,2)] # These fail
+            aI,aJ,aK = MolecularIntegrals.shell_indices[ashell][1]
+            bI,bJ,bK = MolecularIntegrals.shell_indices[bshell][1]
+            cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
+            dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
+
             hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
             @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
