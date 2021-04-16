@@ -9,7 +9,6 @@
     - [ ] Could also use a SparseArray
     - [ ] Such a data structure could be using the ao l,m indices to map the I,J,K. There's preliminary code in Basis.jl 
     for these transformations.
-- [ ] Explore use of OffsetArray to simplify code in OneInts that should start at 0 index.
 - [ ] Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
     - [ ] Put in warning when bsh>ash or dsh>csh in hrr2?
 
