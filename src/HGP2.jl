@@ -174,9 +174,6 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Interesting that the Gaussian exponents are simply a pass-through to vrr.
     vrrs = vrr2(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
-    println("Calling vrr2 with $(ashell+bshell), $(cshell+dshell)")
-    @show vrrs
-
     values = Dict()
     # Put vrr values into the hrr values dictionary
     for (ax,ay,az,cx,cy,cz) in keys(vrrs)
@@ -187,7 +184,7 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     for a in shell_indices[ashell]
         ax,ay,az = a
         for cs in 0:(cshell+dshell)
-            for c in shell_indices[cs] # Here's the mistake; actually have to loop over cshell+dshell, I think.
+            for c in shell_indices[cs]
                 cx,cy,cz = c
                 for bs in 1:bshell # Should this loop be on the outside?
                     for bp in shell_indices[bs]
@@ -207,16 +204,19 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         ax,ay,az = a
         for b in shell_indices[bshell]
             bx,by,bz = b
-            for c in shell_indices[cshell]
-                cx,cy,cz = c
-                for ds in 1:dshell  # Should this loop be on the outside?
-                    for dp in shell_indices[ds]
-                        dpx,dpy,dpz = dp
-                        j = argmax(dp)
-                        dx,dy,dz = vdiff(dp,j,-1)
-                        cpx,cpy,cpz = vdiff(c,j,1)
-                        values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[((ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz))] +
-                            (C[j]-D[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz))]
+            for cs in (dshell+cshell-1):-1:cshell # Remove this loop
+                for c in shell_indices[cs]
+                    cx,cy,cz = c
+                    for ds in 1:dshell
+                        for dp in shell_indices[ds]
+                            dpx,dpy,dpz = dp
+                            j = argmax(dp)
+                            dx,dy,dz = vdiff(dp,j,-1)
+                            cpx,cpy,cpz = vdiff(c,j,1)
+                            #println("target $ax $ay $az $bx $by $bz $cx $cy $cz $dpx $dpy $dpz")
+                            values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[((ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz))] +
+                                (C[j]-D[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz))]
+                        end
                     end
                 end
             end

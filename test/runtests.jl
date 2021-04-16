@@ -178,6 +178,8 @@ addbf!(c2,0.5,0.2)
         @test coulomb(l,l,r,r) ≈ 0.5727937653511646
         @test coulomb(l,l,l,r) ≈ 0.4488373301593464
         @test coulomb(l,r,l,r) ≈ 0.3025451156654606
+
+        @test MolecularIntegrals.lvalue["S"] == 0
     end
 
     @testset "HGP2 tests" begin
@@ -186,6 +188,10 @@ addbf!(c2,0.5,0.2)
         xyza = xyz + [0.1,0.05,0.025]
         xa,ya,za = xyza
         ex = 1
+        s0 = pgbf(ex,x,y,z)
+        sa = pgbf(ex,xa,ya,za)
+        px = pgbf(ex,x,y,z,1,0,0)
+        
 
         # prunem function removes the m values, since at the end of vrr we only need the ones where m=0
         testd = Dict((1,2,3) => 4, (1,2,0)=> 3)
@@ -215,8 +221,9 @@ addbf!(c2,0.5,0.2)
         @test val[(0, 2, 0, 0, 2, 0)] == MolecularIntegrals.vrr(ex, x,y,z, 0,2,0, ex, x,y,z, ex, xa,ya,za, 0,2,0, ex, xa,ya,za,0)
         @test val[(0, 0, 2, 0, 0, 2)] == MolecularIntegrals.vrr(ex, x,y,z, 0,0,2, ex, x,y,z, ex, xa,ya,za, 0,0,2, ex, xa,ya,za,0)
 
-        #@show MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
-
+        # Test against coulomb() as well: The second test doesn't work:
+        @test val[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
+        #@test val[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
 
         # HRR tests:
         A = B = xyz
@@ -225,8 +232,8 @@ addbf!(c2,0.5,0.2)
         cx,cy,cz = dx,dy,dz = xyza
         aexpn=bexpn=cexpn=dexpn = ex
 
-#        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1),(2,1,0,1)] # these pass
-         for (ashell,bshell,cshell,dshell) in [(2,1,0,2)] # These fail
+        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1),(2,1,0,1),(2,1,2,0)] # these pass
+#        for (ashell,bshell,cshell,dshell) in [(2,1,0,2)] # These fail
             aI,aJ,aK = MolecularIntegrals.shell_indices[ashell][1]
             bI,bJ,bK = MolecularIntegrals.shell_indices[bshell][1]
             cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
