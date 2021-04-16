@@ -1,4 +1,5 @@
 using MolecularIntegrals, Test
+using OffsetArrays
 
 # Define functions to be used throughout
 s = pgbf(1.0)
@@ -51,9 +52,9 @@ addbf!(c2,0.5,0.2)
         @test MolecularIntegrals.binomial_prefactor(0,0,0,0.0,0.0) == 1
         
         @test MolecularIntegrals.Aterm(0,0,0,0,0,0,0,0,0) == 1.0
-        @test MolecularIntegrals.MolecularIntegrals.Aarray(0,0,0,0,0,1) == [1.0]
-        @test MolecularIntegrals.Aarray(0,1,1,1,1,1) == [1.0, -1.0]
-        @test MolecularIntegrals.Aarray(1,1,1,1,1,1) == [1.5, -2.5, 1.0]
+        @test MolecularIntegrals.MolecularIntegrals.Aarray(0,0,0,0,0,1) == OffsetArray([1.0],0:0)
+        @test MolecularIntegrals.Aarray(0,1,1,1,1,1) == OffsetArray([1.0, -1.0],0:1)
+        @test MolecularIntegrals.Aarray(1,1,1,1,1,1) == OffsetArray([1.5, -2.5, 1.0],0:2)
         @test MolecularIntegrals.Aterm(0,0,0,0,0,0,0,0,1) == 1.0
         @test MolecularIntegrals.Aterm(0,0,0,0,1,1,1,1,1) == 1.0
         @test MolecularIntegrals.Aterm(1,0,0,0,1,1,1,1,1) == -1.0
