@@ -232,8 +232,10 @@ addbf!(c2,0.5,0.2)
         cx,cy,cz = dx,dy,dz = xyza
         aexpn=bexpn=cexpn=dexpn = ex
 
-        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1),(2,1,0,1),(2,1,2,0)] # these pass
-#        for (ashell,bshell,cshell,dshell) in [(2,1,0,2)] # These fail
+        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1) #pass
+            ,(2,1,0,1),(2,1,2,0),(2,1,2,1),(3,1,0,0),(3,1,3,1) # pass
+            #,(2,1,0,2) # fail
+            ] 
             aI,aJ,aK = MolecularIntegrals.shell_indices[ashell][1]
             bI,bJ,bK = MolecularIntegrals.shell_indices[bshell][1]
             cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
