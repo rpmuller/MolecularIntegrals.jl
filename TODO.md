@@ -29,4 +29,9 @@ Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?
 
 ## Move basis functions from bf.x,bf.y,bf.z to bf.xyz
-Also consider a similar move for bf.I, bf.J, bf.K.
+- Also consider a similar move for bf.I, bf.J, bf.K.
+- Also make bf(xyz) (amplitude) call vector
+
+
+## Do a scan and remove all .y, .z
+- Use vectors instead

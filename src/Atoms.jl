@@ -104,7 +104,7 @@ mass = [
         close(f)
     end  
     calcmass(atoms) = sum(mass[atom.atno] for atom in atoms)
-    com(atoms) = sum(mass[atom.atno]*[atom.x,atom.y,atom.z] for atom in atoms)/calcmass(atoms)
+    com(atoms) = sum(mass[atom.atno]*[atom.xyz] for atom in atoms)/calcmass(atoms)
     function translate!(atoms,xyz)
         for atom in atoms
             atom.xyz += xyz
