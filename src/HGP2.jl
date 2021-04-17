@@ -58,7 +58,7 @@ function vrr3(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    varray += acoef*bcoef*ccoef*dcoef*vrr3(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    values += acoef*bcoef*ccoef*dcoef*vrr3(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -318,8 +318,8 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     for cs in 0:(cshell+dshell)
                         for c in shell_indices[cs]
                             cx,cy,cz = c
-                            values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[((apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0))] +
-                                (A[j]-B[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0))]
+                            values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[(apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0)] +
+                                (A[j]-B[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0)]
                         end
                     end
                 end
@@ -340,8 +340,72 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                         ax,ay,az = a
                         for b in shell_indices[bshell]
                             bx,by,bz = b
-                            values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[((ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz))] +
-                                (C[j]-D[j])*values[((ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz))]
+                            values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[(ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz)] +
+                                (C[j]-D[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz)]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # We could also just return the subset of values where (b) = bshell and (d) = dshell.
+    # But we've already calculated them
+    return values
+end
+
+"hrr3 - hrr using arrays rather than dicts"
+function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+    # Get the relevant vrr terms. 
+    # Interesting that the Gaussian exponents are simply a pass-through to vrr.
+    vrrs = vrr3(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+
+    alim = ashell+bshell
+    blim = bshell
+    clim = cshell+dshell
+    dlim = dshell
+    values = OffsetArray(zeros(Float64,alim+1,alim+1,alim+1,blim+1,blim+1,blim+1,clim+1,clim+1,clim+1,dlim+1,dlim+1,dlim+1),
+                            0:alim,0:alim,0:alim,0:blim,0:blim,0:blim,0:clim,0:clim,0:clim,0:dlim,0:dlim,0:dlim)
+    # Put vrr values into the hrr values dictionary
+    values[:,:,:,0,0,0,:,:,:,0,0,0] = vrrs[:,:,:,:,:,:]
+
+    # First build (ab,c0) from (a0,c0)
+    for bs in 1:bshell 
+        for bp in shell_indices[bs]
+            bpx,bpy,bpz = bp
+            j = argmax(bp)
+            bx,by,bz = vdiff(bp,j,-1)
+            for as in ashell:(ashell+bshell-bs) # -1 guess
+                for a in shell_indices[as]
+                    ax,ay,az = a
+                    apx,apy,apz = vdiff(a,j,1)
+                    for cs in 0:(cshell+dshell)
+                        for c in shell_indices[cs]
+                            cx,cy,cz = c
+                            values[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = values[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] +
+                                (A[j]-B[j])*values[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # now build (ab,cd) from (ab,c0)
+    for ds in 1:dshell
+        for dp in shell_indices[ds]
+            dpx,dpy,dpz = dp
+            j = argmax(dp)
+            dx,dy,dz = vdiff(dp,j,-1)
+            for cs in cshell:(cshell+dshell-ds) 
+                for c in shell_indices[cs]
+                    cx,cy,cz = c
+                    cpx,cpy,cpz = vdiff(c,j,1)
+                    for a in shell_indices[ashell]
+                        ax,ay,az = a
+                        for b in shell_indices[bshell]
+                            bx,by,bz = b
+                            values[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = values[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
+                                (C[j]-D[j])*values[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
                         end
                     end
                 end

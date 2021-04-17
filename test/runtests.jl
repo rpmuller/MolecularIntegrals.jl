@@ -249,8 +249,10 @@ addbf!(c2,0.5,0.2)
             @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
         end
 
+        ashell,bshell,cshell,dshell = (2,1,2,0)
+        @show MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        @show MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)   
     
-end
-
-    
+    end
+  
 end
