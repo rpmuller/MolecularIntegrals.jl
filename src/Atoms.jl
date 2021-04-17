@@ -60,7 +60,7 @@ mass = [
     function read_xyz(lines)
         nat = parse(Int,strip(lines[1]))
         title = strip(lines[2])
-        atoms = []
+        atoms = Atom[]
         for i in 1:nat
             words = split(lines[2+i])
             sym = words[1]

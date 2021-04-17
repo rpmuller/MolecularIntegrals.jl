@@ -1,9 +1,5 @@
 # TODO and notes
 
-## Create basis set made up of shells, rather than cgbfs
-- Test build_shells function
-- Build cgbfs from shells list
-
 ## Reconcile coulomb(px,s,s,s) with hrr2 calls: 
 While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
 that I originally assumed was a mistake in psss(), but which I later found matched
