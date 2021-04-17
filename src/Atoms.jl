@@ -7,42 +7,36 @@ mutable struct Atom
     xyz::Vector{Float64}
 end
 
+function tobohr!(xyz::Vector{Float64})
+    xyz /= 0.52918
+    return nothing
+end
 function atom(sym::String,xyz::Vector{Float64},units=:Angstrom)
     atno = sym2no[sym]
-    if units == :Angstrom xyz /= 0.52918 end
+    if units == :Angstrom tobohr!(xyz) end
     return Atom(atno,xyz)
 end
 function atom(atno::Int,xyz::Vector{Float64},units=:Angstrom)
-    if units == :Angstrom xyz /= 0.52918 end
+    if units == :Angstrom tobohr!(xyz) end
     return Atom(atno,xyz)
 end
 function atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom)
     xyz = [x,y,z]
-    if units == :Angstrom xyz /= 0.52918 end
+    if units == :Angstrom tobohr!(xyz) end
     return Atom(atno,xyz)
 end
 function atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)
     atno = sym2no[sym]
     xyz = [x,y,z]
-    if units == :Angstrom xyz /= 0.52918 end
+    if units == :Angstrom tobohr!(xyz) end
     return Atom(atno,xyz)
 end
 
 nuclear_repulsion(a::Atom,b::Atom)= a.atno*b.atno/sqrt(dist2(a.xyz,b.xyz))
-function nuclear_repulsion(atoms::Vector{Atom})
-    nr = 0
-    for (i,j) in spairs(nat(atoms))
-        nr += nuclear_repulsion(atoms[i],atoms[j])
-    end
-    return nr
-end
+nuclear_repulsion(atoms::Vector{Atom}) = sum(nuclear_repulsion(atoms[i],atoms[j]) for (i,j) in spairs(nat(atoms)))
 
 nel(atoms::Vector{Atom}) = sum([at.atno for at in atoms])
 nat(atoms::Vector{Atom}) = length(atoms)
-
-# Other molecule methods to implement
-# nocc, nclosed, nopen, nup, ndown, stoich, mass,
-# center_of_mass, center!
 
 # Array of symbols, masses
 symbol = [

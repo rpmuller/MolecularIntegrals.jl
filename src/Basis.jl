@@ -3,13 +3,12 @@ export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
 mutable struct Shell
     xyz::Vector{Float64}
-    L::Int32
+    L::Int
     expns::Vector{Float64}
     coefs::Vector{Float64}
 end
 #npbf(sh::Shell) = nothing
 #ncbf(sh::Shell) = nothing
-
 
 mutable struct PGBF
     expn::Float64
@@ -21,7 +20,6 @@ mutable struct PGBF
     K::Int64
     norm::Float64
 end
-
 
 function pgbf(expn,x=0,y=0,z=0,I=0,J=0,K=0,norm=1)
     p = PGBF(expn,x,y,z,I,J,K,norm)
