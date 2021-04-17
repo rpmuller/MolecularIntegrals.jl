@@ -212,6 +212,17 @@ addbf!(c2,0.5,0.2)
             @test val[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
         end
 
+        # Test the vrr3 code:
+        val3 = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+        for (I1,J1,K1,I2,J2,K2) in [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
+                                    (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
+                                    (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1),
+                                    (2, 0, 0, 0, 0, 0), (0, 2, 0, 0, 0, 0), (0, 0, 2, 0, 0, 0),
+                                    (0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 2, 0), (0, 0, 0, 0, 0, 2),
+                                    (2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)]
+            @test val[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
+        end
+
         # Test against coulomb() as well: The second test doesn't work:
         @test val[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
         #@test val[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
