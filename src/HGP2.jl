@@ -50,16 +50,15 @@ prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
                 between shells ash,bsh,csh,dsh
 "
 function contracted_vrr(ash,bsh,csh,dsh)
-    values = Dict()
     amax,cmax = ash.L+bsh.L,csh.L,dsh.L
+    values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
+         0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) 
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    # This is where the advantage of sparse arrays over dicts becomes evident.
-                    #  we want to just do values += acoef*bcoef*ccoef*dcoef*varray
-                    varray = vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    varray += acoef*bcoef*ccoef*dcoef*vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end

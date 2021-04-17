@@ -223,6 +223,9 @@ addbf!(c2,0.5,0.2)
             @test val[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
         end
 
+        # Using dense arrays for this is still pretty small: length(vrr3(d,d)) = 100
+        #@show length(val3)
+
         # Test against coulomb() as well: The second test doesn't work:
         @test val[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
         #@test val[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
