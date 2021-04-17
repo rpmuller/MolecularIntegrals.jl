@@ -46,10 +46,10 @@
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
-"contracted_vrr - compute and contract the vertical recurrance relations 
-                between shells ash,bsh,csh,dsh
+"vrr3 - compute and contract the vertical recurrance relations 
+                                between shells ash,bsh,csh,dsh
 "
-function contracted_vrr(ash,bsh,csh,dsh)
+function vrr3(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L,dsh.L
     values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) 
@@ -58,7 +58,7 @@ function contracted_vrr(ash,bsh,csh,dsh)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    varray += acoef*bcoef*ccoef*dcoef*vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    varray += acoef*bcoef*ccoef*dcoef*vrr3(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -68,8 +68,6 @@ end
 
 "vrr3 - version of vrr2 that uses arrays instead of dicts"
 function vrr3(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    # TODO: get results to match vrr2
-    # TODO: use sparse arrays
     mmax=amax+cmax
     values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax,0:mmax) 
