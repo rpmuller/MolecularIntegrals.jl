@@ -1,6 +1,16 @@
 
 export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
+mutable struct Shell
+    xyz::Vector{Float64}
+    L::Int32
+    expns::Vector{Float64}
+    coefs::Vector{Float64}
+end
+#npbf(sh::Shell) = nothing
+#ncbf(sh::Shell) = nothing
+
+
 mutable struct PGBF
     expn::Float64
     x::Float64
@@ -89,6 +99,20 @@ function contract(f,a::CGBF,b::CGBF,c::CGBF,d::CGBF)
     return a.norm*b.norm*c.norm*d.norm*s
 end
 
+function build_shells(mol::Vector{Atom},name="sto3g")
+    data = basis_data[name]
+    shells = []
+    for atom in mol
+        for btuple in data[atom.atno]
+            sym,primlist = btuple
+            expns = [expn for (expn,coef) in primlist]
+            coefs = [coef for (expn,coef) in primlist]
+            push!(shells,Shell([atom.x,atom.y,atom.z],lvalue[sym],expns,coefs))
+        end
+    end
+    return shells
+end
+    
 
 function build_basis(mol::Vector{Atom},name="sto3g")
     data = basis_data[name]
@@ -97,7 +121,7 @@ function build_basis(mol::Vector{Atom},name="sto3g")
         for btuple in data[atom.atno]
             sym,primlist = btuple
             for (I,J,K) in shell_indices[lvalue[sym]]
-                cbf = cgbf(atom.x,atom.y,atom.z,I,J,K)
+                cbf = cgbf(atom.xyz...,I,J,K)
                 push!(bfs,cbf)
                 for (expn,coef) in primlist
                     addbf!(cbf,expn,coef)

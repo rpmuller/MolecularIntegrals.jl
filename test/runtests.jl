@@ -36,9 +36,9 @@ addbf!(c2,0.5,0.2)
         @test kinetic(s,s) ≈ 1.5
         @test kinetic(c,c) ≈ 1.5
 
-        @test nuclear_attraction(s,s,0.0,0.0,0.0) ≈ -1.59576912
-        @test nuclear_attraction(c,c,0.0,0.0,0.0) ≈ -1.59576912
-        @test nuclear_attraction(px,px,0.0,0.0,0.0) ≈ -1.06384608
+        @test nuclear_attraction(s,s,[0.0,0.0,0.0]) ≈ -1.59576912
+        @test nuclear_attraction(c,c,[0.0,0.0,0.0]) ≈ -1.59576912
+        @test nuclear_attraction(px,px,[0.0,0.0,0.0]) ≈ -1.06384608
 
         @test overlap(s,s) ≈ 1
         @test overlap(px,px) ≈ 1

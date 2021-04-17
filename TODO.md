@@ -1,5 +1,9 @@
 # TODO and notes
 
+## Create basis set made up of shells, rather than cgbfs
+- Test build_shells function
+- Build cgbfs from shells list
+
 ## Reconcile coulomb(px,s,s,s) with hrr2 calls: 
 While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
 that I originally assumed was a mistake in psss(), but which I later found matched
@@ -23,3 +27,6 @@ integral. We will need to find a way to do the contraction over multiple primiti
 ## Only computing, returning symmetric ERI pairs (i>j,k>l) ij>kl
 Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?
+
+## Move basis functions from bf.x,bf.y,bf.z to bf.xyz
+Also consider a similar move for bf.I, bf.J, bf.K.

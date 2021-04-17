@@ -131,11 +131,11 @@ function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     return -2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
 end
 
-function nuclear_attraction(a::PGBF,b::PGBF,cx,cy,cz)
+function nuclear_attraction(a::PGBF,b::PGBF,cxyz)
     return a.norm*b.norm*nuclear_attraction(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
-                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,[cx,cy,cz])
+                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,cxyz)
 end
-nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.x,c.y,c.z)
+nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.xyz)
 nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
 
 "Boys Fgamma function, using the lower incomplete gamma function."
@@ -148,8 +148,8 @@ end
 gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
 
 # Need a nested scope to squeeze this into the contract function
-function nuclear_attraction(a::CGBF,b::CGBF,cx,cy,cz)
-    na(a,b) = nuclear_attraction(a,b,cx,cy,cz)
+function nuclear_attraction(a::CGBF,b::CGBF,cxyz)
+    na(a,b) = nuclear_attraction(a,b,cxyz)
     contract(na,a,b)
 end
 function nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
