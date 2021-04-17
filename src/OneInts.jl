@@ -27,14 +27,9 @@ function overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     return pre*wx*wy*wz
 end
 
-function gaussian_product_center(a::PGBF,b::PGBF)
-    return gaussian_product_center(a.expn,[a.x,a.y,a.z],b.expn,[b.x,b.y,b.z]) 
-end
 
-function gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
-    return gaussian_product_center(aexpn,[ax,ay,az],bexpn,[bx,by,bz])   
-end
-
+gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz) = gaussian_product_center(aexpn,[ax,ay,az],bexpn,[bx,by,bz])
+gaussian_product_center(a::PGBF,b::PGBF) = gaussian_product_center(a.expn,[a.x,a.y,a.z],b.expn,[b.x,b.y,b.z])
 function gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     ab = aexpn+bexpn
     a = aexpn/ab
@@ -99,6 +94,13 @@ function Aarray(l1,l2,a,b,c,g)
     return A
 end
 
+function nuclear_attraction(a::PGBF,b::PGBF,cxyz)
+    return a.norm*b.norm*nuclear_attraction(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
+                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,cxyz)
+end
+nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.xyz)
+nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
+
 function nuclear_attraction(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,cx,cy,cz)
     return nuclear_attraction(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK,[cx,cy,cz])
 end
@@ -124,13 +126,6 @@ function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     end
     return -2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
 end
-
-function nuclear_attraction(a::PGBF,b::PGBF,cxyz)
-    return a.norm*b.norm*nuclear_attraction(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
-                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,cxyz)
-end
-nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.xyz)
-nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
 
 "Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18)

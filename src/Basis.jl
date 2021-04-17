@@ -52,13 +52,7 @@ end
 
 cgbf(x=0,y=0,z=0,I=0,J=0,K=0) = CGBF(x,y,z,I,J,K,1.0,[],[])
 
-function amplitude(bf::CGBF,x,y,z)
-    s = 0
-    for (c,pbf) in primitives(bf)
-        s += c*amplitude(pbf,x,y,z)
-    end
-    return bf.norm*s
-end
+amplitude(bf::CGBF,x,y,z) = bf.norm*sum(c*amplitude(pbf,x,y,z) for (c,pbf) in primitives(bf))
 (bf::CGBF)(x,y,z) = amplitude(bf::CGBF,x,y,z)
 
 function normalize!(bf::CGBF)
@@ -73,16 +67,7 @@ function addbf!(cbf::CGBF,expn,coef)
     normalize!(cbf)
 end
 
-function contract(f,a::CGBF,b::CGBF)
-    s = 0
-    for (ca,abf) in primitives(a)
-        for (cb,bbf) in primitives(b)
-            s += ca*cb*f(abf,bbf)
-        end
-    end
-    return a.norm*b.norm*s
-end
-
+contract(f,a::CGBF,b::CGBF) = a.norm*b.norm*sum(ca*cb*f(abf,bbf) for (ca,abf) in primitives(a) for (cb,bbf) in primitives(b))
 function contract(f,a::CGBF,b::CGBF,c::CGBF,d::CGBF)
     s = 0
     for (ca,abf) in primitives(a)
@@ -97,25 +82,39 @@ function contract(f,a::CGBF,b::CGBF,c::CGBF,d::CGBF)
     return a.norm*b.norm*c.norm*d.norm*s
 end
 
-function build_shells(mol::Vector{Atom},name="sto3g")
+function shells(atoms::Vector{Atom},name="sto3g")
     data = basis_data[name]
-    shells = []
-    for atom in mol
-        for btuple in data[atom.atno]
-            sym,primlist = btuple
+    shells = Shell[]
+    for atom in atoms
+        for (sym,primlist) in data[atom.atno]
             expns = [expn for (expn,coef) in primlist]
             coefs = [coef for (expn,coef) in primlist]
-            push!(shells,Shell([atom.x,atom.y,atom.z],lvalue[sym],expns,coefs))
+            push!(shells,Shell(atom.xyz,lvalue[sym],expns,coefs))
         end
     end
     return shells
 end
-    
 
-function build_basis(mol::Vector{Atom},name="sto3g")
+function cgbfs(shs::Vector{Shell})
+    bfs = CGBF[]
+    for sh in shs
+        for (I,J,K) in shell_indices[sh.L]
+            cbf = cgbf(sh.xyz...,I,J,K)
+            for (expn,coef) in zip(sh.expns,sh.coefs)
+                addbf!(cbf,expn,coef)
+            end
+        end
+    end
+    return bfs
+end
+
+function build_basis(atoms::Vector{Atom},name="sto3g")
+    #=
+    return cgbfs(shells(atoms,name))
+    =#
     data = basis_data[name]
     bfs = []
-    for atom in mol
+    for atom in atoms
         for btuple in data[atom.atno]
             sym,primlist = btuple
             for (I,J,K) in shell_indices[lvalue[sym]]

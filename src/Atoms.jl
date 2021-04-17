@@ -7,23 +7,10 @@ mutable struct Atom
     xyz::Vector{Float64}
 end
 
-function atom(sym::String,xyz::Vector{Float64},units=:Angstrom)
-    atno = sym2no[sym]
-    if units == :Angstrom xyz /= 0.52918 end
-    return Atom(atno,xyz)
-end
+atom(sym::String,xyz::Vector{Float64},units=:Angstrom) = atom(sym2no[sym],xyz,units) 
+atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom) = atom(atno,[x,y,z],units)
+atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)= atom(sym2no[sym],[x,y,z],units)
 function atom(atno::Int,xyz::Vector{Float64},units=:Angstrom)
-    if units == :Angstrom xyz /= 0.52918 end
-    return Atom(atno,xyz)
-end
-function atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom)
-    xyz = [x,y,z]
-    if units == :Angstrom xyz /= 0.52918 end
-    return Atom(atno,xyz)
-end
-function atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)
-    atno = sym2no[sym]
-    xyz = [x,y,z]
     if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
