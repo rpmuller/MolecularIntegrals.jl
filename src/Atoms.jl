@@ -7,28 +7,24 @@ mutable struct Atom
     xyz::Vector{Float64}
 end
 
-function tobohr!(xyz::Vector{Float64})
-    xyz /= 0.52918
-    return nothing
-end
 function atom(sym::String,xyz::Vector{Float64},units=:Angstrom)
     atno = sym2no[sym]
-    if units == :Angstrom tobohr!(xyz) end
+    if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
 function atom(atno::Int,xyz::Vector{Float64},units=:Angstrom)
-    if units == :Angstrom tobohr!(xyz) end
+    if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
 function atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom)
     xyz = [x,y,z]
-    if units == :Angstrom tobohr!(xyz) end
+    if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
 function atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)
     atno = sym2no[sym]
     xyz = [x,y,z]
-    if units == :Angstrom tobohr!(xyz) end
+    if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
 
