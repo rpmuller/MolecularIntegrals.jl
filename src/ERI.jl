@@ -1,6 +1,6 @@
 export coulomb
 
-#using StaticArrays
+#using StaticArrays # Surprisingly, didn't speed up at all
 
 function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     bexpn,bx,by,bz,bI,bJ,bK,

@@ -2,6 +2,9 @@
 # hence the trailing "_r" in the names. These versions are not as fast
 # than the versions in HGP2.jl, which should be preferred.
 
+# There could be a slight space/speed savings in moving ax,ay,az to axyz, but since
+# this code really isn't used, I'm not going to make this change now.
+
 function coulomb_hgp_r(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
     return a.norm*b.norm*c.norm*d.norm*hrr_r(a.expn,a.xyz...,a.I,a.J,a.K,
         b.expn,b.xyz...,b.I,b.J,b.K,
