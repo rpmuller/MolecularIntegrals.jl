@@ -53,26 +53,26 @@
 "
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L,dsh.L
-    values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
+    cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) 
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    values += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
     end
-    return values
+    return cvrrs
 end
 
 "vrr - compute the vrrs between primitive functions.
 This version uses an array to store integral results."
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
-    values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
+    vrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax,0:mmax) 
     P = gaussian_product_center(aexpn,A,bexpn,B)
     Q = gaussian_product_center(cexpn,C,dexpn,D)
@@ -93,7 +93,7 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # First generate (0,0,0, 0,0,0, m) using eq 12
     for m in 0:mmax
-        values[0,0,0, 0,0,0, m] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
+        vrrs[0,0,0, 0,0,0, m] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
     end
 
     # Now generate (ax,ay,az,0,0,0,m) 
@@ -109,9 +109,9 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             ax,ay,az = a
             amx,amy,amz = am
             for m in 0:(mmax-ashell)
-                values[apx,apy,apz,0,0,0,m] = (P[i]-A[i])*values[ax,ay,az,0,0,0,m]+(W[i]-P[i])*values[ax,ay,az,0,0,0,m+1]
+                vrrs[apx,apy,apz,0,0,0,m] = (P[i]-A[i])*vrrs[ax,ay,az,0,0,0,m]+(W[i]-P[i])*vrrs[ax,ay,az,0,0,0,m+1]
                 if am[i] >= 0
-                    values[apx,apy,apz,0,0,0,m] += a[i]/(2*zeta)*(values[amx,amy,amz,0,0,0,m]-eta/ze*values[amx,amy,amz,0,0,0,m+1])
+                    vrrs[apx,apy,apz,0,0,0,m] += a[i]/(2*zeta)*(vrrs[amx,amy,amz,0,0,0,m]-eta/ze*vrrs[amx,amy,amz,0,0,0,m+1])
                 end
             end
         end
@@ -131,9 +131,9 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             cx,cy,cz = c
             cmx,cmy,cmz = cm
             for m in 0:(mmax-cshell)
-                values[0,0,0,cpx,cpy,cpz,m] = (Q[i]-C[i])*values[0,0,0,cx,cy,cz,m]+(W[i]-Q[i])*values[0,0,0,cx,cy,cz,m+1]
+                vrrs[0,0,0,cpx,cpy,cpz,m] = (Q[i]-C[i])*vrrs[0,0,0,cx,cy,cz,m]+(W[i]-Q[i])*vrrs[0,0,0,cx,cy,cz,m+1]
                 if cm[i] >= 0
-                    values[0,0,0,cpx,cpy,cpz,m] += c[i]/(2*eta)*(values[0,0,0,cmx,cmy,cmz,m]-zeta/ze*values[0,0,0,cmx,cmy,cmz,m+1])
+                    vrrs[0,0,0,cpx,cpy,cpz,m] += c[i]/(2*eta)*(vrrs[0,0,0,cmx,cmy,cmz,m]-zeta/ze*vrrs[0,0,0,cmx,cmy,cmz,m+1])
                 end
             end
         end
@@ -159,19 +159,19 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     am = vdiff(a,j,-1)
                     amx,amy,amz = am
                     for m in 0:(mmax-ashell-cshell)
-                        values[ax,ay,az,cpx,cpy,cpz,m] = (Q[j]-C[j])*values[ax,ay,az,cx,cy,cz,m]+(W[j]-Q[j])*values[ax,ay,az,cx,cy,cz,m+1]
+                        vrrs[ax,ay,az,cpx,cpy,cpz,m] = (Q[j]-C[j])*vrrs[ax,ay,az,cx,cy,cz,m]+(W[j]-Q[j])*vrrs[ax,ay,az,cx,cy,cz,m+1]
                         if cm[j] >= 0
-                            values[ax,ay,az,cpx,cpy,cpz,m] += c[j]/(2*eta)*(values[ax,ay,az,cmx,cmy,cmz,m]-zeta/ze*values[ax,ay,az,cmx,cmy,cmz,m+1])
+                            vrrs[ax,ay,az,cpx,cpy,cpz,m] += c[j]/(2*eta)*(vrrs[ax,ay,az,cmx,cmy,cmz,m]-zeta/ze*vrrs[ax,ay,az,cmx,cmy,cmz,m+1])
                         end
                         if am[j] >= 0 
-                            values[ax,ay,az,cpx,cpy,cpz,m] += a[j]/(2*ze)*(values[amx,amy,amz,cx,cy,cz,m+1])
+                            vrrs[ax,ay,az,cpx,cpy,cpz,m] += a[j]/(2*ze)*(vrrs[amx,amy,amz,cx,cy,cz,m+1])
                         end                             
                     end
                 end
             end
         end 
     end
-    return values[:,:,:,:,:,:,0]
+    return vrrs[:,:,:,:,:,:,0]
 end
 
 
@@ -190,12 +190,12 @@ end
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Get the relevant vrr terms. This can take either contracted or primitive functions
     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    values = Dict()
+    hrrs = Dict()
     for as in 0:(ashell+bshell)
         for (ax,ay,az) in shell_indices[as]
             for cs in 0:(cshell+dshell)
                 for (cx,cy,cz) in shell_indices[cs]
-                    values[(ax,ay,az,0,0,0,cx,cy,cz,0,0,0)] = vrrs[ax,ay,az,cx,cy,cz]
+                    hrrs[ax,ay,az,0,0,0,cx,cy,cz,0,0,0] = vrrs[ax,ay,az,cx,cy,cz]
                 end
             end
         end
@@ -214,8 +214,8 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     for cs in 0:(cshell+dshell)
                         for c in shell_indices[cs]
                             cx,cy,cz = c
-                            values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[(apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0)] +
-                                (A[j]-B[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0)]
+                            hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] +
+                                (A[j]-B[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
                         end
                     end
                 end
@@ -236,13 +236,13 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                         ax,ay,az = a
                         for b in shell_indices[bshell]
                             bx,by,bz = b
-                            values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[(ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz)] +
-                                (C[j]-D[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz)]
+                            hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
+                                (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
                         end
                     end
                 end
             end
         end
     end
-    return values
+    return hrrs
 end
