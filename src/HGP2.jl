@@ -47,7 +47,7 @@
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
 "vrr3 - compute and contract the vertical recurrance relations 
-                                between shells ash,bsh,csh,dsh
+ between shells ash,bsh,csh,dsh. 
 "
 function vrr3(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L,dsh.L
@@ -66,7 +66,10 @@ function vrr3(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return values
 end
 
-"vrr3 - version of vrr2 that uses arrays instead of dicts"
+"vrr3 - version of vrr2 that uses arrays instead of dicts
+This is 2-3 times faster than vrr2 (results in timing.jl), 
+and also leads itself to a convenient contraction scheme
+in the above vrr3 routine over shells."
 function vrr3(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
     values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
@@ -409,6 +412,71 @@ function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                             bx,by,bz = b
                             values[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = values[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
                                 (C[j]-D[j])*values[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # We could also just return the subset of values where (b) = bshell and (d) = dshell.
+    # But we've already calculated them
+    return values
+end
+
+"hrr4 - hrr using vrr arrays but returning dicts.
+"
+function hrr4(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+    # Get the relevant vrr terms. This can take either contracted or primitive functions
+    vrrs = vrr3(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    values = Dict()
+    for as in 0:(ashell+bshell)
+        for (ax,ay,az) in shell_indices[as]
+            for cs in 0:(cshell+dshell)
+                for (cx,cy,cz) in shell_indices[cs]
+                    values[(ax,ay,az,0,0,0,cx,cy,cz,0,0,0)] = vrrs[ax,ay,az,cx,cy,cz]
+                end
+            end
+        end
+    end
+
+    # First build (ab,c0) from (a0,c0)
+    for bs in 1:bshell 
+        for bp in shell_indices[bs]
+            bpx,bpy,bpz = bp
+            j = argmax(bp)
+            bx,by,bz = vdiff(bp,j,-1)
+            for as in ashell:(ashell+bshell-bs) # -1 guess
+                for a in shell_indices[as]
+                    ax,ay,az = a
+                    apx,apy,apz = vdiff(a,j,1)
+                    for cs in 0:(cshell+dshell)
+                        for c in shell_indices[cs]
+                            cx,cy,cz = c
+                            values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[(apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0)] +
+                                (A[j]-B[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0)]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # now build (ab,cd) from (ab,c0)
+    for ds in 1:dshell
+        for dp in shell_indices[ds]
+            dpx,dpy,dpz = dp
+            j = argmax(dp)
+            dx,dy,dz = vdiff(dp,j,-1)
+            for cs in cshell:(cshell+dshell-ds) 
+                for c in shell_indices[cs]
+                    cx,cy,cz = c
+                    cpx,cpy,cpz = vdiff(c,j,1)
+                    for a in shell_indices[ashell]
+                        ax,ay,az = a
+                        for b in shell_indices[bshell]
+                            bx,by,bz = b
+                            values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[(ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz)] +
+                                (C[j]-D[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz)]
                         end
                     end
                 end

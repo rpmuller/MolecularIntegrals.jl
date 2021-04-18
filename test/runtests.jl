@@ -244,21 +244,20 @@ addbf!(c2,0.5,0.2)
             cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
             dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
 
+            hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
             hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             # Test hrr3, even though it's an incredibly wasteful way to store integrals
-            hrr3_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-            hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
+            hrr3_vals = MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+            hrr4_vals = MolecularIntegrals.hrr4(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
-            @test hrr3_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
-        end
+            @test hrr3_vals[aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK] == hrr_val
+            @test hrr4_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
+            #@show length(hrr2_vals)
+            #@show length(hrr3_vals)
+            #@show length(hrr4_vals)
+    end
 
-        ashell,bshell,cshell,dshell = (2,1,2,0)
-        hrr2dat = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        hrr3dat = MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        @show length(hrr2dat)
-        @show length(hrr3dat)
-        #@show MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)   
-    
+
     end
   
 end
