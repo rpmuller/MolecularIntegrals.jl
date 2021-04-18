@@ -3,9 +3,10 @@ export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
 mutable struct PGBF
     expn::Float64
-    x::Float64
-    y::Float64
-    z::Float64
+#    x::Float64
+#    y::Float64
+#    z::Float64
+    xyz::Vector{Float64}
     I::Int64
     J::Int64
     K::Int64
@@ -13,14 +14,14 @@ mutable struct PGBF
 end
 
 function pgbf(expn,x=0,y=0,z=0,I=0,J=0,K=0,norm=1)
-    p = PGBF(expn,x,y,z,I,J,K,norm)
+    p = PGBF(expn,[x,y,z],I,J,K,norm)
     normalize!(p)
     return p
 end
 
 function amplitude(bf::PGBF,x,y,z)
-    dx,dy,dz = x-bf.x,y-bf.y,z-bf.z
-    r2 = dist2(dx,dy,dz)
+    dx,dy,dz = dxyz = bf.xyz-[x,y,z]
+    r2 = dist2(dxyz)
     return bf.norm*(dx^bf.I)*(dy^bf.J)*(dz^bf.K)*exp(-bf.expn*r2)
 end
 (bf::PGBF)(x,y,z) = amplitude(bf::PGBF,x,y,z)
@@ -30,9 +31,6 @@ function normalize!(pbf::PGBF)
 end
 
 mutable struct CGBF
-    #x::Float64
-    #y::Float64
-    #z::Float64
     xyz::Vector{Float64}
     I::Int64
     J::Int64

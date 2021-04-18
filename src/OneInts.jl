@@ -4,8 +4,8 @@ using OffsetArrays
 export overlap, kinetic, nuclear_attraction
 
 function overlap(a::PGBF,b::PGBF)
-    return a.norm*b.norm*overlap(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
-    b.expn,[b.x,b.y,b.z],b.I,b.J,b.K)
+    return a.norm*b.norm*overlap(a.expn,a.xyz,a.I,a.J,a.K,
+    b.expn,b.xyz,b.I,b.J,b.K)
 end
 
 overlap(a::CGBF,b::CGBF) = contract(overlap,a,b)
@@ -29,7 +29,7 @@ end
 
 
 gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz) = gaussian_product_center(aexpn,[ax,ay,az],bexpn,[bx,by,bz])
-gaussian_product_center(a::PGBF,b::PGBF) = gaussian_product_center(a.expn,[a.x,a.y,a.z],b.expn,[b.x,b.y,b.z])
+gaussian_product_center(a::PGBF,b::PGBF) = gaussian_product_center(a.expn,a.xyz,b.expn,b.xyz)
 function gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     ab = aexpn+bexpn
     a = aexpn/ab
@@ -49,8 +49,8 @@ binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_k
 binomial_kernel(i,t,x) = binomial(i,t)x^(i-t)
 
 function kinetic(a::PGBF,b::PGBF)
-    return a.norm*b.norm*kinetic(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
-                                b.expn,[b.x,b.y,b.z],b.I,b.J,b.K)
+    return a.norm*b.norm*kinetic(a.expn,a.xyz,a.I,a.J,a.K,
+                                b.expn,b.xyz,b.I,b.J,b.K)
 end
 
 function kinetic(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
@@ -95,8 +95,8 @@ function Aarray(l1,l2,a,b,c,g)
 end
 
 function nuclear_attraction(a::PGBF,b::PGBF,cxyz)
-    return a.norm*b.norm*nuclear_attraction(a.expn,[a.x,a.y,a.z],a.I,a.J,a.K,
-                                            b.expn,[b.x,b.y,b.z],b.I,b.J,b.K,cxyz)
+    return a.norm*b.norm*nuclear_attraction(a.expn,a.xyz,a.I,a.J,a.K,
+                                            b.expn,b.xyz,b.I,b.J,b.K,cxyz)
 end
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.xyz)
 nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])

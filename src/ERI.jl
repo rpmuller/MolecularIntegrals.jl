@@ -43,10 +43,10 @@ end
 
 
 function coulomb(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
-    return a.norm*b.norm*c.norm*d.norm*coulomb(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
-        b.expn,b.x,b.y,b.z,b.I,b.J,b.K,
-        c.expn,c.x,c.y,c.z,c.I,c.J,c.K,
-        d.expn,d.x,d.y,d.z,d.I,d.J,d.K)
+    return a.norm*b.norm*c.norm*d.norm*coulomb(a.expn,a.xyz...,a.I,a.J,a.K,
+        b.expn,b.xyz...,b.I,b.J,b.K,
+        c.expn,c.xyz...,c.I,c.J,c.K,
+        d.expn,d.xyz...,d.I,d.J,d.K)
 end
 
 fB(i,l1,l2,p,a,b,r,g) = binomial_prefactor(i,l1,l2,p-a,p-b)*B0(i,r,g)
