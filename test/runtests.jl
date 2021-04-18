@@ -201,7 +201,7 @@ addbf!(c2,0.5,0.2)
         @test MolecularIntegrals.unit(3,1) == [1,0,0]
 
         # Test the vrr2 code:
-        val = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+        val2 = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
 
         for (I1,J1,K1,I2,J2,K2) in [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
                                     (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
@@ -209,26 +209,26 @@ addbf!(c2,0.5,0.2)
                                     (2, 0, 0, 0, 0, 0), (0, 2, 0, 0, 0, 0), (0, 0, 2, 0, 0, 0),
                                     (0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 2, 0), (0, 0, 0, 0, 0, 2),
                                     (2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)]
-            @test val[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
+            @test val2[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
         end
 
         # Test the vrr3 code:
-        val3 = MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+        val3 = MolecularIntegrals.vrr3(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
         for (I1,J1,K1,I2,J2,K2) in [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
                                     (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
                                     (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1),
                                     (2, 0, 0, 0, 0, 0), (0, 2, 0, 0, 0, 0), (0, 0, 2, 0, 0, 0),
                                     (0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 2, 0), (0, 0, 0, 0, 0, 2),
                                     (2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)]
-            @test val[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
+            @test val2[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
         end
 
         # Using dense arrays for this is still pretty small: length(vrr3(d,d)) = 100
         #@show length(val3)
 
         # Test against coulomb() as well: The second test doesn't work:
-        @test val[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
-        #@test val[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
+        @test val2[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
+        #@test val2[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
 
         # HRR tests:
         A = B = xyz
@@ -245,13 +245,19 @@ addbf!(c2,0.5,0.2)
             dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
 
             hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+            # Test hrr3, even though it's an incredibly wasteful way to store integrals
+            hrr3_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
             @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
+            @test hrr3_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
         end
 
         ashell,bshell,cshell,dshell = (2,1,2,0)
-        @show MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        @show MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)   
+        hrr2dat = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        hrr3dat = MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        @show length(hrr2dat)
+        @show length(hrr3dat)
+        #@show MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)   
     
     end
   

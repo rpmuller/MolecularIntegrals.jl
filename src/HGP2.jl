@@ -353,7 +353,10 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return values
 end
 
-"hrr3 - hrr using arrays rather than dicts"
+"hrr3 - hrr using arrays rather than dicts.
+This method appears to give the right answer, but it's a very wasteful method of
+storing integrals, because of the 12-d array.
+"
 function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # Get the relevant vrr terms. 
