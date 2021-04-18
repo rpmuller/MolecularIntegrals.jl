@@ -7,16 +7,33 @@
 # 
 # Given a shell-level description of a basis set ([ss,ss], [sp,ss], [dd,df], 
 # including l [ll,ss]) generate all ERIs for the primitive basis functions in that shell.
+#
+# This is currently done in the routine vrr to generate terms [l0,m0]
 # 
 # 2. Contraction to (ab,cd)
+#
+# This is currently done after the primitive vrr step, by the cvrr call over
+# shell variables.
+#
+# 3. Completion of contracted integrals
+#
+# hrr works to turn either primitive [l0,m0] integrals to [ij,kl] integrals,
+# or to turn contracted (l0,m0) integrals to (ij,kl) inegrals.
+#
+# It is most efficient to use chrr on the contracted integrals output
+# by the shell version of cvrr.
 # 
-# 3. Integral Array Generation
+# 4. Integral Array Generation
 # 
-# Populate an integral record with the relevant terms for use in 
-# an electronic structure theory code.
+# After all contracted integrals have been computed, populate an integral record 
+# with the relevant terms for use in an electronic structure theory code.
+#
+# The Utils.jl `iiterator` function loops through these in the correct order.
+# The Basis.jl `Basis` struct generates a list of contracted basis functions
+# with other data to allow efficient construction of the integral record.
 #
 #
-# 4. Future optimizations
+# 5. Future optimizations
 # Gill's work on PRISM suggests [refs] being more flexible about when the basis function
 # contraction is performed can reduce the operations count, but this will be simple and 
 # likely fast.
@@ -26,27 +43,15 @@
 # several other schemes for the VRR have been proposed. For now, we'll just stick with the
 # HGP version, since that is a well-written and reasonably self-contained paper.
 # 
-# Notation:
-# Since I can't use [] or () in function names, I'm going to use a,b,c for primitive
-# basis shells, and A,B,C for contracted shells. Therefore, we'll define routines
-# like `ssss`, `psps`, `SSSS`, etc.
-#
-# 5. References
+# 6. References
 # [^1]: A method for two-electron Gaussian integral and integral derivative
 #       evaluation using recurrence relations. Martin Head-Gordon and John
 #       A. Pople. JCP, 89 (9), 5777, 1988.
 
-# Note that we can prune more aggressively than this, since in practice
-# we only need to return something like the VRRs from 
-# [min(amax,bmax),0|min(cmax,dmax)0] to [amax+bmax,0|cmax+dmax,0] rather 
-# than returning all terms starting from [00|00]. However, I don't know
-# whether there is a savings here since we need to compute all of these
-# anyway.
-
-"vrr - compute and contract the vertical recurrance relations 
+"cvrr - compute and contract the vertical recurrance relations 
  between shells ash,bsh,csh,dsh. 
 "
-function vrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L,dsh.L
     values = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) 
