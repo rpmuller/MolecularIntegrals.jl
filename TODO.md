@@ -1,5 +1,9 @@
 # TODO and notes
 
+## chrr
+- Finish chrr
+- Figure out a way to share code between chrr and hrr
+
 ## Figure out method to generate integral records
 May have to generate an indexing array that points to the
 different shells, primitive, and contracted functions.
