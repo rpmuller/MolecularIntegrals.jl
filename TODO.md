@@ -16,6 +16,8 @@ something to investigate and fix later.
 Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?
 
+
+# Someday changes
 ## Move basis functions from bf.x,bf.y,bf.z to bf.xyz
 - [X] Do CGBFs 
 - Then amplitude(CGBF)
@@ -24,8 +26,6 @@ Also, put in warning when bsh>ash or dsh>csh in hrr2?
 - [X] Scan for .y, .z
 - Also consider a similar move for bf.I, bf.J, bf.K.
 
-
-# Someday changes
 ## Implement other molecule methods:
 - nocc, nclosed, nopen, nup, ndown, stoich, center!
 
