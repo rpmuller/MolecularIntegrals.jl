@@ -1,5 +1,7 @@
 # HGP2 - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrance relations.
+
+export vrr,cvrr,hrr,chrr
 #
 # We're going to break this into several steps:
 #
@@ -8,20 +10,20 @@
 # Given a shell-level description of a basis set ([ss,ss], [sp,ss], [dd,df], 
 # including l [ll,ss]) generate all ERIs for the primitive basis functions in that shell.
 #
-# This is currently done in the routine vrr to generate terms [l0,m0]
+# This is currently done in the routine `vrr` to generate terms [l0,m0]
 # 
 # 2. Contraction to (ab,cd)
 #
-# This is currently done after the primitive vrr step, by the cvrr call over
+# This is currently done after the primitive `vrr` step, by the `cvrr` call over
 # shell variables.
 #
 # 3. Completion of contracted integrals
 #
-# hrr works to turn either primitive [l0,m0] integrals to [ij,kl] integrals,
-# or to turn contracted (l0,m0) integrals to (ij,kl) inegrals.
+# `hrr` works to turn either primitive [l0,m0] integrals to [ij,kl] integrals,
+# or to turn contracted (l0,m0) integrals to (ij,kl) integrals.
 #
 # It is most efficient to use chrr on the contracted integrals output
-# by the shell version of cvrr.
+# by the shell version of `cvrr`.
 # 
 # 4. Integral Array Generation
 # 
@@ -34,7 +36,7 @@
 #
 #
 # 5. Future optimizations
-# Gill's work on PRISM suggests [refs] being more flexible about when the basis function
+# Gill's work on PRISM suggests [^2][^3] being more flexible about when the basis function
 # contraction is performed can reduce the operations count, but this will be simple and 
 # likely fast.
 # 
@@ -47,6 +49,10 @@
 # [^1]: A method for two-electron Gaussian integral and integral derivative
 #       evaluation using recurrence relations. Martin Head-Gordon and John
 #       A. Pople. JCP, 89 (9), 5777, 1988.
+# [^2]: Molecular Integrals Over Gaussian Basis Functions. Peter M. W. Gill. Adv.
+#       Q. Chem., 25, 141 (1994).
+# [^3]: The Prism Algorithm for Two-Electron Integrals. Peter M. W. Gill and John
+#       A. Pople. IJQC, 40, 753 (1991).
 
 "cvrr - compute and contract the vertical recurrance relations 
  between shells ash,bsh,csh,dsh. 
@@ -185,12 +191,18 @@ function unit(n,d)
     return v
 end
 
+function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    # There must be ways to reuse space from hrr().
+    vrrs = cvrr(ash,bsh,csh,dsh) 
+    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)    
+    return hrrs
+end
 
 "hrr - hrr using vrr arrays but returning dicts to save space."
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    # Get the relevant vrr terms. This can take either contracted or primitive functions
+    # Get the relevant vrr terms. 
     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    hrrs = Dict{NTuple{12,Int},Float64}()
+    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)
     for as in 0:(ashell+bshell)
         for (ax,ay,az) in shell_indices[as]
             for cs in 0:(cshell+dshell)
