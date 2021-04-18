@@ -108,10 +108,10 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 1,0,1, 1,0,1, 4.00292848649699e-6)
         ]
 
-            val1 = MolecularIntegrals.vrr(
+            val1 = MolecularIntegrals.vrr_r(
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
                 cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,M)
-            val2 = MolecularIntegrals.vrr(
+            val2 = MolecularIntegrals.vrr_r(
                 cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,M)
             @test isapprox(val1,val2)
@@ -153,10 +153,10 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 0,1,1, 0,1,1, 2.5333243119843164e-7),
             (3.,2.,1., 1,0,1, 1,0,1, 2.452115184675799e-6)
         ]
-            val1 = MolecularIntegrals.hrr(
+            val1 = MolecularIntegrals.hrr_r(
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
                 cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
-            val2 = MolecularIntegrals.hrr(
+            val2 = MolecularIntegrals.hrr_r(
                 cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK,
                 aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
             @test val1 ≈ val2 ≈ result
@@ -209,7 +209,7 @@ addbf!(c2,0.5,0.2)
                                     (2, 0, 0, 0, 0, 0), (0, 2, 0, 0, 0, 0), (0, 0, 2, 0, 0, 0),
                                     (0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 2, 0), (0, 0, 0, 0, 0, 2),
                                     (2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)]
-            @test val2[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
+            @test val2[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr_r(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
         end
 
         # Test the vrr3 code:
@@ -244,7 +244,7 @@ addbf!(c2,0.5,0.2)
             cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
             dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
 
-            hrr_val = MolecularIntegrals.hrr(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
+            hrr_val = MolecularIntegrals.hrr_r(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
             hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             # Test hrr3, even though it's an incredibly wasteful way to store integrals
             hrr3_vals = MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
