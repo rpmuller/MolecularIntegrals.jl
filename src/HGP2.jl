@@ -423,10 +423,8 @@ function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return values
 end
 
-"hrr4 - hrr using vrr arrays but returning dicts.
-"
+"hrr4 - hrr using vrr arrays but returning dicts to save space."
 function hrr4(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-
     # Get the relevant vrr terms. This can take either contracted or primitive functions
     vrrs = vrr3(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     values = Dict()
@@ -483,7 +481,5 @@ function hrr4(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    # We could also just return the subset of values where (b) = bshell and (d) = dshell.
-    # But we've already calculated them
     return values
 end
