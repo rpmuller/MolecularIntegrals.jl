@@ -3,12 +3,15 @@ export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
 "Basis holds a basis set, with info about shells and other data"
 mutable struct Basis # subset of AbstractVector{CGBF}?
-    cgbfs::CGBF[]
-    shells::Shell[]
-    ishell::Int[] # Which shell corresponds to bf i
-    mshell::Int[] # Which m-value (px,dxy, etc.) corresponds to bf i
+    cgbfs::Vector{Any}
+    shells::Vector{Any}
+    ishell::Vector{Int64} # Which shell corresponds to bf i
+    mshell::Vector{Int64} # Which m-value (px,dxy, etc.) corresponds to bf i
 end
-Base.size(b::Basis) = (length(b.cgbfs))
+Base.size(b::Basis) = (length(b.cgbfs),)
+Base.length(b::Basis) = length(b.cgbfs)
+Base.iterate(b::Basis,i::Int) = iterate(b.cgbfs,i)
+Base.iterate(b::Basis) = iterate(b.cgbfs)
 Base.getindex(b::Basis, i::Int) = b.cgbfs[i]
 nbf(b::Basis) = length(b.cgbfs)
 nshells(b::Basis) = length(b.shells)
@@ -122,7 +125,7 @@ function build_basis(atoms::Vector{Atom},name="sto3g")
             end
         end
     end
-    return Basis(cgbfs,shs,ishs,mshs)
+    return Basis(bfs,shs,ishs,mshs)
 end
 
 # shell_indices map from a shell l-value to the Cartesian version of m-values that are the 
