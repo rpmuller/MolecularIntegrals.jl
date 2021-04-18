@@ -190,7 +190,7 @@ end
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Get the relevant vrr terms. This can take either contracted or primitive functions
     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    hrrs = Dict()
+    hrrs = Dict{NTuple{12,Int},Float64}()
     for as in 0:(ashell+bshell)
         for (ax,ay,az) in shell_indices[as]
             for cs in 0:(cshell+dshell)
