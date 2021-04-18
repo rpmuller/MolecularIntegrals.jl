@@ -212,8 +212,8 @@ addbf!(c2,0.5,0.2)
             @test val2[(I1,J1,K1,I2,J2,K2)] == MolecularIntegrals.vrr_r(ex, x,y,z, I1,J1,K1, ex, x,y,z, ex, xa,ya,za, I2,J2,K2, ex, xa,ya,za,0)
         end
 
-        # Test the vrr3 code:
-        val3 = MolecularIntegrals.vrr3(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+        # Test the vrr code:
+        val3 = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
         for (I1,J1,K1,I2,J2,K2) in [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
                                     (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
                                     (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1),
@@ -223,7 +223,7 @@ addbf!(c2,0.5,0.2)
             @test val2[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
         end
 
-        # Using dense arrays for this is still pretty small: length(vrr3(d,d)) = 100
+        # Using dense arrays for this is still pretty small: length(vrr(d,d)) = 100
         #@show length(val3)
 
         # Test against coulomb() as well: The second test doesn't work:
@@ -244,17 +244,17 @@ addbf!(c2,0.5,0.2)
             cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
             dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
 
-            hrr_val = MolecularIntegrals.hrr_r(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
+            hrr_r_val = MolecularIntegrals.hrr_r(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK)
             hrr2_vals = MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             # Test hrr3, even though it's an incredibly wasteful way to store integrals
             hrr3_vals = MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-            hrr4_vals = MolecularIntegrals.hrr4(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-            @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
-            @test hrr3_vals[aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK] == hrr_val
-            @test hrr4_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_val
+            hrr_vals = MolecularIntegrals.hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+            @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_r_val
+            @test hrr3_vals[aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK] == hrr_r_val
+            @test hrr_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_r_val
             #@show length(hrr2_vals)
             #@show length(hrr3_vals)
-            #@show length(hrr4_vals)
+            #@show length(hrr_vals)
     end
 
 

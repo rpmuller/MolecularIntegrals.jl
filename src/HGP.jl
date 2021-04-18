@@ -1,3 +1,7 @@
+# These functions implement recursive versions of the integral code,
+# hence the trailing "_r" in the names. These versions are not as fast
+# than the versions in HGP2.jl, which should be preferred.
+
 function coulomb_hgp_r(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
     return a.norm*b.norm*c.norm*d.norm*hrr_r(a.expn,a.x,a.y,a.z,a.I,a.J,a.K,
         b.expn,b.x,b.y,b.z,b.I,b.J,b.K,
