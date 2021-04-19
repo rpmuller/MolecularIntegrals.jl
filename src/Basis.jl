@@ -3,9 +3,6 @@ export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis
 
 mutable struct PGBF
     expn::Float64
-#    x::Float64
-#    y::Float64
-#    z::Float64
     xyz::Vector{Float64}
     I::Int64
     J::Int64
@@ -103,7 +100,6 @@ function build_basis(atoms::Vector{Atom},name="sto3g")
     end
     return Basis(bfs,shs,ishs,mshs)
 end
-
 
 mutable struct Shell
     xyz::Vector{Float64}

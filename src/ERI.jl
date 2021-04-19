@@ -1,5 +1,7 @@
 export coulomb
 
+using OffsetArrays
+
 #using StaticArrays # Surprisingly, didn't speed up at all
 
 function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
@@ -33,11 +35,10 @@ function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     for I in 0:Isum
         for J in 0:Jsum
             for K in 0:Ksum
-                s += Bx[I+1]*By[J+1]*Bz[K+1]*Fgamma(I+J+K,x)
+                s += Bx[I]*By[J]*Bz[K]*Fgamma(I+J+K,x)
             end
         end
     end
-
     return 2*pi^(2.5)/(g1*g2*sqrt(g1+g2))*exp(-aexpn*bexpn*rab2/g1)*exp(-cexpn*dexpn*rcd2/g2)*s
 end
 
@@ -65,15 +66,15 @@ end
 
 function Barray(l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
     Imax = l1+l2+l3+l4+1
-    B = zeros(Float64,Imax)
+    B = OffsetArray(zeros(Float64,Imax),0:(Imax-1))
     for i1 in 0:(l1+l2)
         for i2 in 0:(l3+l4)
             for r1 in 0:div(i1,2)
                 for r2 in 0:div(i2,2)
                     for u in 0:(div(i1+i2,2)-r1-r2)
                         I = i1+i2-2*(r1+r2)-u
-                        B[I+1] += Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,
-                                        p,a,b,q,c,d,g1,g2,delta)
+                        B[I] += Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,
+                                      p,a,b,q,c,d,g1,g2,delta)
                     end
                 end
             end

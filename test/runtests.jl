@@ -44,6 +44,8 @@ addbf!(c2,0.5,0.2)
         @test overlap(px,px) ≈ 1
         @test overlap(s,px) ≈ 0
         @test overlap(c,c) ≈ 1
+
+        @test overlap(1.0,[0.0,0.0,0.0],0,0,0,1,[0.0,0.0,0.0],0,0,0) ≈ 1.9687012432
     end
 
     @testset "Low level OneInts" begin
