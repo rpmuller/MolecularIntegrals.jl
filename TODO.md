@@ -16,6 +16,10 @@ vrr for this code. Which means that it is likely that the following test fails:
 I'm going to move forward with coding the vrr routines, but I'm flagging this as
 something to investigate and fix later.
 
+Upon further investigation, it looks like the ERI coulomb integrals are incorrect.
+But the vrr/hrr results don't match the pyquante2 results to very many decimal places.
+That could be a pyquante error, of course.
+
 ## Only computing, returning symmetric ERI pairs (i>j,k>l) ij>kl
 Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?

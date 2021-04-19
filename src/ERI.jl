@@ -52,7 +52,7 @@ end
 fB(i,l1,l2,p,a,b,r,g) = binomial_prefactor(i,l1,l2,p-a,p-b)*B0(i,r,g)
 B0(i,r,g) = fact_ratio2(i,r)*(4g)^(r-i)
 #fact_ratio2(a,b) = factorial(a)/factorial(b)/factorial(a-2b)
-fact_ratio2(a,b) = prod((b+1):a)/factorial(a-2b)
+fact_ratio2(a,b) = prod((b+1):a)/factorial(a-2b) # faster
 
 function Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,
         Px,Ax,Bx,Qx,Cx,Dx,

@@ -66,12 +66,14 @@ addbf!(c2,0.5,0.2)
     end 
 
     @testset "ERI tests" begin
+        # Tests from pyquante2:
         @test coulomb(1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0) ≈ 4.37335458
         @test coulomb(s,s,s,s) ≈ 1.128379167
         @test coulomb(c,c,c,c) ≈ 1.128379167
-        @test coulomb(1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,1, 0,0,0) ≈ 1.6088672396
-        @test coulomb(c,c,c2,c2) ≈ 1.0343247
-        @test coulomb(s,s,px,px) ≈ 1.16599181
+        @test coulomb(s,s,px,px) ≈ 0.940315972579
+        @test coulomb(s,s,s,px) == 0.0
+        s2 = pgbf(1.0, 0.0, 0.0, 1.0)
+        @test coulomb(s,s,s2,s2) ≈ 0.842701
     end
 
     @testset "VRR tests" begin
@@ -223,13 +225,6 @@ addbf!(c2,0.5,0.2)
             @test val2[(I1,J1,K1,I2,J2,K2)] == val3[I1,J1,K1,I2,J2,K2]
         end
 
-        # Using dense arrays for this is still pretty small: length(vrr(d,d)) = 100
-        #@show length(val3)
-
-        # Test against coulomb() as well: The second test doesn't work:
-        @test val2[(0, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
-        #@test val2[(1, 0, 0, 0, 0, 0)] ≈ MolecularIntegrals.coulomb(px,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
-
         # HRR tests:
         A = B = xyz
         ax,ay,az = bx,by,bz = xyz
@@ -255,9 +250,42 @@ addbf!(c2,0.5,0.2)
             #@show length(hrr2_vals)
             #@show length(hrr3_vals)
             #@show length(hrr_vals)
+        end
+
     end
 
+    @testset "ERI/HGP tests" begin
+        x=y=z=0.0
+        xyz = [x,y,z]
+        xyza = xyz + [0.1,0.05,0.025]
+        xa,ya,za = xyza
+        ex = 1.0
+        s0 = pgbf(ex,x,y,z)
+        sa = pgbf(ex,xa,ya,za)
+        xyzb = [0.0,0.0,1.0]
+        px0 = pgbf(ex,x,y,z,1,0,0)
+        A = B = xyz
+        ax,ay,az = bx,by,bz = xyz
+        C = D = xyza
+        cx,cy,cz = dx,dy,dz = xyza
+        aexpn=bexpn=cexpn=dexpn = ex
 
-    end
+        # Tests from pyquante2.two.ERI
+        vrrs0 = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyz,xyz) # all on same center
+        hrrs0 = MolecularIntegrals.hrr(1,1,0,0, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        @test 1.128379 ≈ vrrs0[0,0,0, 0,0,0]*s0.norm^4
+        @test 0 == vrrs0[1,0,0, 0,0,0]
+        @test 0.940315972579 ≈ hrrs0[1,0,0, 1,0,0, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
+        @test 0.842701 ≈ MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyzb,xyzb)[0,0,0,0,0,0]*s0.norm^4
+
+        vrrs = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+        hrrs = MolecularIntegrals.hrr(1,0,0,0, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        @test vrrs[1,0,0, 0,0,0] == hrrs[1,0,0, 0,0,0, 0,0,0, 0,0,0]
+        # Test against coulomb() as well: The second test doesn't work:
+        #@test vrrs[0, 0, 0, 0, 0, 0] ≈ MolecularIntegrals.coulomb(s0,s0,sa,sa)/s0.norm^2/sa.norm^2
+        #@test vrrs[1, 0, 0, 0, 0, 0] ≈ MolecularIntegrals.coulomb(px0,s0,sa,sa)/px.norm/s0.norm/sa.norm^2
+        #@test vrrs[1, 0, 0, 0, 0, 0] ≈ coulomb(aexpn,ax,ay,az,1,0,0, bexpn,bx,by,bz,0,0,0, cexpn,cx,cy,cz,0,0,0, dexpn,dx,dy,dz,0,0,0)
+
+    end    
   
 end
