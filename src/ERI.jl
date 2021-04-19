@@ -8,8 +8,6 @@ function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     bexpn,bx,by,bz,bI,bJ,bK,
     cexpn,cx,cy,cz,cI,cJ,cK,
     dexpn,dx,dy,dz,dI,dJ,dK)
-    # This is the slow method of computing integrals from Huzinaga et al.
-    # Use the HRR/VRR scheme from Head-Gordon & Pople instead
 
     rab2 = dist2(ax-bx,ay-by,az-bz)
     rcd2 = dist2(cx-dx,cy-dy,cz-dz)
