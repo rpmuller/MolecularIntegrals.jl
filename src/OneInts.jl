@@ -27,7 +27,6 @@ function overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     return pre*wx*wy*wz
 end
 
-
 gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz) = gaussian_product_center(aexpn,[ax,ay,az],bexpn,[bx,by,bz])
 gaussian_product_center(a::PGBF,b::PGBF) = gaussian_product_center(a.expn,a.xyz,b.expn,b.xyz)
 function gaussian_product_center(aexpn,axyz,bexpn,bxyz)
