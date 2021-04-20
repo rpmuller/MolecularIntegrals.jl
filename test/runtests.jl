@@ -317,5 +317,29 @@ addbf!(c2,0.5,0.2)
         @test vrrs[1,0,0, 0,0,0] == hrrs[1,0,0, 0,0,0, 0,0,0, 0,0,0]
 
     end    
+
+    @testset "vrr5/hrr5 testing" begin
+        x=y=z=0.0
+        xyz = [x,y,z]
+        xyza = xyz + [0.1,0.05,0.025]
+        xa,ya,za = xyza
+        ex = 1
+        s0 = pgbf(ex,x,y,z)
+        sa = pgbf(ex,xa,ya,za)
+        px = pgbf(ex,x,y,z,1,0,0)
+
+        # Test the vrr2 code:
+        val = MolecularIntegrals.vrr(1,1, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+        val5 = MolecularIntegrals.vrr5(1,1, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+        ao2m, m2ao = MolecularIntegrals.ao_arrays()
+
+        for (I1,J1,K1,I2,J2,K2) in [(0,0,0, 0,0,0),
+            (1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
+            (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
+            (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1)]
+            @test val[I1,J1,K1,I2,J2,K2] ≈ val5[m2ao[I1,J1,K1],m2ao[I2,J2,K2]]
+        end
+
+    end
   
 end

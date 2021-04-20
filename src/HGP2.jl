@@ -74,6 +74,98 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return cvrrs
 end
 
+"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
+vdiff(a,i,n) = a+n*unit(3,i)
+
+"unit(n,d) - create a n-dim unit vector in direction d"
+function unit(n,d) 
+    v = zeros(Int,n)
+    v[d] = 1
+    return v
+end
+
+function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    # There must be ways to reuse space from hrr().
+    vrrs = cvrr(ash,bsh,csh,dsh) 
+    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)    
+    # Finish!
+    return hrrs
+end
+
+"vrr5 - vrr with a new data storage format"
+function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax
+
+    # I don't like the fact that two indices start at 1, and the other
+    # starts at zero. Moreover, when I return, I won't return any of the
+    # mvalues, which makes the OffsetArray superfluous.
+
+    # So, 
+    # 1. Test sp capability
+    # 2. Move m index to a normal array
+    # 3. Retest
+    vrrs = OffsetArray(zeros(Float64,nao(amax),nao(cmax),mmax+1),
+        1:nao(amax),1:nao(cmax),0:mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (0,0,0, 0,0,0, m) using eq 12
+    for m in 0:mmax
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
+    end
+
+
+    # Generate (ax,ay,az,0,0,0,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    # Do the ps,sp, and pp blocks by hand. Thereafter we don't
+    # need to check for nonzero indices
+    if nao(amax) > 1
+        for m in 0:(mmax-1)
+            vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
+            vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
+            vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
+        end
+    end
+    if nao(cmax) > 1
+        for m in 0:(mmax-1)
+            vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
+            vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
+            vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
+        end
+        if nao(amax) > 1
+            for m in 0:(mmax-1)
+                for i in 2:4
+                    vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                    vrrs[i,3,m] = (Q[2]-C[2])*vrrs[i,1,m] + (W[2]-Q[2])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                    vrrs[i,4,m] = (Q[3]-C[3])*vrrs[i,1,m] + (W[3]-Q[3])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                end
+            end
+        end
+    end
+    return vrrs[:,:,0] # Check return type: is it OffsetArray?
+end
+
 "vrr - compute the vrrs between primitive functions.
 This version uses an array to store integral results."
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
@@ -180,23 +272,6 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,:,:,:,:,0]
 end
 
-
-"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
-vdiff(a,i,n) = a+n*unit(3,i)
-
-"unit(n,d) - create a n-dim unit vector in direction d"
-function unit(n,d) 
-    v = zeros(Int,n)
-    v[d] = 1
-    return v
-end
-
-function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    # There must be ways to reuse space from hrr().
-    vrrs = cvrr(ash,bsh,csh,dsh) 
-    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)    
-    return hrrs
-end
 
 "hrr - hrr using vrr arrays but returning dicts to save space."
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
