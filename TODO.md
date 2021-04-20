@@ -8,18 +8,6 @@
 May have to generate an indexing array that points to the
 different shells, primitive, and contracted functions.
 
-## Reconcile coulomb(px,s,s,s) with hrr calls: 
-While working on the new vrr code psss(), I found a discrepancy comparing to coulomb 
-that I originally assumed was a mistake in psss(), but which I later found matched
-vrr for this code. Which means that it is likely that the following test fails:
-@test MolecularIntegrals.vrr(1.0,0,0,0,1,0,0,1.0,0,0,0,1.0,0,0,0,0,0,0,1.0,0,0,0,0) ≈ coulomb(px,s,s,s)
-I'm going to move forward with coding the vrr routines, but I'm flagging this as
-something to investigate and fix later.
-
-Upon further investigation, it looks like the ERI coulomb integrals are incorrect.
-But the vrr/hrr results don't match the pyquante2 results to very many decimal places.
-That could be a pyquante error, of course.
-
 ## Only computing, returning symmetric ERI pairs (i>j,k>l) ij>kl
 Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?
