@@ -29,6 +29,15 @@ addbf!(c2,0.5,0.2)
         @test px(0,0,0) ≈ 0
         @test c(0,0,0) ≈ 0.71270547
         @test overlap(c2,c2) ≈ 1
+        @test MolecularIntegrals.nao(0) == 1
+        @test MolecularIntegrals.nao(1) == 4
+        @test MolecularIntegrals.nao(2) == 10
+
+        ao2m,m2ao = MolecularIntegrals.ao_arrays()
+        @test ao2m[1] == [0,0,0]
+        @test m2ao[0,0,0] == 1
+        @test ao2m[4] == [0,0,1]
+        @test m2ao[0,0,1] == 4
     end
 
     @testset "OneInts" begin

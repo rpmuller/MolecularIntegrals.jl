@@ -156,3 +156,21 @@ function bfpow(s,j)
 	return "$s$j"
 end	
 
+"ao_arrays - Map between ao indices and a sequential list of (mx,my,mz) values"
+function ao_arrays()
+    lmax = maximum(keys(shell_indices))
+    # TODO: make types for array and dict:
+    ao2m = [] # Consider making an offset array, since the m's will start at 0 anyway
+    m2ao = Dict()
+    iao = 0
+    for i in 0:lmax
+        for ms in shell_indices[i]
+            push!(ao2m,ms)
+            m2ao[ms[1],ms[2],ms[3]] = length(ao2m)
+        end
+    end
+    return ao2m,m2ao
+end
+
+"nao - Number of AOs for system with l shells"
+nao(l) = sum(length(shell_indices[i]) for i in 0:l)
