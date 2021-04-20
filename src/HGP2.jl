@@ -94,6 +94,10 @@ end
 
 "vrr5 - vrr with a new data storage format"
 function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+    # I think I need to redefine mmax := mmax+1: the index math in vrr[2,1] and [1,2] is correct
+    #  but I think when I subtract the shells in the general routines these have to be 1 greater
+    #  to correct for the fact that mmax now goes from 1:mmax+1 instead of 0:mmax.
     mmax=amax+cmax
 
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax+1)
@@ -155,6 +159,10 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
 
     # Now build out the general cases
+    # Generate (ax,ay,az,0,0,0,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
     #vrrs[i,1]
     for i in (nao(4)+1):nao(amax)
         mi = ao2m[i]
@@ -172,6 +180,10 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
     #vrrs[1,j]
+    # Next build (0,0,0,cx,cy,cz,m)
+    # The c-based version of 6a is:
+    #   [0,c+1]m = (Qi-Bi)[0,c]m + (Wi-Qi)[0,c]m+1
+    #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
     for j in (nao(4)+1):nao(cmax)
         mj = ao2m[j]
         lsj = sum(mj) 
@@ -188,6 +200,11 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
 
     #vrrs[i,j]
+    # Now build (ax,ay,az,cx,cy,cz,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
     for i in (nao(4)+1):nao(amax)
         mi = ao2m[i]
         lsi = sum(mi) 
