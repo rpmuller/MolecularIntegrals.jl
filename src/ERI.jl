@@ -24,15 +24,12 @@ function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     By = Barray(aJ,bJ,cJ,dJ,py,ay,by,qy,cy,dy,g1,g2,delta)
     Bz = Barray(aK,bK,cK,dK,pz,az,bz,qz,cz,dz,g1,g2,delta)
 
-    Isum = aI+bI+cI+dI
-    Jsum = aJ+bJ+cJ+dJ
-    Ksum = aK+bK+cK+dK
     x = 0.25*rpq2/delta
 
     s = 0
-    for I in 0:Isum
-        for J in 0:Jsum
-            for K in 0:Ksum
+    for I in 0:(aI+bI+cI+dI)
+        for J in 0:(aJ+bJ+cJ+dJ)
+            for K in 0:(aK+bK+cK+dK)
                 s += Bx[I]*By[J]*Bz[K]*Fgamma(I+J+K,x)
             end
         end
@@ -57,9 +54,10 @@ function Bterm(i1,i2,r1,r2,u,l1,l2,l3,l4,
         Px,Ax,Bx,Qx,Cx,Dx,
         gamma1,gamma2,delta)
     # THO eq. 2.22
-    return fB(i1,l1,l2,Px,Ax,Bx,r1,gamma1)*(-1)^i2*fB(i2,l3,l4,Qx,Cx,Dx,r2,gamma2)
-           *(-1)^u*fact_ratio2(i1+i2-2*(r1+r2),u)
-           *(Qx-Px)^(i1+i2-2*(r1+r2)-2*u)/delta^(i1+i2-2*(r1+r2)-u)
+    return fB(i1,l1,l2,Px,Ax,Bx,r1,gamma1)*
+        (-1)^i2*fB(i2,l3,l4,Qx,Cx,Dx,r2,gamma2)*
+        (-1)^u*fact_ratio2(i1+i2-2*(r1+r2),u)*
+        (Qx-Px)^(i1+i2-2*(r1+r2)-2*u)/delta^(i1+i2-2*(r1+r2)-u)
 end
 
 function Barray(l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
