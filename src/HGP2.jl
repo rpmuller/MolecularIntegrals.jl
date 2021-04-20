@@ -219,14 +219,14 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             bpx,bpy,bpz = bp
             j = argmax(bp)
             bx,by,bz = vdiff(bp,j,-1)
-            for as in ashell:(ashell+bshell-bs) # -1 guess
+            for as in 0:(ashell+bshell-bs)
                 for a in shell_indices[as]
                     ax,ay,az = a
                     apx,apy,apz = vdiff(a,j,1)
                     for cs in 0:(cshell+dshell)
                         for c in shell_indices[cs]
                             cx,cy,cz = c
-                            hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] +
+                            hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] + 
                                 (A[j]-B[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
                         end
                     end
@@ -240,16 +240,20 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             dpx,dpy,dpz = dp
             j = argmax(dp)
             dx,dy,dz = vdiff(dp,j,-1)
-            for cs in cshell:(cshell+dshell-ds) 
+            for cs in 0:(cshell+dshell-ds) 
                 for c in shell_indices[cs]
                     cx,cy,cz = c
                     cpx,cpy,cpz = vdiff(c,j,1)
-                    for a in shell_indices[ashell]
-                        ax,ay,az = a
-                        for b in shell_indices[bshell]
-                            bx,by,bz = b
-                            hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
-                                (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
+                    for as in 0:ashell
+                        for a in shell_indices[as]
+                            ax,ay,az = a
+                            for bs in 0:bshell
+                                for b in shell_indices[bs]
+                                    bx,by,bz = b
+                                    hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
+                                        (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
+                                end
+                            end
                         end
                     end
                 end

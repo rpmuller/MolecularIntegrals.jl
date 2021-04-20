@@ -32,6 +32,10 @@ addbf!(c2,0.5,0.2)
     end
 
     @testset "OneInts" begin
+        for (a,b,val) in [(0,0,1.0),(0,1,0.7468241328124271),(1,0,0.33333333333333)]
+            @test MolecularIntegrals.Fgamma(a,b) ≈ val
+        end
+
         @test kinetic(1.0, 0.0,0.0,0.0, 0,0,0, 1.0, 0.0,0.0,0.0, 0,0,0) ≈ 2.9530518648229536
         @test kinetic(s,s) ≈ 1.5
         @test kinetic(c,c) ≈ 1.5
@@ -286,12 +290,15 @@ addbf!(c2,0.5,0.2)
 
         # Tests from pyquante2.two.ERI
         vrrs0 = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyz,xyz) # all on same center
-        hrrs0 = MolecularIntegrals.hrr(1,1,0,0, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        hrrs0 = MolecularIntegrals.hrr(1,1,1,1, aexpn,bexpn,cexpn,dexpn, A,B,A,B)
         @test 1.1283791670951362 ≈ vrrs0[0,0,0, 0,0,0]*s0.norm^4
         @test 0 == vrrs0[1,0,0, 0,0,0]
         @test 0.9403159725793302 ≈ hrrs0[1,0,0, 1,0,0, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
         @test 0.9403159725793302 ≈ hrrs0[0,1,0, 0,1,0, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
         @test 0.9403159725793302 ≈ hrrs0[0,0,1, 0,0,1, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
+        @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 1,0,0, 1,0,0]*s0.norm^2*px0.norm^2
+        @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 0,1,0, 0,1,0]*s0.norm^2*px0.norm^2
+        @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 0,0,1, 0,0,1]*s0.norm^2*px0.norm^2
         @test 0.8427007900292186 ≈ MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyzb,xyzb)[0,0,0,0,0,0]*s0.norm^4
         @test s0.norm ≈ 0.7127054703549901
         @test px0.norm ≈ 1.4254109407099802
