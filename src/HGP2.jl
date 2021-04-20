@@ -94,7 +94,6 @@ end
 
 "vrr5 - vrr with a new data storage format"
 function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-
     # I think I need to redefine mmax := mmax+1: the index math in vrr[2,1] and [1,2] is correct
     #  but I think when I subtract the shells in the general routines these have to be 1 greater
     #  to correct for the fact that mmax now goes from 1:mmax+1 instead of 0:mmax.
