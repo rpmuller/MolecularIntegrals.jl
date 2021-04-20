@@ -96,16 +96,7 @@ end
 function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
 
-    # I don't like the fact that two indices start at 1, and the other
-    # starts at zero. Moreover, when I return, I won't return any of the
-    # mvalues, which makes the OffsetArray superfluous.
-
-    # So, 
-    # 1. Test sp capability
-    # 2. Move m index to a normal array
-    # 3. Retest
-    vrrs = OffsetArray(zeros(Float64,nao(amax),nao(cmax),mmax+1),
-        1:nao(amax),1:nao(cmax),0:mmax)
+    vrrs = zeros(Float64,nao(amax),nao(cmax),mmax+1)
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
     Q = gaussian_product_center(cexpn,C,dexpn,D)
@@ -125,10 +116,9 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
     # First generate (0,0,0, 0,0,0, m) using eq 12
-    for m in 0:mmax
-        vrrs[1,1, m] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
+    for m in 1:(mmax+1)
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
     end
-
 
     # Generate (ax,ay,az,0,0,0,m) 
     # Eq 6a, with c=0 also:
@@ -138,20 +128,20 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Do the ps,sp, and pp blocks by hand. Thereafter we don't
     # need to check for nonzero indices
     if nao(amax) > 1
-        for m in 0:(mmax-1)
+        for m in 1:mmax
             vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
             vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
             vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
         end
     end
     if nao(cmax) > 1
-        for m in 0:(mmax-1)
+        for m in 1:mmax
             vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
             vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
             vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
         end
         if nao(amax) > 1
-            for m in 0:(mmax-1)
+            for m in 1:mmax
                 for i in 2:4
                     vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
                         0.5/ze*vrrs[1,1,m+1]
@@ -163,7 +153,66 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    return vrrs[:,:,0] # Check return type: is it OffsetArray?
+
+    # Now build out the general cases
+    #vrrs[i,1]
+    for i in (nao(4)+1):nao(amax)
+        mi = ao2m[i]
+        lsi = sum(mi) 
+        ii = argmax(mi)  # Direction of "movement" in building ao term i
+        mim1 = vdiff(mi,ii,-1)
+        mim2 = vdiff(mi,ii,-2)
+        im1 = m2ao[mim1]
+        im2 = m2ao[mim2]
+        amii = mim1[ii]
+        for m in 1:(mmax - lsi)
+            amii = nothing
+            vrrs[i,1,m] = (P[ii]-A[ii])*vrrs[im1,1,m] + (W[ii]-A[ii])*vrrs[im1,1,m+1] +
+                0.5*amii/zeta*(vrrs[im2,1,m]-eta/ze*vrrs[im2,1,m+1])
+        end
+    end
+    #vrrs[1,j]
+    for j in (nao(4)+1):nao(cmax)
+        mj = ao2m[j]
+        lsj = sum(mj) 
+        jj = argmax(mj)  # Direction of "movement" in building ao term i
+        mjm1 = vdiff(mj,jj,-1)
+        mjm2 = vdiff(mj,jj,-2)
+        jm1 = m2ao[mjm1]
+        jm2 = m2ao[mjm2]
+        cmjj = mjm1[jj]
+        for m in 1:(mmax - lsj)
+                vrrs[1,j,m] = (Q[jj]-C[jj])*vrrs[1,jm1,1,m] + (W[jj]-C[jj])*vrrs[1,jm1,m+1] +
+                    0.5*cmjj/zeta*(vrrs[1,jm2,m]-eta/ze*vrrs[1,jm2,m+1])
+        end
+    end
+
+    #vrrs[i,j]
+    for i in (nao(4)+1):nao(amax)
+        mi = ao2m[i]
+        lsi = sum(mi) 
+        for j in (nao(4)+1):nao(cmax)
+            mj = ao2m[j]
+            lsj = sum(mj) 
+            jj = argmax(mj)  # Direction of "movement" in building ao term i
+            mjm1 = vdiff(mj,jj,-1)
+            mjm2 = vdiff(mj,jj,-2)
+            jm1 = m2ao[mjm1]
+            jm2 = m2ao[mjm2]
+            cmjj = mjm1[jj]
+            mim1 = vdiff[mi,jj,-1]
+            amjj = mim1[jj]
+            im1 = m2ao[mim1]
+
+            for m in 1:(mmax - lsi - lsj)
+                vrrs[i,j,m] = (Q[jj]-C[jj])*vrrs[i,jm1,1,m] + (W[jj]-C[jj])*vrrs[i,jm1,m+1] +
+                    0.5*cmjj/zeta*(vrrs[i,jm2,m]-eta/ze*vrrs[i,jm2,m+1]) +
+                    0.5*amjj/ze*vrrs[im1,j,m+1]
+            end
+        end
+    end
+
+    return vrrs[:,:,1]
 end
 
 "vrr - compute the vrrs between primitive functions.
