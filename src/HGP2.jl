@@ -98,7 +98,7 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #  but I think when I subtract the shells in the general routines these have to be 1 greater
     #  to correct for the fact that mmax now goes from 1:mmax+1 instead of 0:mmax.
     mmax=amax+cmax
-
+    ao2m,m2ao = ao_arrays()
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax+1)
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
@@ -163,7 +163,8 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
     #vrrs[i,1]
-    for i in (nao(4)+1):nao(amax)
+
+    for i in (nao(1)+1):nao(amax)
         mi = ao2m[i]
         lsi = sum(mi) 
         ii = argmax(mi)  # Direction of "movement" in building ao term i
@@ -172,9 +173,10 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         im1 = m2ao[mim1]
         im2 = m2ao[mim2]
         amii = mim1[ii]
+        @show i,im1,im2,ii
+        @show P[ii],A[ii],W[ii],amii,zeta,eta,ze
         for m in 1:(mmax - lsi)
-            amii = nothing
-            vrrs[i,1,m] = (P[ii]-A[ii])*vrrs[im1,1,m] + (W[ii]-A[ii])*vrrs[im1,1,m+1] +
+            vrrs[i,1,m] = (P[ii]-A[ii])*vrrs[im1,1,m] + (W[ii]-P[ii])*vrrs[im1,1,m+1] +
                 0.5*amii/zeta*(vrrs[im2,1,m]-eta/ze*vrrs[im2,1,m+1])
         end
     end
@@ -183,7 +185,7 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # The c-based version of 6a is:
     #   [0,c+1]m = (Qi-Bi)[0,c]m + (Wi-Qi)[0,c]m+1
     #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
-    for j in (nao(4)+1):nao(cmax)
+    for j in (nao(1)+1):nao(cmax)
         mj = ao2m[j]
         lsj = sum(mj) 
         jj = argmax(mj)  # Direction of "movement" in building ao term i
@@ -193,8 +195,8 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         jm2 = m2ao[mjm2]
         cmjj = mjm1[jj]
         for m in 1:(mmax - lsj)
-                vrrs[1,j,m] = (Q[jj]-C[jj])*vrrs[1,jm1,1,m] + (W[jj]-C[jj])*vrrs[1,jm1,m+1] +
-                    0.5*cmjj/zeta*(vrrs[1,jm2,m]-eta/ze*vrrs[1,jm2,m+1])
+            vrrs[1,j,m] = (Q[jj]-C[jj])*vrrs[1,jm1,1,m] + (W[jj]-Q[jj])*vrrs[1,jm1,m+1] +
+                0.5*cmjj/zeta*(vrrs[1,jm2,m]-zeta/ze*vrrs[1,jm2,m+1])
         end
     end
 
@@ -204,7 +206,7 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
-    for i in (nao(4)+1):nao(amax)
+    for i in (nao(1)+1):nao(amax)
         mi = ao2m[i]
         lsi = sum(mi) 
         for j in (nao(4)+1):nao(cmax)
@@ -221,8 +223,8 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             im1 = m2ao[mim1]
 
             for m in 1:(mmax - lsi - lsj)
-                vrrs[i,j,m] = (Q[jj]-C[jj])*vrrs[i,jm1,1,m] + (W[jj]-C[jj])*vrrs[i,jm1,m+1] +
-                    0.5*cmjj/zeta*(vrrs[i,jm2,m]-eta/ze*vrrs[i,jm2,m+1]) +
+                vrrs[i,j,m] = (Q[jj]-C[jj])*vrrs[i,jm1,1,m] + (W[jj]-Q[jj])*vrrs[i,jm1,m+1] +
+                    0.5*cmjj/zeta*(vrrs[i,jm2,m]-zeta/ze*vrrs[i,jm2,m+1]) +
                     0.5*amjj/ze*vrrs[im1,j,m+1]
             end
         end

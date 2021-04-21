@@ -166,7 +166,7 @@ function ao_arrays()
     for i in 0:lmax
         for ms in shell_indices[i]
             push!(ao2m,ms)
-            m2ao[Tuple(ms)] = length(ao2m)
+            m2ao[ms] = length(ao2m)
         end
     end
     return ao2m,m2ao

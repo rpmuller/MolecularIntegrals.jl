@@ -35,9 +35,9 @@ addbf!(c2,0.5,0.2)
 
         ao2m,m2ao = MolecularIntegrals.ao_arrays()
         @test ao2m[1] == [0,0,0]
-        @test m2ao[0,0,0] == 1
+        @test m2ao[[0,0,0]] == 1
         @test ao2m[4] == [0,0,1]
-        @test m2ao[0,0,1] == 4
+        @test m2ao[[0,0,1]] == 4
     end
 
     @testset "OneInts" begin
@@ -329,14 +329,17 @@ addbf!(c2,0.5,0.2)
         px = pgbf(ex,x,y,z,1,0,0)
 
         # Test the vrr2 code:
-        val = MolecularIntegrals.vrr(1,1, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
-        val5 = MolecularIntegrals.vrr5(1,1, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+        val = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
+        val5 = MolecularIntegrals.vrr5(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
         ao2m, m2ao = MolecularIntegrals.ao_arrays()
 
         for (I1,J1,K1,I2,J2,K2) in [(0,0,0, 0,0,0),
             (1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), (0, 0, 1, 0, 0, 0),
             (0, 0, 0, 1, 0, 0), (0, 0, 0, 0, 1, 0), (0, 0, 0, 0, 0, 1),
-            (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1)]
+            (1, 0, 0, 1, 0, 0), (0, 1, 0, 0, 1, 0), (0, 0, 1, 0, 0, 1),
+            (2, 0, 0, 0, 0, 0), (0, 2, 0, 0, 0, 0), (0, 0, 2, 0, 0, 0),
+            (0, 0, 0, 2, 0, 0), (0, 0, 0, 0, 2, 0), (0, 0, 0, 0, 0, 2),
+            (2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)]
             @test val[I1,J1,K1,I2,J2,K2] ≈ val5[m2ao[I1,J1,K1],m2ao[I2,J2,K2]]
         end
 
