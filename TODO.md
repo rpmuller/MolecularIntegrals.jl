@@ -11,7 +11,7 @@ Consider something more like fuzz testing.
 4. Delete old vrr/hrr implementations, since the vrr5/hrr5 scheme is the most efficient way to store integrals.
 5. Write out a standard integral record using this code
 6. Figure out metaprogramming to generate code for the special cases.
-7. At some point (maybe earlier than step 7), move vrr to static arrays.
+X. At some point (maybe earlier than step 7), move vrr to static arrays. **Too many elements for Static Arrays.**
 8. Decide on a better m2ao: are the arguments arrays or tuples. Are they both?
 X. Fix problems with mmax: do I need to increment this by one?
 

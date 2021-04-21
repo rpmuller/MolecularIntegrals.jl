@@ -1,6 +1,5 @@
 # HGP2 - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrance relations.
-
 export vrr,cvrr,hrr,chrr
 #
 # We're going to break this into several steps:
