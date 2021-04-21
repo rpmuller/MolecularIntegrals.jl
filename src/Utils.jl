@@ -17,3 +17,14 @@ iiterator(n::Int64) = ((i,j,k,l) for (i,j) in ipairs(n) for (k,l) in ipairs(n) i
 
 iindex(i::Int64,j::Int64,k::Int64,l::Int64) = triangle(triangle(i,j),triangle(k,l))
 trace2(A,B) = sum(A.*B)
+
+"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
+vdiff(a,i,n) = a+n*unit(3,i)
+
+"unit(n,d) - create a n-dim unit vector in direction d"
+function unit(n,d) 
+    v = zeros(Int,n)
+    v[d] = 1
+    return v
+end
+
