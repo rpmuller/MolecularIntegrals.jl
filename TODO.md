@@ -16,23 +16,12 @@ Consider something more like fuzz testing.
 - Finish chrr
 - Figure out a way to share code between chrr and hrr
 
-## Figure out method to generate integral records
-May have to generate an indexing array that points to the
-different shells, primitive, and contracted functions.
-
 ## Only computing, returning symmetric ERI pairs (i>j,k>l) ij>kl
 Think about ordering an integral call (ij,kl) such that i>j, k>l, and ij>kl.
 Also, put in warning when bsh>ash or dsh>csh in hrr2?
 
-
 # Someday changes
-## Move basis functions from bf.x,bf.y,bf.z to bf.xyz
-- [X] Do CGBFs 
-- Then amplitude(CGBF)
-- [X] then PGBFs
-- Then amplitude(CGBF)
-- [X] Scan for .y, .z
-- Also consider a similar move for bf.I, bf.J, bf.K.
+## Make bf IJK and amplitude() calls to arrays
 
 ## Implement other molecule methods:
 - nocc, nclosed, nopen, nup, ndown, stoich, center!
