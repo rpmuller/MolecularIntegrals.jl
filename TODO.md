@@ -2,7 +2,8 @@
 
 ## New strategy for vrr5/hrr5:
 [X] Write hrr5
-1. Benchmark vrr5/hrr5 against vrr/hrr
+[X] Benchmark vrr5/hrr5 against vrr/hrr
+1. Optimize loop structure for vrr/hrr
 2. Write special purpose routines for ss,sp,ps,pp,ds,sd,dp,pd,dd; only call general 
 code when you exceed one of these cases, but make sure the general case still works
 for all of these.

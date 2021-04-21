@@ -1,193 +1,292 @@
-# These functions implement recursive versions of the integral code,
-# hence the trailing "_r" in the names. These versions are not as fast
-# than the versions in HGP2.jl, which should be preferred.
+# HGP2 - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
+# ERI recurrance relations.
+export vrr,cvrr,hrr,chrr
+#
+# We're going to break this into several steps:
+#
+# 1. Primitive shell generation [ab,cd]
+# 
+# Given a shell-level description of a basis set ([ss,ss], [sp,ss], [dd,df], 
+# including l [ll,ss]) generate all ERIs for the primitive basis functions in that shell.
+#
+# This is currently done in the routine `vrr` to generate terms [l0,m0]
+# 
+# 2. Contraction to (ab,cd)
+#
+# This is currently done after the primitive `vrr` step, by the `cvrr` call over
+# shell variables.
+#
+# 3. Completion of contracted integrals
+#
+# `hrr` works to turn either primitive [l0,m0] integrals to [ij,kl] integrals,
+# or to turn contracted (l0,m0) integrals to (ij,kl) integrals.
+#
+# It is most efficient to use chrr on the contracted integrals output
+# by the shell version of `cvrr`.
+# 
+# 4. Integral Array Generation
+# 
+# After all contracted integrals have been computed, populate an integral record 
+# with the relevant terms for use in an electronic structure theory code.
+#
+# The Utils.jl `iiterator` function loops through these in the correct order.
+# The Basis.jl `Basis` struct generates a list of contracted basis functions
+# with other data to allow efficient construction of the integral record.
+#
+#
+# 5. Future optimizations
+# Gill's work on PRISM suggests [^2][^3] being more flexible about when the basis function
+# contraction is performed can reduce the operations count, but this will be simple and 
+# likely fast.
+# 
+# There are many other recurrence relations to consider (MD [ref], LRL [ref], 
+# OS [ref], Rys [refs]) but this should be a template for those others. In particular,
+# several other schemes for the VRR have been proposed. For now, we'll just stick with the
+# HGP version, since that is a well-written and reasonably self-contained paper.
+# 
+# 6. References
+# [^1]: A method for two-electron Gaussian integral and integral derivative
+#       evaluation using recurrence relations. Martin Head-Gordon and John
+#       A. Pople. JCP, 89 (9), 5777, 1988.
+# [^2]: Molecular Integrals Over Gaussian Basis Functions. Peter M. W. Gill. Adv.
+#       Q. Chem., 25, 141 (1994).
+# [^3]: The Prism Algorithm for Two-Electron Integrals. Peter M. W. Gill and John
+#       A. Pople. IJQC, 40, 753 (1991).
 
-# There could be a slight space/speed savings in moving ax,ay,az to axyz, but since
-# this code really isn't used, I'm not going to make this change now.
-
-function coulomb_hgp_r(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
-    return a.norm*b.norm*c.norm*d.norm*hrr_r(a.expn,a.xyz...,a.I,a.J,a.K,
-        b.expn,b.xyz...,b.I,b.J,b.K,
-        c.expn,c.xyz...,c.I,c.J,c.K,
-        d.expn,d.xyz...,d.I,d.J,d.K)
-end
-coulomb_hgp_r(a::CGBF,b::CGBF,c::CGBF,d::CGBF) = contract(coulomb_hgp_r,a,b,c,d)
-
-function hrr_r(aexpn,ax,ay,az,aI,aJ,aK,
-    bexpn,bx,by,bz,bI,bJ,bK,
-    cexpn,cx,cy,cz,cI,cJ,cK,
-    dexpn,dx,dy,dz,dI,dJ,dK)
-    if bI > 0
-        return hrr_r(aexpn,ax,ay,az,aI+1,aJ,aK,bexpn,bx,by,bz,bI-1,bJ,bK,
-            cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK) +
-        (ax-bx)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI-1,bJ,bK,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
-    elseif bJ > 0
-        return hrr_r(aexpn,ax,ay,az,aI,aJ+1,aK,bexpn,bx,by,bz,bI,bJ-1,bK,
-            cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK) +
-            (ay-by)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ-1,bK,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
-    elseif bK > 0
-        return hrr_r(aexpn,ax,ay,az,aI,aJ,aK+1,bexpn,bx,by,bz,bI,bJ,bK-1,
-            cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK) +
-            (az-bz)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK-1,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK)
-    elseif dI > 0
-        return hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-            cexpn,cx,cy,cz,cI+1,cJ,cK,dexpn,dx,dy,dz,dI-1,dJ,dK) +
-            (cx-dx)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI-1,dJ,dK)
-    elseif dJ > 0
-        return hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-            cexpn,cx,cy,cz,cI,cJ+1,cK,dexpn,dx,dy,dz,dI,dJ-1,dK) +
-            (cy-dy)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ-1,dK)
-    elseif dK > 0
-        return hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-            cexpn,cx,cy,cz,cI,cJ,cK+1,dexpn,dx,dy,dz,dI,dJ,dK-1) +
-            (cz-dz)*hrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,dI,dJ,dK-1)
+"cvrr - compute and contract the vertical recurrance relations 
+ between shells ash,bsh,csh,dsh. 
+"
+function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    amax,cmax = ash.L+bsh.L,csh.L,dsh.L
+    cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
+         0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) 
+    A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
+    for (aexpn,acoef) in zip(ash.expns,ash.coefs)
+        for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
+            for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
+                for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                end
+            end
+        end
     end
-    return vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-               cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,0)
+    return cvrrs
 end
 
+"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
+vdiff(a,i,n) = a+n*unit(3,i)
 
-function vrr_r(aexpn,ax,ay,az,aI,aJ,aK,
-        bexpn,bx,by,bz,
-        cexpn,cx,cy,cz,cI,cJ,cK,
-        dexpn,dx,dy,dz,m)
-    px,py,pz = gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
-    qx,qy,qz = gaussian_product_center(cexpn,cx,cy,cz,dexpn,dx,dy,dz)
+"unit(n,d) - create a n-dim unit vector in direction d"
+function unit(n,d) 
+    v = zeros(Int,n)
+    v[d] = 1
+    return v
+end
+
+function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    # There must be ways to reuse space from hrr().
+    vrrs = cvrr(ash,bsh,csh,dsh) 
+    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)    
+    # Finish!
+    return hrrs
+end
+
+function vrr5_hand_written()
+    # Dumping working sp code here to get it working later
+    # Do the ps,sp, and pp blocks by hand. Thereafter we don't
+    # need to check for nonzero indices
+    if nao(amax) > 1
+        for m in 1:mmax
+            vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
+            vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
+            vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
+        end
+    end
+    if nao(cmax) > 1
+        for m in 1:mmax
+            vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
+            vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
+            vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
+        end
+        if nao(amax) > 1
+            for m in 1:mmax
+                for i in 2:4
+                    vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                    vrrs[i,3,m] = (Q[2]-C[2])*vrrs[i,1,m] + (W[2]-Q[2])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                    vrrs[i,4,m] = (Q[3]-C[3])*vrrs[i,1,m] + (W[3]-Q[3])*vrrs[i,1,m+1] +
+                        0.5/ze*vrrs[1,1,m+1]
+                end
+            end
+        end
+    end
+end
+
+"vrr - vrr with a new data storage format"
+function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+    ao2m,m2ao = ao_arrays()
+    vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
     zeta,eta = aexpn+bexpn,cexpn+dexpn
-    wx,wy,wz = gaussian_product_center(zeta,px,py,pz,eta,qx,qy,qz)
-    
-    val = 0
-    if cK>0
-        val = (qz-cz)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-            cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m) +
-            (wz-qz)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m+1)
-        if cK>1
-            val += 0.5*(cK-1)/eta*(
-                vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                    cexpn,cx,cy,cz,cI,cJ,cK-2,dexpn,dx,dy,dz,m) -
-            zeta/(zeta+eta)*
-                vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                    cexpn,cx,cy,cz,cI,cJ,cK-2,dexpn,dx,dy,dz,m+1) )
-        end
-        if aK>0
-            val += 0.5*aK/(zeta+eta)*
-                vrr_r(aexpn,ax,ay,az,aI,aJ,aK-1,bexpn,bx,by,bz,
-                    cexpn,cx,cy,cz,cI,cJ,cK-1,dexpn,dx,dy,dz,m+1)
-        end
-        return val
-    elseif cJ>0
-        val = (qy-cy)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-            cexpn,cx,cy,cz,cI,cJ-1,cK,dexpn,dx,dy,dz,m) +
-        (wy-qy)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ-1,cK-1,dexpn,dx,dy,dz,m+1)
-        #println("val4=$val")
-        if cJ>1
-            val += 0.5*(cJ-1)/eta*(
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ-2,cK,dexpn,dx,dy,dz,m) -
-            zeta/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ-2,cK,dexpn,dx,dy,dz,m+1)
-            )
-        #println("val5=$val")
-        end
-        if aJ>0
-            val += 0.5*aJ/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI,aJ-1,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ-1,cK,dexpn,dx,dy,dz,m+1)
-        end
-        #println("val6=$val")
-        return val
-    elseif cI>0
-        val = (qx-cx)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-            cexpn,cx,cy,cz,cI-1,cJ,cK,dexpn,dx,dy,dz,m) +
-        (wx-qx)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-1,cJ,cK-1,dexpn,dx,dy,dz,m+1)
-        #println("val7=$val")
-        if cI>1
-            val += 0.5*(cI-1)/eta*(
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-2,cJ,cK,dexpn,dx,dy,dz,m) -
-            zeta/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-2,cJ,cK,dexpn,dx,dy,dz,m+1)
-            )
-        end
-        #println("val8=$val")
-        if aI>0
-            val += 0.5*aI/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI-1,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-1,cJ,cK,dexpn,dx,dy,dz,m+1)
-        end
-        #println("val9=$val")
-        return val
-    elseif aK>0
-        val = (pz-az)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK-1,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m) +
-        (wz-pz)*vrr_r(aexpn,ax,ay,az,aI,aJ,aK-1,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m+1)
-        #println("val10=$val")
-        if aK>1
-            val += 0.5*(aK-1)/zeta*(
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK-2,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-1,cJ,cK,dexpn,dx,dy,dz,m) -
-            eta/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI,aJ,aK-2,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI-1,cJ,cK,dexpn,dx,dy,dz,m+1)
-            )
-        end
-        #println("val11=$val")
-        return val
-    elseif aJ>0
-        val = (py-ay)*vrr_r(aexpn,ax,ay,az,aI,aJ-1,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m)+
-        (wy-py)*vrr_r(aexpn,ax,ay,az,aI,aJ-1,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m+1)
-        #println("val12=$val")
-        if aJ>1
-            val += 0.5*(aJ-1)/zeta*(
-            vrr_r(aexpn,ax,ay,az,aI,aJ-2,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m) -
-            eta/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI,aJ-2,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m+1)
-            )
-        end
-        #println("val13=$val")
-        return val
-    elseif aI>0
-        val = (px-ax)*vrr_r(aexpn,ax,ay,az,aI-1,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m) +
-        (wx-px)*vrr_r(aexpn,ax,ay,az,aI-1,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m+1)
-        #println("val14=$val")
-        if aI>1
-            val += 0.5*(aI-1)/zeta*(
-            vrr_r(aexpn,ax,ay,az,aI-2,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m) -
-            eta/(zeta+eta)*
-            vrr_r(aexpn,ax,ay,az,aI-2,aJ,aK,bexpn,bx,by,bz,
-                cexpn,cx,cy,cz,cI,cJ,cK,dexpn,dx,dy,dz,m+1)
-            )
-        end
-        #println("val15=$val")
-        return val
-    end
-
-    rab2 = dist2(ax-bx,ay-by,az-bz)
-    rcd2 = dist2(cx-dx,cy-dy,cz-dz)
-    rpq2 = dist2(px-qx,py-qy,pz-qz)
-    T = zeta*eta/(zeta+eta)*rpq2
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
-    #println("rab2=$rab2,rcd2=$rcd2,rpq2=$rpq2,T=$T,Kab=$Kab,Kcd=$Kcd")
-    return Kab*Kcd/sqrt(zeta+eta)*Fgamma(m,T)
-end
+    
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
 
+    # First generate (1,1,m) using eq 12
+    for m in 1:(mmax)
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
+    end
+
+    # Generate (A,1,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    for ashell in 1:amax
+        for ap in shell_indices[ashell]
+            apindex = m2ao[ap]
+            i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
+            a = vdiff(ap,i,-1)
+            aindex = m2ao[a]
+            am = vdiff(ap,i,-2)
+            for m in 1:(mmax-ashell) 
+                vrrs[apindex,1,m] = (P[i]-A[i])*vrrs[aindex,1,m]+(W[i]-P[i])*vrrs[aindex,1,m+1]
+                if am[i] >= 0
+                    amindex = m2ao[am]
+                    vrrs[apindex,1,m] += a[i]/(2*zeta)*(vrrs[amindex,1,m]-eta/ze*vrrs[amindex,1,m+1])
+                end
+            end
+        end
+    end
+
+    # Next build (1,C,m)
+    # The c-based version of 6a is:
+    #   [0,c+1]m = (Qi-Bi)[1,c]m + (Wi-Qi)[1,c]m+1
+    #       + ci/2eta ([1,c-1]m - zeta/zeta+eta[1,c-1]m+1)         # eq 6c
+    # 
+    for cshell in 1:cmax
+        for cp in shell_indices[cshell]
+            cpindex = m2ao[cp]
+            i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+            c = vdiff(cp,i,-1)
+            cindex = m2ao[c]
+            cm = vdiff(cp,i,-2)
+           for m in 1:(mmax-cshell) 
+                vrrs[1,cpindex,m] = (Q[i]-C[i])*vrrs[1,cindex,m]+(W[i]-Q[i])*vrrs[1,cindex,m+1]
+                if cm[i] >= 0
+                    cmindex = m2ao[cm]
+                    vrrs[1,cpindex,m] += c[i]/(2*eta)*(vrrs[1,cmindex,m]-zeta/ze*vrrs[1,cmindex,m+1])
+                end
+            end
+        end
+    end
+
+    # Now build (A,C,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
+    for ashell in 1:amax
+        for a in shell_indices[ashell]
+            aindex = m2ao[a]
+            for cshell in 1:cmax
+                for cp in shell_indices[cshell]
+                    cpindex = m2ao[cp]
+                    j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+                    c = vdiff(cp,j,-1)
+                    cindex = m2ao[c]
+                    cm = vdiff(cp,j,-2)
+                    am = vdiff(a,j,-1)
+                    for m in 1:(mmax-ashell-cshell) 
+                        vrrs[aindex,cpindex,m] = (Q[j]-C[j])*vrrs[aindex,cindex,m]+(W[j]-Q[j])*vrrs[aindex,cindex,m+1]
+                        if cm[j] >= 0
+                            cmindex = m2ao[cm]
+                            vrrs[aindex,cpindex,m] += c[j]/(2*eta)*(vrrs[aindex,cmindex,m]-zeta/ze*vrrs[aindex,cmindex,m+1])
+                        end
+                        if am[j] >= 0 
+                            amindex = m2ao[am]
+                            vrrs[aindex,cpindex,m] += a[j]/(2*ze)*(vrrs[amindex,cindex,m+1])
+                        end                             
+                    end
+                end
+            end
+        end 
+    end
+
+    return vrrs[:,:,1]
+end
+"hrr - hrr using and producing packed arrays"
+function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    ao2m,m2ao = ao_arrays()
+    # Get the relevant vrr terms. 
+    vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
+    hrrs[:,1,:,1] = vrrs[:,:]
+
+    # First build (ab,c0) from (a0,c0)
+    for bs in 1:bshell 
+        for bp in shell_indices[bs]
+            bpindex = m2ao[bp]
+            j = argmax(bp)
+            b = vdiff(bp,j,-1)
+            bindex = m2ao[b]
+            for as in 0:(ashell+bshell-bs)
+                for a in shell_indices[as]
+                    aindex = m2ao[a]
+                    ap = vdiff(a,j,1)
+                    apindex = m2ao[ap]
+                    for cs in 0:(cshell+dshell)
+                        for c in shell_indices[cs]
+                            cindex = m2ao[c]
+                            hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
+                                (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # now build (ab,cd) from (ab,c0)
+    for ds in 1:dshell
+        for dp in shell_indices[ds]
+            dpindex = m2ao[dp]
+            j = argmax(dp)
+            d = vdiff(dp,j,-1)
+            dindex = m2ao[d]
+            for cs in 0:(cshell+dshell-ds) 
+                for c in shell_indices[cs]
+                    cindex = m2ao[c]
+                    cp = vdiff(c,j,1)
+                    cpindex = m2ao[cp]
+                    for as in 0:ashell
+                        for a in shell_indices[as]
+                            aindex = m2ao[a]
+                            for bs in 0:bshell
+                                for b in shell_indices[bs]
+                                    bindex = m2ao[b]
+                                    hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
+                                        (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return hrrs[1:nao(ashell),:,1:nao(cshell),:]
+end

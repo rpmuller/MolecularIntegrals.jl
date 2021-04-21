@@ -17,12 +17,21 @@ function vrr_timings()
     C = D = xyza
     cx,cy,cz = dx,dy,dz = xyza
     aexpn=bexpn=cexpn=dexpn = ex
-    @time MolecularIntegrals.vrr2(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza);
-    @time MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza);
+    @time MolecularIntegrals.vrr2(4,4, ex,ex,ex,ex, xyz,xyz,xyza,xyza);
+    @time MolecularIntegrals.vrr(4,4, ex,ex,ex,ex, xyz,xyz,xyza,xyza);
+    @time MolecularIntegrals.vrr5(4,4, ex,ex,ex,ex, xyz,xyz,xyza,xyza);
+    nothing
 end
-# Results for above case:
-# vrr2 0.390068 seconds (791.39 k allocations: 45.704 MiB, 3.79% gc time, 99.51% compilation time)
-# vrr  0.014459 seconds (6.29 k allocations: 289.375 KiB, 97.21% compilation time)
+# Results for 2,2 case:
+# vrr2 0.001125 seconds (9.06 k allocations: 422.250 KiB)
+# vrr  0.000544 seconds (5.35 k allocations: 238.000 KiB)
+# vrr5 0.000525 seconds (3.94 k allocations: 152.641 KiB)
+
+# Results for 4,4 case:
+# vrr2 0.039209 seconds (169.34 k allocations: 7.163 MiB)
+# vrr  0.012553 seconds (107.18 k allocations: 4.554 MiB)
+# vrr5 0.009616 seconds (84.62 k allocations: 2.401 MiB)
+
 
 function hrr_timings()
     x=y=z=0.0
@@ -36,18 +45,16 @@ function hrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     aexpn=bexpn=cexpn=dexpn = ex
     ashell,bshell,cshell,dshell = (2,2,2,2)
-    #@time MolecularIntegrals.hrr_r(aexpn,ax,ay,az,aI,aJ,aK, bexpn,bx,by,bz,bI,bJ,bK, cexpn,cx,cy,cz,cI,cJ,cK, dexpn,dx,dy,dz,dI,dJ,dK);
     @time MolecularIntegrals.hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D);
     @time MolecularIntegrals.hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D);
     @time MolecularIntegrals.hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D);
+    @time MolecularIntegrals.hrr5(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D);
+    nothing
 end
-# Results for hrr, shells=2,1,2,1, xyz, xyza, ex as above:
-# hrr2: 0.677294 seconds (1.03 M allocations: 58.055 MiB, 14.63% gc time, 98.78% compilation time)
-# hrr3: 0.356590 seconds (835.99 k allocations: 45.983 MiB, 2.83% gc time, 98.99% compilation time)
-# hrr:  0.003234 seconds (44.50 k allocations: 2.051 MiB)
 # Results for hrr, shells = 2,2,2,2:
-# hrr2 0.647392 seconds (1.26 M allocations: 68.603 MiB, 10.92% gc time, 94.79% compilation time)
-# hrr3 0.425849 seconds (981.26 k allocations: 136.233 MiB, 4.71% gc time, 81.78% compilation time)
-# hrr  0.017597 seconds (221.12 k allocations: 10.490 MiB)
+# hrr2 0.029898 seconds (290.39 k allocations: 13.413 MiB)
+# hrr3 0.038984 seconds (182.71 k allocations: 93.745 MiB, 9.30% gc time)
+# hrr  0.075930 seconds (448.54 k allocations: 28.874 MiB)
+# hrr5 0.028568 seconds (265.20 k allocations: 7.264 MiB)
 
 hrr_timings()
