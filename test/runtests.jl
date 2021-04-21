@@ -274,9 +274,6 @@ addbf!(c2,0.5,0.2)
             @test hrr2_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_r_val
             @test hrr3_vals[aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK] == hrr_r_val
             @test hrr_vals[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrr_r_val
-            #@show length(hrr2_vals)
-            #@show length(hrr3_vals)
-            #@show length(hrr_vals)
         end
 
     end
@@ -304,9 +301,6 @@ addbf!(c2,0.5,0.2)
         @test 0 == vrrs0[1,0,0, 0,0,0]
         @test 0.9403159725793302 ≈ hrrs0[1,0,0, 1,0,0, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
         @test 0.9403159725793302 ≈ hrrs0[0,1,0, 0,1,0, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
-        @test 0.9403159725793302 ≈ hrrs0[0,0,1, 0,0,1, 0,0,0, 0,0,0]*s0.norm^2*px0.norm^2
-        @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 1,0,0, 1,0,0]*s0.norm^2*px0.norm^2
-        @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 0,1,0, 0,1,0]*s0.norm^2*px0.norm^2
         @test 0.9403159725793302 ≈ hrrs0[0,0,0, 0,0,0, 0,0,1, 0,0,1]*s0.norm^2*px0.norm^2
         @test 0.8427007900292186 ≈ MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyzb,xyzb)[0,0,0,0,0,0]*s0.norm^4
         @test s0.norm ≈ 0.7127054703549901
@@ -328,7 +322,6 @@ addbf!(c2,0.5,0.2)
         sa = pgbf(ex,xa,ya,za)
         px = pgbf(ex,x,y,z,1,0,0)
 
-        # Test the vrr2 code:
         val = MolecularIntegrals.vrr(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
         val5 = MolecularIntegrals.vrr5(2,2, ex,ex,ex,ex, xyz,xyz,xyza,xyza) 
         ao2m, m2ao = MolecularIntegrals.ao_arrays()
@@ -342,6 +335,17 @@ addbf!(c2,0.5,0.2)
             ,(2, 0, 0, 2, 0, 0), (0, 2, 0, 0, 2, 0), (0, 0, 2, 0, 0, 2)
             ]
             @test val[I1,J1,K1,I2,J2,K2] ≈ val5[m2ao[[I1,J1,K1]],m2ao[[I2,J2,K2]]]
+        end
+
+        for (ashell,bshell,cshell,dshell) in [(0,0,0,0),(1,0,0,0),(1,0,0,1),(1,1,0,0),(1,1,0,1),
+            (2,1,0,1),(2,1,2,0),(2,1,2,1),(3,1,0,0),(3,1,3,1),(0,2,0,0),(2,1,0,2)] 
+            aI,aJ,aK = MolecularIntegrals.shell_indices[ashell][1]
+            bI,bJ,bK = MolecularIntegrals.shell_indices[bshell][1]
+            cI,cJ,cK = MolecularIntegrals.shell_indices[cshell][1]
+            dI,dJ,dK = MolecularIntegrals.shell_indices[dshell][1]
+            hrrs0 = MolecularIntegrals.hrr(ashell,bshell,cshell,dshell, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+            hrrs5 = MolecularIntegrals.hrr5(ashell,bshell,cshell,dshell, ex,ex,ex,ex, xyz,xyz,xyza,xyza)
+            @test hrrs0[(aI,aJ,aK, bI,bJ,bK, cI,cJ,cK, dI,dJ,dK)] == hrrs5[m2ao[[aI,aJ,aK]],m2ao[[bI,bJ,bK]],m2ao[[cI,cJ,cK]],m2ao[[dI,dJ,dK]]]
         end
 
     end
