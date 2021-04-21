@@ -147,14 +147,14 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
-    # First generate (0,0,0, 0,0,0, m) using eq 12
+    # First generate (1,1,m) using eq 12
     for m in 1:(mmax)
         vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
     end
 
-    # Generate (ax,ay,az,0,0,0,m) 
+    # Generate (A,1,m) 
     # Eq 6a, with c=0 also:
-    #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
 
     for ashell in 1:amax
@@ -174,10 +174,10 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
 
-    # Next build (0,0,0,cx,cy,cz,m)
+    # Next build (1,C,m)
     # The c-based version of 6a is:
-    #   [0,c+1]m = (Qi-Bi)[0,c]m + (Wi-Qi)[0,c]m+1
-    #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
+    #   [0,c+1]m = (Qi-Bi)[1,c]m + (Wi-Qi)[1,c]m+1
+    #       + ci/2eta ([1,c-1]m - zeta/zeta+eta[1,c-1]m+1)         # eq 6c
     # 
     for cshell in 1:cmax
         for cp in shell_indices[cshell]
@@ -196,7 +196,7 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
 
-    # Now build (ax,ay,az,cx,cy,cz,m)
+    # Now build (A,C,m)
     # The c-based version of 6a is:
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
