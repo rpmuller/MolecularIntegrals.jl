@@ -91,36 +91,120 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return hrrs
 end
 
-function vrr5_hand_written()
-    # Dumping working sp code here to get it working later
-    # Do the ps,sp, and pp blocks by hand. Thereafter we don't
-    # need to check for nonzero indices
-    if nao(amax) > 1
-        for m in 1:mmax
-            vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
-            vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
-            vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
+function vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    vrrs = zeros(Float64,1,1)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    vrrs[1,1] = Kab*Kcd*Fgamma(0,T)/sqrt(ze)
+    return vrrs
+end
+
+function vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax = 2
+    vrrs = zeros(Float64,4,1,mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    for m in 1:mmax
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
+    end
+
+    for m in 1:mmax-1
+        vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
+        vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
+        vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
+    end
+    return vrrs[:,:,1]
+end
+
+function vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax = 2
+    vrrs = zeros(Float64,1,4,mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    for m in 1:mmax
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
+    end
+
+    for m in 1:mmax-1
+        vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
+        vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
+        vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
+    end
+    return vrrs[:,:,1]
+end
+
+function vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax = 3
+    vrrs = zeros(Float64,4,4,mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    for m in 1:mmax
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
+    end
+
+    for m in 1:mmax-1
+        vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
+        vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
+        vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
+        vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
+        vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
+        vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
+    end
+    for m in 1:mmax-2
+        for i in 2:4
+            vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
+                0.5/ze*vrrs[1,1,m+1]
+            vrrs[i,3,m] = (Q[2]-C[2])*vrrs[i,1,m] + (W[2]-Q[2])*vrrs[i,1,m+1] +
+                0.5/ze*vrrs[1,1,m+1]
+            vrrs[i,4,m] = (Q[3]-C[3])*vrrs[i,1,m] + (W[3]-Q[3])*vrrs[i,1,m+1] +
+                0.5/ze*vrrs[1,1,m+1]
         end
     end
-    if nao(cmax) > 1
-        for m in 1:mmax
-            vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
-            vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
-            vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
-        end
-        if nao(amax) > 1
-            for m in 1:mmax
-                for i in 2:4
-                    vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
-                        0.5/ze*vrrs[1,1,m+1]
-                    vrrs[i,3,m] = (Q[2]-C[2])*vrrs[i,1,m] + (W[2]-Q[2])*vrrs[i,1,m+1] +
-                        0.5/ze*vrrs[1,1,m+1]
-                    vrrs[i,4,m] = (Q[3]-C[3])*vrrs[i,1,m] + (W[3]-Q[3])*vrrs[i,1,m+1] +
-                        0.5/ze*vrrs[1,1,m+1]
-                end
-            end
-        end
-    end
+    return vrrs[:,:,1]
 end
 
 "vrr - vrr with a new data storage format"
