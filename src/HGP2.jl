@@ -92,42 +92,8 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return hrrs
 end
 
-"vrr5 - vrr with a new data storage format"
-function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    # I think I need to redefine mmax := mmax+1: the index math in vrr[2,1] and [1,2] is correct
-    #  but I think when I subtract the shells in the general routines these have to be 1 greater
-    #  to correct for the fact that mmax now goes from 1:mmax+1 instead of 0:mmax.
-    mmax=amax+cmax
-    ao2m,m2ao = ao_arrays()
-    vrrs = zeros(Float64,nao(amax),nao(cmax),mmax+1)
-
-    P = gaussian_product_center(aexpn,A,bexpn,B)
-    Q = gaussian_product_center(cexpn,C,dexpn,D)
-    zeta,eta = aexpn+bexpn,cexpn+dexpn
-    ze = zeta+eta
-    W = gaussian_product_center(zeta,P,eta,Q)
-    rab2 = dist2(A-B)
-    rcd2 = dist2(C-D)
-    rpq2 = dist2(P-Q)
-    T = zeta*eta*rpq2/ze
-    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
-    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
-    
-    # HGP equation 6, with b=d=0:
-    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
-    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
-    #        + ci/2(zeta+eta)[a,c-1]m+1
-
-    # First generate (0,0,0, 0,0,0, m) using eq 12
-    for m in 1:(mmax+1)
-        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
-    end
-
-    # Generate (ax,ay,az,0,0,0,m) 
-    # Eq 6a, with c=0 also:
-    #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
-    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
-
+function vrr5_hand_written()
+    # Dumping working sp code here to get it working later
     # Do the ps,sp, and pp blocks by hand. Thereafter we don't
     # need to check for nonzero indices
     if nao(amax) > 1
@@ -156,78 +122,110 @@ function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
+end
 
-    # Now build out the general cases
+"vrr5 - vrr with a new data storage format"
+function vrr5(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+    ao2m,m2ao = ao_arrays()
+    vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (0,0,0, 0,0,0, m) using eq 12
+    for m in 1:(mmax)
+        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
+    end
+
     # Generate (ax,ay,az,0,0,0,m) 
     # Eq 6a, with c=0 also:
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
-    #vrrs[i,1]
 
-    for i in (nao(1)+1):nao(amax)
-        mi = ao2m[i]
-        lsi = sum(mi) 
-        ii = argmax(mi)  # Direction of "movement" in building ao term i
-        mim1 = vdiff(mi,ii,-1)
-        mim2 = vdiff(mi,ii,-2)
-        im1 = m2ao[mim1]
-        im2 = m2ao[mim2]
-        amii = mim1[ii]
-        @show i,im1,im2,ii
-        @show P[ii],A[ii],W[ii],amii,zeta,eta,ze
-        for m in 1:(mmax - lsi)
-            vrrs[i,1,m] = (P[ii]-A[ii])*vrrs[im1,1,m] + (W[ii]-P[ii])*vrrs[im1,1,m+1] +
-                0.5*amii/zeta*(vrrs[im2,1,m]-eta/ze*vrrs[im2,1,m+1])
+    for ashell in 1:amax
+        for ap in shell_indices[ashell]
+            apindex = m2ao[ap]
+            i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
+            a = vdiff(ap,i,-1)
+            aindex = m2ao[a]
+            am = vdiff(ap,i,-2)
+            for m in 1:(mmax-ashell) 
+                vrrs[apindex,1,m] = (P[i]-A[i])*vrrs[aindex,1,m]+(W[i]-P[i])*vrrs[aindex,1,m+1]
+                if am[i] >= 0
+                    amindex = m2ao[am]
+                    vrrs[apindex,1,m] += a[i]/(2*zeta)*(vrrs[amindex,1,m]-eta/ze*vrrs[amindex,1,m+1])
+                end
+            end
         end
     end
-    #vrrs[1,j]
+
     # Next build (0,0,0,cx,cy,cz,m)
     # The c-based version of 6a is:
     #   [0,c+1]m = (Qi-Bi)[0,c]m + (Wi-Qi)[0,c]m+1
     #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
-    for j in (nao(1)+1):nao(cmax)
-        mj = ao2m[j]
-        lsj = sum(mj) 
-        jj = argmax(mj)  # Direction of "movement" in building ao term i
-        mjm1 = vdiff(mj,jj,-1)
-        mjm2 = vdiff(mj,jj,-2)
-        jm1 = m2ao[mjm1]
-        jm2 = m2ao[mjm2]
-        cmjj = mjm1[jj]
-        for m in 1:(mmax - lsj)
-            vrrs[1,j,m] = (Q[jj]-C[jj])*vrrs[1,jm1,1,m] + (W[jj]-Q[jj])*vrrs[1,jm1,m+1] +
-                0.5*cmjj/zeta*(vrrs[1,jm2,m]-zeta/ze*vrrs[1,jm2,m+1])
+    # 
+    for cshell in 1:cmax
+        for cp in shell_indices[cshell]
+            cpindex = m2ao[cp]
+            i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+            c = vdiff(cp,i,-1)
+            cindex = m2ao[c]
+            cm = vdiff(cp,i,-2)
+           for m in 1:(mmax-cshell) 
+                vrrs[1,cpindex,m] = (Q[i]-C[i])*vrrs[1,cindex,m]+(W[i]-Q[i])*vrrs[1,cindex,m+1]
+                if cm[i] >= 0
+                    cmindex = m2ao[cm]
+                    vrrs[1,cpindex,m] += c[i]/(2*eta)*(vrrs[1,cmindex,m]-zeta/ze*vrrs[1,cmindex,m+1])
+                end
+            end
         end
     end
 
-    #vrrs[i,j]
     # Now build (ax,ay,az,cx,cy,cz,m)
     # The c-based version of 6a is:
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
-    for i in (nao(1)+1):nao(amax)
-        mi = ao2m[i]
-        lsi = sum(mi) 
-        for j in (nao(4)+1):nao(cmax)
-            mj = ao2m[j]
-            lsj = sum(mj) 
-            jj = argmax(mj)  # Direction of "movement" in building ao term i
-            mjm1 = vdiff(mj,jj,-1)
-            mjm2 = vdiff(mj,jj,-2)
-            jm1 = m2ao[mjm1]
-            jm2 = m2ao[mjm2]
-            cmjj = mjm1[jj]
-            mim1 = vdiff[mi,jj,-1]
-            amjj = mim1[jj]
-            im1 = m2ao[mim1]
-
-            for m in 1:(mmax - lsi - lsj)
-                vrrs[i,j,m] = (Q[jj]-C[jj])*vrrs[i,jm1,1,m] + (W[jj]-Q[jj])*vrrs[i,jm1,m+1] +
-                    0.5*cmjj/zeta*(vrrs[i,jm2,m]-zeta/ze*vrrs[i,jm2,m+1]) +
-                    0.5*amjj/ze*vrrs[im1,j,m+1]
+    for ashell in 1:amax
+        for a in shell_indices[ashell]
+            aindex = m2ao[a]
+            for cshell in 1:cmax
+                for cp in shell_indices[cshell]
+                    cpindex = m2ao[cp]
+                    j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
+                    c = vdiff(cp,j,-1)
+                    cindex = m2ao[c]
+                    cm = vdiff(cp,j,-2)
+                    am = vdiff(a,j,-1)
+                    for m in 1:(mmax-ashell-cshell) 
+                        vrrs[aindex,cpindex,m] = (Q[j]-C[j])*vrrs[aindex,cindex,m]+(W[j]-Q[j])*vrrs[aindex,cindex,m+1]
+                        if cm[j] >= 0
+                            cmindex = m2ao[cm]
+                            vrrs[aindex,cpindex,m] += c[j]/(2*eta)*(vrrs[aindex,cmindex,m]-zeta/ze*vrrs[aindex,cmindex,m+1])
+                        end
+                        if am[j] >= 0 
+                            amindex = m2ao[am]
+                            vrrs[aindex,cpindex,m] += a[j]/(2*ze)*(vrrs[amindex,cindex,m+1])
+                        end                             
+                    end
+                end
             end
-        end
+        end 
     end
 
     return vrrs[:,:,1]
