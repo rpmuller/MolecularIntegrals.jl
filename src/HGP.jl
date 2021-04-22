@@ -72,16 +72,6 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return cvrrs
 end
 
-"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
-vdiff(a,i,n) = a+n*unit(3,i)
-
-"unit(n,d) - create a n-dim unit vector in direction d"
-function unit(n,d) 
-    v = zeros(Int,n)
-    v[d] = 1
-    return v
-end
-
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     # There must be ways to reuse code from hrr().
     ao2m,m2ao = ao_arrays()
