@@ -173,15 +173,13 @@ function vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
     
-    for m in 1:mmax
-        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
-    end
+    vrrs[1,1, 1] = Kab*Kcd*Fgamma(0,T)/sqrt(ze)
+    vrrs[1,1, 2] = Kab*Kcd*Fgamma(1,T)/sqrt(ze)
 
-    for m in 1:mmax-1
-        vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
-        vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
-        vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
-    end
+    vrrs[2,1,1] = (P[1]-A[1])*vrrs[1,1,1] + (W[1]-A[1])*vrrs[1,1,2]
+    vrrs[3,1,1] = (P[2]-A[2])*vrrs[1,1,1] + (W[2]-A[2])*vrrs[1,1,2]
+    vrrs[4,1,1] = (P[3]-A[3])*vrrs[1,1,1] + (W[3]-A[3])*vrrs[1,1,2]
+
     return vrrs[:,:,1]
 end
 
@@ -201,15 +199,13 @@ function vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
     
-    for m in 1:mmax
-        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
-    end
+    vrrs[1,1, 1] = Kab*Kcd*Fgamma(0,T)/sqrt(ze)
+    vrrs[1,1, 2] = Kab*Kcd*Fgamma(1,T)/sqrt(ze)
 
-    for m in 1:mmax-1
-        vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
-        vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
-        vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
-    end
+    vrrs[1,2,1] = (Q[1]-C[1])*vrrs[1,1,1] + (W[1]-Q[1])*vrrs[1,1,2]
+    vrrs[1,3,1] = (Q[2]-C[2])*vrrs[1,1,1] + (W[2]-Q[2])*vrrs[1,1,2]
+    vrrs[1,4,1] = (Q[3]-C[3])*vrrs[1,1,1] + (W[3]-Q[3])*vrrs[1,1,2]
+
     return vrrs[:,:,1]
 end
 
