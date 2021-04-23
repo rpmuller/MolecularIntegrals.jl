@@ -1,5 +1,45 @@
 # TODO and notes
 
+## separate VRR.jl and HRR.jl code
+
+## Delete HGPother.jl
+
+## Rename HGP2.jl to HGPold.jl
+
+## Write vrr_array and vrr_wide_array versions
+- These are vrr5 and vrr1, respectively
+- Comment the code to indicate that we're supporting multiple
+    interfaces for convenience, and that that the speed is 
+    roughly equivalent
+
+## Write hrr_dict and hrr_array versions
+- These are the old version of hrr1 and hrr5, respectively
+- Should be able to call *either* vrr_array or vrr_wide
+- Comment code to indicate that we're supporting multiple
+    interfaces for convenience, and that the hrr_array is
+    faster, but the hrr_dict can only return the requisite
+    terms.
+- Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
+
+
+
+## Write test functions in runtests.jl
+- vrr_test(ashell,cshell) code:
+    - Test all elements of vrr_array and vrr_wide_array against ERI.jl code
+    - Random A,C, aex, cex?
+- hrr_test(ashell,bshell,cshell,dshell)
+    - Test all elements of hrr_array and hrr_dict against ERI.jl code
+    - Random A,B,C,D???
+
+
+
+
+
+## Comment ERI.jl code
+- Add comments to ERI code to the effect that it is slow code that is very
+    likely to be correct that is kept around for reference and testing.
+
+## Move contracted routines to CHGP.jl
 - Test chrr
 - Write out a standard integral record using this code
 
