@@ -7,6 +7,16 @@ packages available to Julia programmers, but few are written *in*
 Julia. This project will explore how fast we can make these integrals
 while maintaining a readable and hackable code base.
 
+# One Electron Integrals
+
+# Two Electron Integrals
+
+## Huzinaga Method
+
+## Head-Gordan/Pople Recurrance Relations
+
+## Other Methods
+- Rys quadrature
 
 # References
 [^HGP]: A method for two-electron Gaussian integral and integral derivative
