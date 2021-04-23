@@ -3,17 +3,41 @@ using OffsetArrays
 
 export overlap, kinetic, nuclear_attraction
 
+"""
+overlap(a::PGBF,b::PGBF)
+
+Compute the overlap between primitive Gaussian basis functions `a` and `b`.
+"""
 function overlap(a::PGBF,b::PGBF)
     return a.norm*b.norm*overlap(a.expn,a.xyz,a.I,a.J,a.K,
     b.expn,b.xyz,b.I,b.J,b.K)
 end
 
+"""
+overlap(a::CGBF,b::CGBF)
+
+Compute the overlap between contracted Gaussian basis functions `a` and `b`.
+"""
 overlap(a::CGBF,b::CGBF) = contract(overlap,a,b)
 
+"""
+overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
+
+Compute the overlap between primitive Gaussian basis functions 
+defined by centers `ax,ay,az`, `bx,by,bz`, powers `aI,aJ,aK`
+`bI,bJ,bK`, and exponents `aexpn,bexpn`.
+"""
 function overlap(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
     return overlap(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK)
 end
 
+"""
+overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
+
+Compute the overlap between primitive Gaussian basis functions 
+defined by centers `axyz`, `bxyz`, powers `aI,aJ,aK`
+`bI,bJ,bK`, and exponents `aexpn,bexpn`.
+"""
 function overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     gamma = aexpn+bexpn
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
@@ -27,8 +51,30 @@ function overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     return pre*wx*wy*wz
 end
 
+"""
+gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz)
+
+Compute the Gaussian function center defined by the 
+product of Gaussian functions at  `ax,ay,az`, `bx,by,bz`,
+and exponents `aexpn,bexpn`.
+"""
 gaussian_product_center(aexpn,ax,ay,az,bexpn,bx,by,bz) = gaussian_product_center(aexpn,[ax,ay,az],bexpn,[bx,by,bz])
+
+"""
+gaussian_product_center(a::PGBF,b::PGBF)
+
+Compute the Gaussian function center defined by the 
+product of Gaussian functions `a` and `b`.
+"""
 gaussian_product_center(a::PGBF,b::PGBF) = gaussian_product_center(a.expn,a.xyz,b.expn,b.xyz)
+
+"""
+gaussian_product_center(aexpn,axyz,bexpn,bxyz)
+
+Compute the Gaussian function center defined by the 
+product of Gaussian functions at  `axyz`, `bxyz`,
+and exponents `aexpn,bexpn`.
+"""
 function gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     ab = aexpn+bexpn
     a = aexpn/ab
@@ -47,15 +93,34 @@ end
 binomial_prefactor(s,ia,ib,xpa,xpb) = sum(binomial_kernel(ia,s-t,xpa)*binomial_kernel(ib,t,xpb) for t in 0:s if (s-ia) <= t <= ib)
 binomial_kernel(i,t,x) = binomial(i,t)x^(i-t)
 
+"""
+kinetic(a::PGBF,b::PGBF)
+
+Compute the kinetic energy between primitive Gaussian basis functions `a` and `b`.
+"""
 function kinetic(a::PGBF,b::PGBF)
     return a.norm*b.norm*kinetic(a.expn,a.xyz,a.I,a.J,a.K,
                                 b.expn,b.xyz,b.I,b.J,b.K)
 end
 
+"""
+kinetic(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
+
+Compute the kinetic energy between primitive Gaussian basis functions 
+defined by centers `ax,ay,az`, `bx,by,bz`, powers `aI,aJ,aK`
+`bI,bJ,bK`, and exponents `aexpn,bexpn`.
+"""
 function kinetic(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK)
     return kinetic(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK)
 end
 
+"""
+kinetic(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
+
+Compute the kinetic energy between primitive Gaussian basis functions 
+defined by centers `ax,yz`, `bxyz`, powers `aI,aJ,aK`
+`bI,bJ,bK`, and exponents `aexpn,bexpn`.
+"""
 function kinetic(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     overlap0 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     overlapx1 = overlap(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI+2,bJ,bK)
@@ -70,6 +135,11 @@ function kinetic(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK)
     return term0+term1+term2
 end
 
+"""
+kinetic(a::CGBF,b::CGBF)
+
+Compute the kinetic energy between contracted Gaussian basis functions `a` and `b`.
+"""
 kinetic(a::CGBF,b::CGBF) = contract(kinetic,a,b)
 
 function Aterm(i,r,u,l1,l2,ax,bx,cx,gamma)
@@ -93,17 +163,51 @@ function Aarray(l1,l2,a,b,c,g)
     return A
 end
 
+"""
+nuclear_attraction(a::PGBF,b::PGBF,cxyz)
+
+Compute the nuclear attraction energy between primitive Gaussian basis functions `a` and `b`
+and center `cxyz`.
+"""
 function nuclear_attraction(a::PGBF,b::PGBF,cxyz)
     return a.norm*b.norm*nuclear_attraction(a.expn,a.xyz,a.I,a.J,a.K,
                                             b.expn,b.xyz,b.I,b.J,b.K,cxyz)
 end
+
+"""
+nuclear_attraction(a::PGBF,b::PGBF,c::Atom)
+
+Compute the nuclear attraction energy between primitive Gaussian basis functions `a` and `b`
+and atom `c`.
+"""
 nuclear_attraction(a::PGBF,b::PGBF,c::Atom) = c.atno*nuclear_attraction(a,b,c.xyz)
+
+"""
+nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom})
+
+Compute the sum of nuclear attraction energy between primitive Gaussian basis 
+functions `a` and `b` and the vector of atoms in `m`.
+"""
 nuclear_attraction(a::PGBF,b::PGBF,m::Vector{Atom}) = sum([nuclear_attraction(a,b,c) for c in m])
 
+"""
+nuclear_attraction(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,cx,cy,cz)
+
+Compute the nuclear attraction energy between primitive Gaussian basis functions 
+defined by `ax,ay,az`, `bx,by,bz`, powers `aI,aJ,aK`, `bI,bJ,bK`, and exponents `aexpn,bexpn`
+and center `cxyz`.
+"""
 function nuclear_attraction(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,cx,cy,cz)
     return nuclear_attraction(aexpn,[ax,ay,az],aI,aJ,aK,bexpn,[bx,by,bz],bI,bJ,bK,[cx,cy,cz])
 end
 
+"""
+nuclear_attraction(aexpn,ax,ay,az,aI,aJ,aK,bexpn,bx,by,bz,bI,bJ,bK,cx,cy,cz)
+
+Compute the nuclear attraction energy between primitive Gaussian basis functions 
+defined by `ax,ay,az`, `bx,by,bz`, powers `aI,aJ,aK`, `bI,bJ,bK`, and exponents `aexpn,bexpn`
+and center `cxyz`.
+"""
 function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     pxyz = gaussian_product_center(aexpn,axyz,bexpn,bxyz)
     gamma = aexpn+bexpn
@@ -135,20 +239,46 @@ end
 "gammainc returns the lower incomplete gamma function"
 gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
 
-# Need a nested scope to squeeze this into the contract function
+"""
+nuclear_attraction(a::CGBF,b::CGBF,cxyz)
+
+Compute the nuclear attraction energy between contracted Gaussian 
+basis functions `a` and `b` and center `cxyz`.
+"""
 function nuclear_attraction(a::CGBF,b::CGBF,cxyz)
     na(a,b) = nuclear_attraction(a,b,cxyz)
     contract(na,a,b)
 end
+
+"""
+nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
+
+Compute the nuclear attraction energy between contracted Gaussian 
+basis functions `a` and `b` and atom `c`.
+"""
 function nuclear_attraction(a::CGBF,b::CGBF,c::Atom)
     na(a,b) = nuclear_attraction(a,b,c)
     contract(na,a,b)
 end
+
+"""
+nuclear_attraction(a::CGBF,b::CGBF,m::Vector{Atom})
+
+Compute the sum of nuclear attraction energy between contracted Gaussian 
+basis functions `a` and `b` and vector of atoms in `m`.
+"""
 function nuclear_attraction(a::CGBF,b::CGBF,m::Vector{Atom})
     na(a,b) = nuclear_attraction(a,b,m)
     contract(na,a,b)
 end
 
+"""
+all_1e_ints(bfs::Vector{CGBF},mol::Vector{Atom})
+
+Return the overlap, the kinetic energy, and the nuclear attraction
+integrals between vector of contracted functions `bfs` and
+atoms `mol`.
+"""
 function all_1e_ints(bfs::Vector{CGBF},mol::Vector{Atom})
     n = length(bfs)
     S = Array{Float64}(n,n)
