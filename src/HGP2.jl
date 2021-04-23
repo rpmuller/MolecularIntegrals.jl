@@ -1,5 +1,6 @@
-# Older, slower or less space efficient versions of HGP code.
-# The current version in use is in HGP.jl
+# vrr1/hrr1 - slightly faster in vrr1, much slower in hrr1, 
+#  mostly due to the data copy of vrrs into hrr2. The best 
+#  thing of the vrr5/hrr5 is the easy data copy from vrr to hrr.
 "vrr1 - compute the vrrs between primitive functions.
 This version uses an array to store integral results."
 function vrr1(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
@@ -109,14 +110,20 @@ end
 
 "hrr - hrr using vrr arrays but returning dicts to save space."
 function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    ao2m,m2ao = ao_arrays()
     # Get the relevant vrr terms. 
     vrrs = vrr1(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    hrrs = Dict{NTuple{12,Int},Float64}() # could also use DefaultDict(0)
+    hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
+
     for as in 0:(ashell+bshell)
-        for (ax,ay,az) in shell_indices[as]
+        for a in shell_indices[as]
+            ax,ay,az = a
+            aindex = m2ao[a]
             for cs in 0:(cshell+dshell)
-                for (cx,cy,cz) in shell_indices[cs]
-                    hrrs[ax,ay,az,0,0,0,cx,cy,cz,0,0,0] = vrrs[ax,ay,az,cx,cy,cz]
+                for c in shell_indices[cs]
+                    cx,cy,cz = c
+                    cindex = m2ao[c]
+                    hrrs[aindex,1,cindex,1] = vrrs[ax,ay,az,cx,cy,cz]
                 end
             end
         end
@@ -125,18 +132,20 @@ function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
         for bp in shell_indices[bs]
-            bpx,bpy,bpz = bp
+            bpindex = m2ao[bp]
             j = argmax(bp)
-            bx,by,bz = vdiff(bp,j,-1)
+            b = vdiff(bp,j,-1)
+            bindex = m2ao[b]
             for as in 0:(ashell+bshell-bs)
                 for a in shell_indices[as]
-                    ax,ay,az = a
-                    apx,apy,apz = vdiff(a,j,1)
+                    aindex = m2ao[a]
+                    ap = vdiff(a,j,1)
+                    apindex = m2ao[ap]
                     for cs in 0:(cshell+dshell)
                         for c in shell_indices[cs]
-                            cx,cy,cz = c
-                            hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] + 
-                                (A[j]-B[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
+                            cindex = m2ao[c]
+                            hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
+                                (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
                         end
                     end
                 end
@@ -146,21 +155,23 @@ function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
         for dp in shell_indices[ds]
-            dpx,dpy,dpz = dp
+            dpindex = m2ao[dp]
             j = argmax(dp)
-            dx,dy,dz = vdiff(dp,j,-1)
+            d = vdiff(dp,j,-1)
+            dindex = m2ao[d]
             for cs in 0:(cshell+dshell-ds) 
                 for c in shell_indices[cs]
-                    cx,cy,cz = c
-                    cpx,cpy,cpz = vdiff(c,j,1)
+                    cindex = m2ao[c]
+                    cp = vdiff(c,j,1)
+                    cpindex = m2ao[cp]
                     for as in 0:ashell
                         for a in shell_indices[as]
-                            ax,ay,az = a
+                            aindex = m2ao[a]
                             for bs in 0:bshell
                                 for b in shell_indices[bs]
-                                    bx,by,bz = b
-                                    hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
-                                        (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
+                                    bindex = m2ao[b]
+                                    hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
+                                        (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
                                 end
                             end
                         end
@@ -169,9 +180,9 @@ function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    return hrrs
-end
 
+    return hrrs[1:nao(ashell),:,1:nao(cshell),:]
+end
 
 # These functions implement recursive versions of the integral code,
 # hence the trailing "_r" in the names. These versions are not as fast

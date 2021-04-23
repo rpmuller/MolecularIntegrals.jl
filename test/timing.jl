@@ -18,20 +18,20 @@ function vrr_timings()
     ax,ay,az = bx,by,bz = xyz
     C = D = xyza
     cx,cy,cz = dx,dy,dz = xyza
+    amax = cmax = 4
 
-    print("vrr2 ")
-    @btime MolecularIntegrals.vrr2(4,4, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("vrr1 ")
-    @btime MolecularIntegrals.vrr1(4,4, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("vrr5 ")
-    @btime MolecularIntegrals.vrr(4,4, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr2($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr2($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr1($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr1($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr5($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
 end
 
-# Timings using btime for 4,4
-# vrr2 17.973 ms (173718 allocations: 7.23 MiB)
-# vrr1 4.155 ms (111559 allocations: 4.62 MiB)
-# vrr5 4.418 ms (88997 allocations: 2.47 MiB)
+# vrr2(4,4)   17.560 ms (166510 allocations: 6.46 MiB)
+# vrr1(4,4)   3.572 ms (104351 allocations: 3.85 MiB)
+# vrr5(4,4)   3.864 ms (81789 allocations: 1.70 MiB)
 
 function hrr_timings()
     println("HRR timing")
@@ -46,22 +46,18 @@ function hrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     aexpn=bexpn=cexpn=dexpn = ex
     ashell,bshell,cshell,dshell = (2,2,2,2)
-    print("hrr2 ")
+    print("# hrr2($ashell,$bshell,$cshell,$dshell) ")
     @btime MolecularIntegrals.hrr2($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
-    print("hrr3 ")
-    @btime MolecularIntegrals.hrr3($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
-    print("hrr1 ")
+    print("# hrr1($ashell,$bshell,$cshell,$dshell) ")
     @btime MolecularIntegrals.hrr1($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
-    print("hrr5 ")
+    print("# hrr5($ashell,$bshell,$cshell,$dshell) ")
     @btime MolecularIntegrals.hrr($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     nothing
 end
 
-# btime results:
-# hrr2 29.222 ms (290394 allocations: 13.41 MiB)
-# hrr3 27.105 ms (182707 allocations: 93.74 MiB)
-# hrr1 75.047 ms (448536 allocations: 28.87 MiB)
-# hrr5 20.244 ms (265160 allocations: 7.26 MiB)
+# hrr2(2,2,2,2)   28.719 ms (282814 allocations: 12.60 MiB)
+# hrr1(2,2,2,2)   20.398 ms (289908 allocations: 8.86 MiB)
+# hrr5(2,2,2,2)   19.829 ms (257436 allocations: 6.44 MiB)
 
 vrr_timings()
 hrr_timings()

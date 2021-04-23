@@ -123,8 +123,6 @@ addbf!(c2,0.5,0.2)
     end
 
     @testset "VRR tests" begin
-        @test MolecularIntegrals.unit(3,1) == [1,0,0]
-
         ao2m, m2ao = MolecularIntegrals.ao_arrays()
         ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
         aexpn=bexpn=cexpn=dexpn=1.0

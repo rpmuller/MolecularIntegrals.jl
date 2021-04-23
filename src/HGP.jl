@@ -250,7 +250,8 @@ function vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
-"vrr - vrr with a new data storage format"
+"vrr - vrr with an array storage format
+This is vrr5 if you're keeping track."
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     ao2m,m2ao = ao_arrays()
@@ -356,13 +357,17 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     return vrrs[:,:,1]
 end
-"hrr - hrr using and producing packed arrays"
+
+"hrr - hrr using and producing packed arrays.
+This is hrr5 if you're keeping track.
+The speed advantages over hrr1 are mostly due
+to the efficient copy of vrrs to hrrs."
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     ao2m,m2ao = ao_arrays()
     # Get the relevant vrr terms. 
     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
-    hrrs[:,1,:,1] = vrrs[:,:]
+    hrrs[:,1,:,1] = vrrs[:,:] # This is why this version is fastest
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
@@ -417,3 +422,4 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     return hrrs[1:nao(ashell),:,1:nao(cshell),:]
 end
+
