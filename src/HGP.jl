@@ -652,7 +652,8 @@ The function returns a dictionary containing entries for the
 relevant integrals. E.g., `hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz]`
 contains the integral corresponding to the bfs with powers `ax,ay,az`,
 `bx,by,bz`, `cx,cy,cz`, `dx,dy,dz`.
-        
+
+`hrr_dict` is slower than `hrr_array`, but is kept for convenience.        
 """
 function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs = vrr_wide_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
@@ -672,6 +673,8 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     for bs in 1:bshell 
         for bp in shell_indices[bs]
             bpx,bpy,bpz = bp       
+            j = argmax(bp)
+            bx,by,bz = vdiff(bp,j,-1)
             for as in 0:(ashell+bshell-bs)
                 for a in shell_indices[as]
                     ax,ay,az = a
@@ -692,6 +695,8 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     for ds in 1:dshell
         for dp in shell_indices[ds]
             dpx,dpy,dpz = dp
+            j = argmax(dp)
+            dx,dy,dz = vdiff(dp,j,-1)
             for cs in 0:(cshell+dshell-ds) 
                 for c in shell_indices[cs]
                     cx,cy,cz = c

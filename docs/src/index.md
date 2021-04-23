@@ -10,10 +10,19 @@ while maintaining a readable and hackable code base.
 # One Electron Integrals
 
 # Two Electron Integrals
+MolecularIntegrals.jl supports a slower method based on Huzinaga's work,
+and a faster set of integrals based on Head-Gordon and Pople's work [^HGP].
 
 ## Huzinaga Method
 
 ## Head-Gordan/Pople Recurrance Relations
+```@docs
+vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+```
+
+```@docs
+hrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+```
 
 ## Other Methods
 - Rys quadrature

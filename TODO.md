@@ -10,18 +10,9 @@
 - Add ref to Rys work
 - Add doi numbers to refs
 
-
-## Write vrr_array and vrr_wide_array versions
-- [X] These are vrr5 and vrr1, respectively
-- [X] Comment the code to indicate that we're supporting multiple
-      interfaces for convenience, and that that the speed is 
-      roughly equivalent
-- Rewrite timing/testing routines to call new names
-- Test/time/commit/push
-
 ## Write hrr_dict and hrr_array versions
-- These are the old version of hrr1 and hrr5, respectively
-    - Will have to recover the old version of hrr1 from before 4/22.
+- [X] These are the old version of hrr1 and hrr5, respectively
+    - [X] Will have to recover the old version of hrr1 from before 4/22.
 - Should be able to call *either* vrr_array or vrr_wide
     - E.g. :use_wide_array symbol/keyword option
 - Comment code to indicate that we're supporting multiple
@@ -29,7 +20,7 @@
     faster, but the hrr_dict can only return the requisite
     terms.
 - Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
-- Rewrite timing routines to call new names
+- [X] Rewrite timing routines to call new names
 - Test/time/commit/push
 
 ## Write fuzz-like test functions in runtests.jl
@@ -108,3 +99,11 @@
 - [X] Indicate that they're kept for reference, but no longer
     included in codebase or tested
 - [X] Remove hrr2/vrr2 from timing.jl
+
+## Write vrr_array and vrr_wide_array versions
+- [X] These are vrr5 and vrr1, respectively
+- [X] Comment the code to indicate that we're supporting multiple
+      interfaces for convenience, and that that the speed is 
+      roughly equivalent
+- [X] Rewrite timing/testing routines to call new names
+- [X] Test/time/commit/push

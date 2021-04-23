@@ -60,9 +60,7 @@ addbf!(c2,0.5,0.2)
         @test overlap(c,c) ≈ 1
 
         @test overlap(1.0,[0.0,0.0,0.0],0,0,0, 1,[0.0,0.0,0.0],0,0,0) ≈ 1.9687012432
-    end
 
-    @testset "Low level OneInts" begin
         @test MolecularIntegrals.overlap1d(0,0,0.0,0.0,1.0) == 1
         @test MolecularIntegrals.gaussian_product_center(s,s) == [0,0,0]
         @test MolecularIntegrals.binomial_prefactor(0,0,0,0.0,0.0) == 1
@@ -157,7 +155,9 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 1,0,1, 1,0,1, 4.00292848649699e-6)
             ]
             vrrs = vrr_array(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
+            vrrws = MolecularIntegrals.vrr_wide_array(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
             @test result ≈ vrrs[m2ao[[aI,aJ,aK]],m2ao[[cI,cJ,cK]]]
+            @test result ≈ vrrws[aI,aJ,aK,cI,cJ,cK]
         end
         
     end
@@ -202,7 +202,10 @@ addbf!(c2,0.5,0.2)
             dshell = dI+dJ+dK
             hrrs = hrr_array(ashell,bshell,cshell,dshell,aexpn,bexpn,cexpn,dexpn,
                         [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
+            hrrds = MolecularIntegrals.hrr_dict(ashell,bshell,cshell,dshell,aexpn,bexpn,cexpn,dexpn,
+                        [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
             @test result ≈ hrrs[m2ao[[aI,aJ,aK]],m2ao[[bI,bJ,bK]],m2ao[[cI,cJ,cK]],m2ao[[dI,dJ,dK]]]
+            @test result ≈ hrrds[aI,aJ,aK,bI,bJ,bK,cI,cJ,cK,dI,dJ,dK]
         end
     end
   
