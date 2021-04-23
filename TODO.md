@@ -12,10 +12,10 @@
 
 
 ## Write vrr_array and vrr_wide_array versions
-- These are vrr5 and vrr1, respectively
-- Comment the code to indicate that we're supporting multiple
-    interfaces for convenience, and that that the speed is 
-    roughly equivalent
+- [X] These are vrr5 and vrr1, respectively
+- [X] Comment the code to indicate that we're supporting multiple
+      interfaces for convenience, and that that the speed is 
+      roughly equivalent
 - Rewrite timing/testing routines to call new names
 - Test/time/commit/push
 

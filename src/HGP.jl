@@ -1,6 +1,6 @@
 # HGP - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrance relations.
-export vrr,cvrr,hrr,chrr
+export vrr_array,hrr_array,chrr,cvrr
 #
 # We're going to break this into several steps:
 #
@@ -138,6 +138,19 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return hrrs[1:nao(ash),:,1:nao(csh),:]
 end
 
+"""
+vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+
+This is a hand-written routine specific to when the A and C
+shells both have s-type angular momentum. It is meant to be
+a model for machine generated angular momentum specific code.
+"""
 function vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs = zeros(Float64,1,1)
 
@@ -157,6 +170,19 @@ function vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs
 end
 
+"""
+vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+
+This is a hand-written routine specific to when the A shell has
+p-type angular momentum and the C shell has s-type a.m. It is meant to be
+a model for machine generated angular momentum specific code.
+"""
 function vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax = 2
     vrrs = zeros(Float64,4,1,mmax)
@@ -183,6 +209,19 @@ function vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
+"""
+vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+
+This is a hand-written routine specific to when the A shell has
+s-type angular momentum and the C shell has p-type a.m. It is meant to be
+a model for machine generated angular momentum specific code.
+"""
 function vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax = 2
     vrrs = zeros(Float64,1,4,mmax)
@@ -209,6 +248,19 @@ function vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
+"""
+vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+
+This is a hand-written routine specific to when the A and C
+shells both have p-type angular momentum. It is meant to be
+a model for machine generated angular momentum specific code.
+"""
 function vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax = 3
     vrrs = zeros(Float64,4,4,mmax)
@@ -265,9 +317,25 @@ function vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
-"vrr - vrr with an array storage format
-This is vrr5 if you're keeping track."
-function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+"""
+vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns an `n`x`m` array, where `n` is the number
+of aos in the `a+b` shell, and `m` is the number of aos in the
+`c+d` shell.
+
+The speeds of `vrr_array` and `vrr_wide_array` are roughly equivalent,
+and both interfaces are being retained for convenience.
+"""
+function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     ao2m,m2ao = ao_arrays()
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
@@ -369,80 +437,27 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end 
     end
-
     return vrrs[:,:,1]
 end
 
-"hrr - hrr using and producing packed arrays.
-This is hrr5 if you're keeping track.
-"
-function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    ao2m,m2ao = ao_arrays()
-    # Get the relevant vrr terms. 
-    vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
-    hrrs[:,1,:,1] = vrrs[:,:] # This is why this version is fastest
+"""
+vrr_wide_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
-    # First build (ab,c0) from (a0,c0)
-    for bs in 1:bshell 
-        for bp in shell_indices[bs]
-            bpindex = m2ao[bp]
-            j = argmax(bp)
-            b = vdiff(bp,j,-1)
-            bindex = m2ao[b]
-            for as in 0:(ashell+bshell-bs)
-                for a in shell_indices[as]
-                    aindex = m2ao[a]
-                    ap = vdiff(a,j,1)
-                    apindex = m2ao[ap]
-                    for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
-                            cindex = m2ao[c]
-                            hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
-                                (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
-                        end
-                    end
-                end
-            end
-        end
-    end
-    # now build (ab,cd) from (ab,c0)
-    for ds in 1:dshell
-        for dp in shell_indices[ds]
-            dpindex = m2ao[dp]
-            j = argmax(dp)
-            d = vdiff(dp,j,-1)
-            dindex = m2ao[d]
-            for cs in 0:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
-                    cindex = m2ao[c]
-                    cp = vdiff(c,j,1)
-                    cpindex = m2ao[cp]
-                    for as in 0:ashell
-                        for a in shell_indices[as]
-                            aindex = m2ao[a]
-                            for bs in 0:bshell
-                                for b in shell_indices[bs]
-                                    bindex = m2ao[b]
-                                    hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
-                                        (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return hrrs[1:nao(ashell),:,1:nao(cshell),:]
-end
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of integrals.
 
-# vrr1/hrr1 - slightly faster in vrr1, much slower in hrr1, 
-#  mostly due to the data copy of vrrs into hrr2. The best 
-#  thing of the vrr5/hrr5 is the easy data copy from vrr to hrr.
-"vrr1 - compute the vrrs between primitive functions.
-This version uses an array to store integral results."
-function vrr1(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns a six-dimensional array over the possible
+powers of the `a+b` and `c+d` shell functions.
+
+The speeds of `vrr_array` and `vrr_wide_array` are roughly equivalent,
+and both interfaces are being retained for convenience.
+"""
+function vrr_wide_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
     vrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax,0:mmax) 
@@ -547,26 +562,26 @@ function vrr1(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 end
 
 
-"hrr - hrr using vrr arrays but returning dicts to save space."
-function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+"""
+hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's horizontal recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`ashell`, `bshell`, `cshell` and `dshell` are the shell angular
+momenta for the `a`, `b`, `c`, and `d` shells, respectively.
+ 
+The function returns a (k,l,m,n)-dimensional array, where the 
+dimensions correspond to the number of aos in the a,b,c,d shells.        
+"""
+function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     ao2m,m2ao = ao_arrays()
     # Get the relevant vrr terms. 
-    vrrs = vrr1(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    vrrs = vrr_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
-
-    for as in 0:(ashell+bshell)
-        for a in shell_indices[as]
-            ax,ay,az = a
-            aindex = m2ao[a]
-            for cs in 0:(cshell+dshell)
-                for c in shell_indices[cs]
-                    cx,cy,cz = c
-                    cindex = m2ao[c]
-                    hrrs[aindex,1,cindex,1] = vrrs[ax,ay,az,cx,cy,cz]
-                end
-            end
-        end
-    end
+    hrrs[:,1,:,1] = vrrs[:,:] # This is why this version is fastest
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
@@ -619,6 +634,83 @@ function hrr1(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-
     return hrrs[1:nao(ashell),:,1:nao(cshell),:]
+end
+
+"""
+hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's horizontal recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`ashell`, `bshell`, `cshell` and `dshell` are the shell angular
+momenta for the `a`, `b`, `c`, and `d` shells, respectively.
+ 
+The function returns a dictionary containing entries for the
+relevant integrals. E.g., `hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz]`
+contains the integral corresponding to the bfs with powers `ax,ay,az`,
+`bx,by,bz`, `cx,cy,cz`, `dx,dy,dz`.
+        
+"""
+function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    vrrs = vrr_wide_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    hrrs = Dict{NTuple{12,Int},Float64}() 
+
+    for as in 0:(ashell+bshell)
+        for (ax,ay,az) in shell_indices[as]
+            for cs in 0:(cshell+dshell)
+                for (cx,cy,cz) in shell_indices[cs]
+                    hrrs[ax,ay,az,0,0,0,cx,cy,cz,0,0,0] = vrrs[ax,ay,az,cx,cy,cz]
+                end
+            end
+        end
+    end
+
+    # First build (ab,c0) from (a0,c0)
+    for bs in 1:bshell 
+        for bp in shell_indices[bs]
+            bpx,bpy,bpz = bp       
+            for as in 0:(ashell+bshell-bs)
+                for a in shell_indices[as]
+                    ax,ay,az = a
+                    apx,apy,apz = vdiff(a,j,1)
+                    for cs in 0:(cshell+dshell)
+                        for c in shell_indices[cs]
+                            cx,cy,cz = c
+                            hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] + 
+                                (A[j]-B[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    # now build (ab,cd) from (ab,c0)
+    for ds in 1:dshell
+        for dp in shell_indices[ds]
+            dpx,dpy,dpz = dp
+            for cs in 0:(cshell+dshell-ds) 
+                for c in shell_indices[cs]
+                    cx,cy,cz = c
+                    cpx,cpy,cpz = vdiff(c,j,1)
+                    for as in 0:ashell
+                        for a in shell_indices[as]
+                            ax,ay,az = a
+                            for bs in 0:bshell
+                                for b in shell_indices[bs]
+                                    bx,by,bz = b
+                                    hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
+                                        (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return hrrs
 end

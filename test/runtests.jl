@@ -156,7 +156,7 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 0,1,1, 0,1,1, 1.5742904443905067e-6),
             (3.,2.,1., 1,0,1, 1,0,1, 4.00292848649699e-6)
             ]
-            vrrs = vrr(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
+            vrrs = vrr_array(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
             @test result ≈ vrrs[m2ao[[aI,aJ,aK]],m2ao[[cI,cJ,cK]]]
         end
         
@@ -200,7 +200,7 @@ addbf!(c2,0.5,0.2)
             bshell = bI+bJ+bK
             cshell = cI+cJ+cK
             dshell = dI+dJ+dK
-            hrrs = hrr(ashell,bshell,cshell,dshell,aexpn,bexpn,cexpn,dexpn,
+            hrrs = hrr_array(ashell,bshell,cshell,dshell,aexpn,bexpn,cexpn,dexpn,
                         [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
             @test result ≈ hrrs[m2ao[[aI,aJ,aK]],m2ao[[bI,bJ,bK]],m2ao[[cI,cJ,cK]],m2ao[[dI,dJ,dK]]]
         end

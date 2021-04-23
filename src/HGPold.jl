@@ -382,7 +382,7 @@ storing integrals, because of the 12-d array.
 function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # Get the relevant vrr terms. 
-    vrrs = vrr1(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    vrrs = vrr_wide_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
     alim = ashell+bshell
     blim = bshell
