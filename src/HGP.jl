@@ -225,28 +225,43 @@ function vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
     
-    for m in 1:mmax
-        vrrs[1,1, m] = Kab*Kcd*Fgamma(m-1,T)/sqrt(ze)
-    end
+    vrrs[1,1, 1] = Kab*Kcd*Fgamma(0,T)/sqrt(ze)
+    vrrs[1,1, 2] = Kab*Kcd*Fgamma(1,T)/sqrt(ze)
+    vrrs[1,1, 3] = Kab*Kcd*Fgamma(2,T)/sqrt(ze)
 
-    for m in 1:mmax-1
-        vrrs[2,1,m] = (P[1]-A[1])*vrrs[1,1,m] + (W[1]-A[1])*vrrs[1,1,m+1]
-        vrrs[3,1,m] = (P[2]-A[2])*vrrs[1,1,m] + (W[2]-A[2])*vrrs[1,1,m+1]
-        vrrs[4,1,m] = (P[3]-A[3])*vrrs[1,1,m] + (W[3]-A[3])*vrrs[1,1,m+1]
-        vrrs[1,2,m] = (Q[1]-C[1])*vrrs[1,1,m] + (W[1]-Q[1])*vrrs[1,1,m+1]
-        vrrs[1,3,m] = (Q[2]-C[2])*vrrs[1,1,m] + (W[2]-Q[2])*vrrs[1,1,m+1]
-        vrrs[1,4,m] = (Q[3]-C[3])*vrrs[1,1,m] + (W[3]-Q[3])*vrrs[1,1,m+1]
-    end
-    for m in 1:mmax-2
-        for i in 2:4
-            vrrs[i,2,m] = (Q[1]-C[1])*vrrs[i,1,m] + (W[1]-Q[1])*vrrs[i,1,m+1] +
-                0.5/ze*vrrs[1,1,m+1]
-            vrrs[i,3,m] = (Q[2]-C[2])*vrrs[i,1,m] + (W[2]-Q[2])*vrrs[i,1,m+1] +
-                0.5/ze*vrrs[1,1,m+1]
-            vrrs[i,4,m] = (Q[3]-C[3])*vrrs[i,1,m] + (W[3]-Q[3])*vrrs[i,1,m+1] +
-                0.5/ze*vrrs[1,1,m+1]
-        end
-    end
+    vrrs[2,1,1] = (P[1]-A[1])*vrrs[1,1,1] + (W[1]-A[1])*vrrs[1,1,2]
+    vrrs[3,1,1] = (P[2]-A[2])*vrrs[1,1,1] + (W[2]-A[2])*vrrs[1,1,2]
+    vrrs[4,1,1] = (P[3]-A[3])*vrrs[1,1,1] + (W[3]-A[3])*vrrs[1,1,2]
+    vrrs[1,2,1] = (Q[1]-C[1])*vrrs[1,1,1] + (W[1]-Q[1])*vrrs[1,1,2]
+    vrrs[1,3,1] = (Q[2]-C[2])*vrrs[1,1,1] + (W[2]-Q[2])*vrrs[1,1,2]
+    vrrs[1,4,1] = (Q[3]-C[3])*vrrs[1,1,1] + (W[3]-Q[3])*vrrs[1,1,2]
+    vrrs[2,1,2] = (P[1]-A[1])*vrrs[1,1,2] + (W[1]-A[1])*vrrs[1,1,3]
+    vrrs[3,1,2] = (P[2]-A[2])*vrrs[1,1,2] + (W[2]-A[2])*vrrs[1,1,3]
+    vrrs[4,1,2] = (P[3]-A[3])*vrrs[1,1,2] + (W[3]-A[3])*vrrs[1,1,3]
+    vrrs[1,2,2] = (Q[1]-C[1])*vrrs[1,1,2] + (W[1]-Q[1])*vrrs[1,1,3]
+    vrrs[1,3,2] = (Q[2]-C[2])*vrrs[1,1,2] + (W[2]-Q[2])*vrrs[1,1,3]
+    vrrs[1,4,2] = (Q[3]-C[3])*vrrs[1,1,2] + (W[3]-Q[3])*vrrs[1,1,3]
+
+    vrrs[2,2,1] = (Q[1]-C[1])*vrrs[2,1,1] + (W[1]-Q[1])*vrrs[2,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[2,3,1] = (Q[2]-C[2])*vrrs[2,1,1] + (W[2]-Q[2])*vrrs[2,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[2,4,1] = (Q[3]-C[3])*vrrs[2,1,1] + (W[3]-Q[3])*vrrs[2,1,2] +
+        0.5/ze*vrrs[1,1,2]
+
+    vrrs[3,2,1] = (Q[1]-C[1])*vrrs[3,1,1] + (W[1]-Q[1])*vrrs[3,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[3,3,1] = (Q[2]-C[2])*vrrs[3,1,1] + (W[2]-Q[2])*vrrs[3,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[3,4,1] = (Q[3]-C[3])*vrrs[3,1,1] + (W[3]-Q[3])*vrrs[3,1,2] +
+        0.5/ze*vrrs[1,1,2]
+
+    vrrs[4,2,1] = (Q[1]-C[1])*vrrs[4,1,1] + (W[1]-Q[1])*vrrs[4,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[4,3,1] = (Q[2]-C[2])*vrrs[4,1,1] + (W[2]-Q[2])*vrrs[4,1,2] +
+        0.5/ze*vrrs[1,1,2]
+    vrrs[4,4,1] = (Q[3]-C[3])*vrrs[4,1,1] + (W[3]-Q[3])*vrrs[4,1,2] +
+        0.5/ze*vrrs[1,1,2]
     return vrrs[:,:,1]
 end
 
@@ -360,8 +375,7 @@ end
 
 "hrr - hrr using and producing packed arrays.
 This is hrr5 if you're keeping track.
-The speed advantages over hrr1 are mostly due
-to the efficient copy of vrrs to hrrs."
+"
 function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     ao2m,m2ao = ao_arrays()
     # Get the relevant vrr terms. 

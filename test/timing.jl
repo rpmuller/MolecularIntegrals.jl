@@ -8,7 +8,6 @@ function time_ethane()
 end
 
 function vrr_timings()
-    println("VRR timings")
     x=y=z=0.0
     xyz = [x,y,z]
     xyza = xyz + [0.1,0.05,0.025]
@@ -33,8 +32,31 @@ end
 # vrr1(4,4)   3.572 ms (104351 allocations: 3.85 MiB)
 # vrr5(4,4)   3.864 ms (81789 allocations: 1.70 MiB)
 
+function hand_vrr_timings()
+    x=y=z=0.0
+    xyz = [x,y,z]
+    xyza = xyz + [0.1,0.05,0.025]
+    xa,ya,za = xyza
+    ex = 1.0
+    A = B = xyz
+    ax,ay,az = bx,by,bz = xyz
+    C = D = xyza
+    cx,cy,cz = dx,dy,dz = xyza
+    amax = cmax = 1
+    print("# vrr1($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr1($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr5($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr_pp")
+    @btime MolecularIntegrals.vrr_pp($ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+end
+
+# vrr1(1,1)   23.402 μs (519 allocations: 20.45 KiB)
+# vrr5(1,1)   33.262 μs (384 allocations: 15.94 KiB)
+# vrr_pp  1.586 μs (16 allocations: 2.66 KiB)
+
+
 function hrr_timings()
-    println("HRR timing")
     x=y=z=0.0
     xyz = [x,y,z]
     xyza = xyz + [0.1,0.05,0.025]
@@ -60,4 +82,5 @@ end
 # hrr5(2,2,2,2)   19.829 ms (257436 allocations: 6.44 MiB)
 
 vrr_timings()
+hand_vrr_timings()
 hrr_timings()
