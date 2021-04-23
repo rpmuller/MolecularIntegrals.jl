@@ -1,16 +1,15 @@
 # TODO and notes
 
 ## Start a docs folder
-- Move general notes from HGP into docs
+- [X] Move general notes from HGP into docs
 - Learn standard way of doing Julia docs
 - Links to other integral projects, pyquante versions, and
     existing julia qchem packages.
+- Expand docstrings to make them more useful.
 - Put badge-link to docs in README.md file
+- Add ref to Rys work
+- Add doi numbers to refs
 
-## Comment HGPold routines
-- Indicate that they're kept for reference, but no longer
-    included in codebase or tested
-- Remove hrr2/vrr2 from timing.jl
 
 ## Write vrr_array and vrr_wide_array versions
 - These are vrr5 and vrr1, respectively
@@ -68,7 +67,7 @@
 - Julia code that generates more julia code
 - Will generate a HGPgen.jl file that contains generated hrr_abcd and vrr_ab code
 - Fall back to hrr_array and vrr_array versions
-- Which directory do support scripts like this live in?
+- Which directory do support scripts like this live in? tools?
 - Write test routines to test **all** of HGPgen.jl.
 - Expand timing routines to include HGPgen routines.
 - Are there efficiencies I can use to compile HGPgen.jl code directly
@@ -105,3 +104,7 @@
 
 # Completed tasks kept for records
 
+## Comment HGPold routines
+- [X] Indicate that they're kept for reference, but no longer
+    included in codebase or tested
+- [X] Remove hrr2/vrr2 from timing.jl

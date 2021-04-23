@@ -19,8 +19,6 @@ function vrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     amax = cmax = 4
 
-    print("# vrr2($amax,$cmax) ")
-    @btime MolecularIntegrals.vrr2($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr1($amax,$cmax) ")
     @btime MolecularIntegrals.vrr1($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr5($amax,$cmax) ")
@@ -68,8 +66,6 @@ function hrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     aexpn=bexpn=cexpn=dexpn = ex
     ashell,bshell,cshell,dshell = (2,2,2,2)
-    print("# hrr2($ashell,$bshell,$cshell,$dshell) ")
-    @btime MolecularIntegrals.hrr2($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     print("# hrr1($ashell,$bshell,$cshell,$dshell) ")
     @btime MolecularIntegrals.hrr1($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     print("# hrr5($ashell,$bshell,$cshell,$dshell) ")
