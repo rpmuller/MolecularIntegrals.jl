@@ -90,18 +90,6 @@ end
 #       a.m. is on the c/d aos.
 
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-
-    # permute and call the routines in the most efficient way
-    if ash.L < bsh.L
-        ash,bsh = bsh,ash
-    end
-    if csh.L < dsh.L
-        csh,dsh = dsh,csh
-    end
-    if ash.L+bsh.L < csh.L+dsh.L
-        ash,bsh,csh,dsh = csh,dsh,ash,bsh
-    end
-
     ao2m,m2ao = ao_arrays()
     ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
