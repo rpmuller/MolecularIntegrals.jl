@@ -41,8 +41,6 @@ Compare to roughly 0.1 sec albeit on completely different hardware. This is most
 | Method           | Timing |
 | ---------------- | ------ |
 | Huzinaga/Coulomb | 7.33   |
-| HGP              | 44.1   |
+| HGP              | 22.0   |
 
-Seriously?! The Huzinaga and HGP methods show 7.1 and 44.1 seconds, respectively. The HGP time is very surprising: this was once relatively fast. I guess it shouldn't be too hard to find efficiencies!
-
-Rewriting the HGP code iteratively instead of recursively, something I've been meaning to do for a long time. This code is in HGP2.jl if anyone wants to see it in its unfinished state.
+The HGP results are still quite a bit slower than the Huzinaga method, surprisingly.
