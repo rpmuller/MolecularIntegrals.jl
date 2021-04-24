@@ -155,7 +155,7 @@ addbf!(c2,0.5,0.2)
             (3.,2.,1., 1,0,1, 1,0,1, 4.00292848649699e-6)
             ]
             vrrs = vrr_array(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
-            vrrws = MolecularIntegrals.vrr_wide_array(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
+            vrrws = MolecularIntegrals.vrr_widearray(aI+aJ+aK, cI+cJ+cK, aexpn,bexpn,cexpn,dexpn, [ax,ay,az],[bx,by,bz],[cx,cy,cz],[dx,dy,dz])
             @test result ≈ vrrs[m2ao[[aI,aJ,aK]],m2ao[[cI,cJ,cK]]]
             @test result ≈ vrrws[aI,aJ,aK,cI,cJ,cK]
         end

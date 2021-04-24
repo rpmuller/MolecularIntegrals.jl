@@ -14,7 +14,7 @@
 - [X] These are the old version of hrr1 and hrr5, respectively
     - [X] Will have to recover the old version of hrr1 from before 4/22.
 - Should be able to call *either* vrr_array or vrr_wide
-    - E.g. :use_wide_array symbol/keyword option
+    - E.g. :use_widearray symbol/keyword option
 - Comment code to indicate that we're supporting multiple
     interfaces for convenience, and that the hrr_array is
     faster, but the hrr_dict can only return the requisite
@@ -25,7 +25,7 @@
 
 ## Write fuzz-like test functions in runtests.jl
 - vrr_test(ashell,cshell) code:
-    - Test all elements of vrr_array and vrr_wide_array against ERI.jl code
+    - Test all elements of vrr_array and vrr_widearray against ERI.jl code
     - Random A,C, aex, cex? Or maybe fallback if A,C,aex,cex not specified
     - Can use this as an excuse to write functions to generate random PGBFs
         in some distance/exp/powers
@@ -100,7 +100,7 @@
     included in codebase or tested
 - [X] Remove hrr2/vrr2 from timing.jl
 
-## Write vrr_array and vrr_wide_array versions
+## Write vrr_array and vrr_widearray versions
 - [X] These are vrr5 and vrr1, respectively
 - [X] Comment the code to indicate that we're supporting multiple
       interfaces for convenience, and that that the speed is 

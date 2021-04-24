@@ -1,6 +1,6 @@
 # HGP - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
-# ERI recurrance relations.
-export vrr_array,hrr_array,chrr,cvrr
+# ERI recurrence relations.
+export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray
 #
 # We're going to break this into several steps:
 #
@@ -53,7 +53,7 @@ export vrr_array,hrr_array,chrr,cvrr
 # [^3]: The Prism Algorithm for Two-Electron Integrals. Peter M. W. Gill and John
 #       A. Pople. IJQC, 40, 753 (1991).
 
-"cvrr - compute and contract the vertical recurrance relations 
+"cvrr - compute and contract the vertical recurrence relations 
  between shells ash,bsh,csh,dsh. 
 "
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
@@ -332,7 +332,7 @@ The function returns an `n`x`m` array, where `n` is the number
 of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
 
-The speeds of `vrr_array` and `vrr_wide_array` are roughly equivalent,
+The speeds of `vrr_array` and `vrr_widearray` are roughly equivalent,
 and both interfaces are being retained for convenience.
 """
 function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
@@ -441,7 +441,7 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 end
 
 """
-vrr_wide_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
 Use Head-Gordon/Pople's vertical recurrence relations to compute
 an array of integrals.
@@ -454,10 +454,10 @@ momenta for the `a+b`, and `c+d` shells, respectively.
 The function returns a six-dimensional array over the possible
 powers of the `a+b` and `c+d` shell functions.
 
-The speeds of `vrr_array` and `vrr_wide_array` are roughly equivalent,
+The speeds of `vrr_array` and `vrr_widearray` are roughly equivalent,
 and both interfaces are being retained for convenience.
 """
-function vrr_wide_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
     vrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax,0:mmax) 
@@ -656,7 +656,7 @@ contains the integral corresponding to the bfs with powers `ax,ay,az`,
 `hrr_dict` is slower than `hrr_array`, but is kept for convenience.        
 """
 function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    vrrs = vrr_wide_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    vrrs = vrr_widearray(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     hrrs = Dict{NTuple{12,Int},Float64}() 
 
     for as in 0:(ashell+bshell)

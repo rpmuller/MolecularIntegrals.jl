@@ -1,4 +1,4 @@
-# HGPold contains older implementations of the HGP recurrance relations.
+# HGPold contains older implementations of the HGP recurrence relations.
 # These are no longer tested or linked to, and are kept here for reference
 # purposes only.
 #
@@ -203,7 +203,7 @@ end
 "prunem - Keep only the dictionary keys with m (last index) = 0"
 prunem(d::Dict) = Dict(k[1:end-1] => v for (k,v) in d if k[end] == 0)
 
-"vrr2 - iterative version of HGP vertical recurrance relations"
+"vrr2 - iterative version of HGP vertical recurrence relations"
 function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     values = Dict()
     P = gaussian_product_center(aexpn,A,bexpn,B)
@@ -382,7 +382,7 @@ storing integrals, because of the 12-d array.
 function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # Get the relevant vrr terms. 
-    vrrs = vrr_wide_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+    vrrs = vrr_widearray(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
 
     alim = ashell+bshell
     blim = bshell

@@ -3,7 +3,15 @@ export coulomb
 using OffsetArrays
 
 #using StaticArrays # Surprisingly, didn't speed up at all
+"""
+    coulomb(aexpn,ax,ay,az,aI,aJ,aK,
+        bexpn,bx,by,bz,bI,bJ,bK,
+        cexpn,cx,cy,cz,cI,cJ,cK,
+        dexpn,dx,dy,dz,dI,dJ,dK)
 
+Compute the coulomb repulsion between four primitive Gaussian basis 
+functions defined by their exponents, xyz coordinates, and IJK powers.        
+"""
 function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
     bexpn,bx,by,bz,bI,bJ,bK,
     cexpn,cx,cy,cz,cI,cJ,cK,
@@ -38,6 +46,12 @@ function coulomb(aexpn,ax,ay,az,aI,aJ,aK,
 end
 
 
+"""
+    coulomb(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
+
+Compute the coulomb repulsion between four primitive Gaussian basis 
+functions a,b,c,d.        
+"""
 function coulomb(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
     return a.norm*b.norm*c.norm*d.norm*coulomb(a.expn,a.xyz...,a.I,a.J,a.K,
         b.expn,b.xyz...,b.I,b.J,b.K,
@@ -79,6 +93,12 @@ function Barray(l1,l2,l3,l4,p,a,b,q,c,d,g1,g2,delta)
     return B
 end
 
+"""
+    coulomb(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
+
+Compute the coulomb repulsion between four contracted Gaussian basis 
+functions a,b,c,d.        
+"""
 coulomb(a::CGBF,b::CGBF,c::CGBF,d::CGBF) = contract(coulomb,a,b,c,d)
 
 function all_twoe_ints(bfs,ERI=coulomb)
