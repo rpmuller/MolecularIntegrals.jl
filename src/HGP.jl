@@ -90,7 +90,18 @@ end
 #       a.m. is on the c/d aos.
 
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    # There must be ways to reuse code from hrr().
+
+    # permute and call the routines in the most efficient way
+    if ash.L < bsh.L
+        ash,bsh = bsh,ash
+    end
+    if csh.L < dsh.L
+        csh,dsh = dsh,csh
+    end
+    if ash.L+bsh.L < csh.L+dsh.L
+        ash,bsh,csh,dsh = csh,dsh,ash,bsh
+    end
+
     ao2m,m2ao = ao_arrays()
     ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
@@ -358,7 +369,8 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
 
     # Try to speed this up using a dispatch table to call
-    # the hand-written routines
+    # the hand-written routines. Doesn't appear to help.
+    #=
     dispatch = Dict(
         (0,0) => vrr_ss,
         (0,1) => vrr_sp,
@@ -368,6 +380,7 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     if haskey(dispatch,(amax,cmax))
         return dispatch[(amax,cmax)](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
+    =#
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
     Q = gaussian_product_center(cexpn,C,dexpn,D)
