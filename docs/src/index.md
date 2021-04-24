@@ -15,6 +15,15 @@ MolecularIntegrals.jl strives to leverage the excellent work done by similar pro
 - [PyQuante](https://github.com/rpmuller/pyquante2)'s [python](https://github.com/rpmuller/pyquante2/tree/master/pyquante2/ints) and [c/cython](https://github.com/rpmuller/pyquante2/tree/master/cython) integrals, and the experimental [Julia version](https://github.com/rpmuller/pyquante2/tree/master/julia)
 
 
+# Basis functions and other structures
+```@docs
+PGBF
+pgbf
+CGBF
+cgbf
+Shell
+Basis
+```
 
 # One Electron Integrals
 ```@docs
