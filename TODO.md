@@ -1,17 +1,33 @@
 # TODO and notes
 
-## Write hrr_dict and hrr_array versions
-- [X] These are the old version of hrr1 and hrr5, respectively
-    - [X] Will have to recover the old version of hrr1 from before 4/22.
-- Should be able to call *either* vrr_array or vrr_wide
-    - E.g. :use_widearray symbol/keyword option
-- Comment code to indicate that we're supporting multiple
-    interfaces for convenience, and that the hrr_array is
-    faster, but the hrr_dict can only return the requisite
-    terms.
-- Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
-- [X] Rewrite timing routines to call new names
-- Test/time/commit/push
+## More documentation
+- Add docstrings for PGBF, CGBF and utility functions
+- add docstrings for chrr, cvrr
+
+## Contracted routines
+- Test chrr
+- Write out a standard integral record using this code
+- Time for ethane
+
+
+## Release version 0.1.0
+- Register julia package wherever I'm supposed to do this
+- Post to discord
+
+
+## Include basis sets in g94 format
+- Don't need to include every one in BSE
+- Check against files in Data.jl
+- Can replace SP with S,P if SP shells aren't working yet.
+- Is this in a /data directory? How do I support it?
+
+
+## More documentation
+- Add docstrings for PGBF, CGBF and utility functions
+- Add docstrings for all integral methods
+- Host a webpage for MolecularIntegrals.jl
+- Put badge-link to docs in README.md file
+
 
 ## Write fuzz-like test functions in runtests.jl
 - vrr_test(ashell,cshell) code:
@@ -27,22 +43,6 @@
 - Merge Low level OneInts tests with OneInts
 - ERI tests should be against standard (large R) or pyquante values.
 - vrr/hrr tests should be against ERI versions
-
-## Move contracted routines to CHGP.jl
-- Test chrr
-- Write out a standard integral record using this code
-- Write integral records to .jld files using JLD2 HDF5 format
-
-
-## Release version 0.1.0
-- Register julia package wherever I'm supposed to do this
-- Post to discord
-
-## More documentation
-- Add docstrings for PGBF, CGBF and utility functions
-- Add docstrings for all integral methods
-- Host a webpage for MolecularIntegrals.jl
-- Put badge-link to docs in README.md file
 
 
 ## Get SP shells working
@@ -61,14 +61,11 @@
     once I generate it?
 
 
-## Include basis sets in g94 format
-- Don't need to include every one in BSE
-- Check against files in Data.jl
-- Can replace SP with S,P if SP shells aren't working yet.
-- Is this in a /data directory? How do I support it?
-
-
 ## Bump version to 0.2
+- Write integral records to .jld files using JLD2 HDF5 format
+- Should be able to call *either* vrr_array or vrr_wide
+    - E.g. :use_widearray symbol/keyword option
+- Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
 
 
 
@@ -111,3 +108,13 @@
     existing julia qchem packages.
 - [X] Expand docstrings to make them more useful.
 - [X] Add doi numbers to refs
+
+## Write hrr_dict and hrr_array versions
+- [X] These are the old version of hrr1 and hrr5, respectively
+    - [X] Will have to recover the old version of hrr1 from before 4/22.
+- [X] Comment code to indicate that we're supporting multiple
+    interfaces for convenience, and that the hrr_array is
+    faster, but the hrr_dict can only return the requisite
+    terms.
+- [X] Rewrite timing routines to call new names
+- Test/time/commit/push
