@@ -57,20 +57,37 @@ export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray
  between shells ash,bsh,csh,dsh. 
 "
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    amax,cmax = ash.L+bsh.L,csh.L,dsh.L
+    amax,cmax = ash.L+bsh.L,csh.L+dsh.L
     cvrrs = zeros(Float64,nao(amax),nao(cmax))
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
     end
     return cvrrs
 end
+
+function all_twoe_ints_chrr(bfs)
+    fetcher = eri_fetcher(bfs)
+    nints = length(collect(MolecularIntegrals.iiterator(length(bfs))))
+    ints = zeros(Float64,nints)
+    for (ishell,jshell,kshell,lshell) in keys(fetcher)
+        hrrs = chrr(bfs.shells[ishell],bfs.shells[jshell],bfs.shells[kshell],bfs.shells[lshell])
+        for (ijkl,hi,hj,hk,hl) in fetcher[ishell,jshell,kshell,lshell] 
+            ints[ijkl] = hrrs[hi,hj,hk,hl]
+        end
+    end
+    return ints
+end        
+
+# Questions:
+#  - For ethane/sto3g, why am I getting calls to shells (8,8,11,11), where all the
+#       a.m. is on the c/d aos.
 
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     # There must be ways to reuse code from hrr().
@@ -135,7 +152,7 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
 
 
 
-    return hrrs[1:nao(ash),:,1:nao(csh),:]
+    return hrrs#[1:nao(ashell),:,1:nao(cshell),:]
 end
 
 """
@@ -339,6 +356,18 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     ao2m,m2ao = ao_arrays()
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
+
+    # Try to speed this up using a dispatch table to call
+    # the hand-written routines
+    dispatch = Dict(
+        (0,0) => vrr_ss,
+        (0,1) => vrr_sp,
+        (1,0) => vrr_ps,
+        (1,1) => vrr_pp
+    )
+    if haskey(dispatch,(amax,cmax))
+        return dispatch[(amax,cmax)](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    end
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
     Q = gaussian_product_center(cexpn,C,dexpn,D)

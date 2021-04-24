@@ -77,6 +77,16 @@ end
 # hrr1(2,2,2,2)   20.398 ms (289908 allocations: 8.86 MiB)
 # hrr5(2,2,2,2)   19.829 ms (257436 allocations: 6.44 MiB)
 
-vrr_timings()
-hand_vrr_timings()
-hrr_timings()
+function ethane_timing()
+    for bname in ["sto3g","6-31G"]
+        bfs = build_basis(ethane,bname)
+        fetcher = MolecularIntegrals.eri_fetcher(bfs)
+        print("Ethane $bname")
+        @btime MolecularIntegrals.all_twoe_ints_chrr($bfs)
+    end
+end
+
+#vrr_timings()
+#hand_vrr_timings()
+#hrr_timings()
+ethane_timing()

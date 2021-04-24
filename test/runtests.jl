@@ -38,6 +38,28 @@ addbf!(c2,0.5,0.2)
         @test m2ao[[0,0,0]] == 1
         @test ao2m[4] == [0,0,1]
         @test m2ao[[0,0,1]] == 4
+
+        bfs = build_basis(h2)
+        @test length(bfs)==2
+        l,r = bfs
+        @test overlap(l,l) ≈ 1
+        @test overlap(r,r) ≈ 1
+        @test overlap(l,r) ≈ 0.6647387449282997
+        @test kinetic(l,l) ≈ 0.76003188
+        @test kinetic(r,r) ≈ 0.76003188
+        @test kinetic(l,r) ≈ 0.24141861181119084
+        @test coulomb(l,l,l,l) ≈ 0.7746059439196398
+        @test coulomb(r,r,r,r) ≈ 0.7746059439196398
+        @test coulomb(l,l,r,r) ≈ 0.5727937653511646
+        @test coulomb(l,l,l,r) ≈ 0.4488373301593464
+        @test coulomb(l,r,l,r) ≈ 0.3025451156654606
+
+        @test MolecularIntegrals.lvalue["S"] == 0
+
+        bfs = build_basis(h2)
+        fetcher = MolecularIntegrals.eri_fetcher(bfs)
+        @show MolecularIntegrals.all_twoe_ints_chrr(bfs)
+
     end
 
     @testset "OneInts" begin
@@ -99,25 +121,6 @@ addbf!(c2,0.5,0.2)
             s3 = pgbf(1.0, 0.0,0.0,r)
             @test coulomb(s,s,s3,s3) ≈ val
         end
-    end
-
-    @testset "Molecular basis" begin
-        bfs = build_basis(h2)
-        @test length(bfs)==2
-        l,r = bfs
-        @test overlap(l,l) ≈ 1
-        @test overlap(r,r) ≈ 1
-        @test overlap(l,r) ≈ 0.6647387449282997
-        @test kinetic(l,l) ≈ 0.76003188
-        @test kinetic(r,r) ≈ 0.76003188
-        @test kinetic(l,r) ≈ 0.24141861181119084
-        @test coulomb(l,l,l,l) ≈ 0.7746059439196398
-        @test coulomb(r,r,r,r) ≈ 0.7746059439196398
-        @test coulomb(l,l,r,r) ≈ 0.5727937653511646
-        @test coulomb(l,l,l,r) ≈ 0.4488373301593464
-        @test coulomb(l,r,l,r) ≈ 0.3025451156654606
-
-        @test MolecularIntegrals.lvalue["S"] == 0
     end
 
     @testset "VRR tests" begin
