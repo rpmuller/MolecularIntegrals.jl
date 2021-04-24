@@ -14,19 +14,22 @@
 - Register julia package wherever I'm supposed to do this
 - Post to discord
 
+## Write HGPgenerate.jl script
+- Julia code that generates more julia code
+- Will generate a HGPgen.jl file that contains generated hrr_abcd and vrr_ab code
+- Fall back to hrr_array and vrr_array versions
+- Which directory do support scripts like this live in? tools?
+- Write test routines to test **all** of HGPgen.jl.
+- Expand timing routines to include HGPgen routines.
+- Are there efficiencies I can use to compile HGPgen.jl code directly
+    once I generate it?
 
+  
 ## Include basis sets in g94 format
 - Don't need to include every one in BSE
 - Check against files in Data.jl
 - Can replace SP with S,P if SP shells aren't working yet.
 - Is this in a /data directory? How do I support it?
-
-
-## More documentation
-- Add docstrings for PGBF, CGBF and utility functions
-- Add docstrings for all integral methods
-- Host a webpage for MolecularIntegrals.jl
-- Put badge-link to docs in README.md file
 
 
 ## Write fuzz-like test functions in runtests.jl
@@ -45,20 +48,13 @@
 - vrr/hrr tests should be against ERI versions
 
 
-## Get SP shells working
-- May have to redo indexing of shell_indices to make this work
-- SP shells could be one of the things that is easier to do in the 
-    generated code (below)
+## More documentation
+- Add docstrings for PGBF, CGBF and utility functions
+- Add docstrings for all integral methods
+- Host a webpage for MolecularIntegrals.jl
+- Put badge-link to docs in README.md file
 
-## Write HGPgenerate.jl script
-- Julia code that generates more julia code
-- Will generate a HGPgen.jl file that contains generated hrr_abcd and vrr_ab code
-- Fall back to hrr_array and vrr_array versions
-- Which directory do support scripts like this live in? tools?
-- Write test routines to test **all** of HGPgen.jl.
-- Expand timing routines to include HGPgen routines.
-- Are there efficiencies I can use to compile HGPgen.jl code directly
-    once I generate it?
+
 
 
 ## Bump version to 0.2
@@ -67,6 +63,12 @@
     - E.g. :use_widearray symbol/keyword option
 - Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
 
+
+
+## Get SP shells working
+- May have to redo indexing of shell_indices to make this work
+- SP shells could be one of the things that is easier to do in the 
+    generated code (below)
 
 
 
