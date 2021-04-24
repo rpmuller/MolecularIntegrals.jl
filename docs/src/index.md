@@ -34,7 +34,7 @@ coulomb
 These are useful for checking the values of other integrals, and have a 
 simple, mature interface.
 
-## Head-gordon/Pople recurrence Relations
+## Head-Gordon/Pople recurrence Relations
 Integrals are computed using Head-Gordon and Pople's[^HGP] recurrence relations using
 vertical (VRR) and horizontal (HRR) recurrence relations. In the notation of [^HGP], vertical recurrence relations 
 construct integrals of the form [a0|c0] from kernels [00|00]^m via eq 6. Horizontal recurrence relations 
