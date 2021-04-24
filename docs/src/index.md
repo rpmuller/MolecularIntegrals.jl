@@ -7,6 +7,15 @@ packages available to Julia programmers, but few are written *in*
 Julia. This project will explore how fast we can make these integrals
 while maintaining a readable and hackable code base.
 
+MolecularIntegrals.jl strives to leverage the excellent work done by similar projects:
+
+- [libints](https://github.com/evaleev/libint) and its Julia bindings [Lints.jl](https://github.com/FermiQC/Lints.jl)
+- [Pyscf](https://github.com/pyscf/pyscf), the [libcint](https://github.com/sunqm/libcint) package.
+- [JuliaChem.jl](https://github.com/davpoolechem/JuliaChem.jl)'s [JERI bindings](https://github.com/davpoolechem/JuliaChem.jl/tree/development/deps/src)
+- [PyQuante](https://github.com/rpmuller/pyquante2)'s [python](https://github.com/rpmuller/pyquante2/tree/master/pyquante2/ints) and [c/cython](https://github.com/rpmuller/pyquante2/tree/master/cython) integrals, and the experimental [Julia version](https://github.com/rpmuller/pyquante2/tree/master/julia)
+
+
+
 # One Electron Integrals
 ```@docs
 overlap
@@ -47,6 +56,6 @@ hrr_dict
 
 
 # References
-[^HGP]: A method for two-electron Gaussian integral and integral derivative
-      evaluation using recurrence relations. Martin Head-Gordon and John
-      A. Pople. JCP, 89 (9), 5777, 1988.
+[^HGP]: [A method for two-electron Gaussian integral and integral derivative
+      evaluation using recurrence relations](https://doi.org/10.1063/1.455553). 
+      Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988.

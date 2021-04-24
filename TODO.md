@@ -1,15 +1,5 @@
 # TODO and notes
 
-## Start a docs folder
-- [X] Move general notes from HGP into docs
-- Learn standard way of doing Julia docs
-- Links to other integral projects, pyquante versions, and
-    existing julia qchem packages.
-- Expand docstrings to make them more useful.
-- Put badge-link to docs in README.md file
-- Add ref to Rys work
-- Add doi numbers to refs
-
 ## Write hrr_dict and hrr_array versions
 - [X] These are the old version of hrr1 and hrr5, respectively
     - [X] Will have to recover the old version of hrr1 from before 4/22.
@@ -47,6 +37,12 @@
 ## Release version 0.1.0
 - Register julia package wherever I'm supposed to do this
 - Post to discord
+
+## More documentation
+- Add docstrings for PGBF, CGBF and utility functions
+- Add docstrings for all integral methods
+- Host a webpage for MolecularIntegrals.jl
+- Put badge-link to docs in README.md file
 
 
 ## Get SP shells working
@@ -107,3 +103,11 @@
       roughly equivalent
 - [X] Rewrite timing/testing routines to call new names
 - [X] Test/time/commit/push
+
+## Start a docs folder
+- [X] Move general notes from HGP into docs
+- [X] Learn standard way of doing Julia docs
+- [X] Links to other integral projects, pyquante versions, and
+    existing julia qchem packages.
+- [X] Expand docstrings to make them more useful.
+- [X] Add doi numbers to refs
