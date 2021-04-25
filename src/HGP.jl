@@ -73,8 +73,9 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
 end
 
 function all_twoe_ints_chrr(bfs)
+    nbf = length(bfs)
+    nints = length(collect(MolecularIntegrals.iiterator(nbf)))
     fetcher = eri_fetcher(bfs)
-    nints = length(collect(MolecularIntegrals.iiterator(length(bfs))))
     ints = zeros(Float64,nints)
     for (ishell,jshell,kshell,lshell) in keys(fetcher)
         hrrs = chrr(bfs.shells[ishell],bfs.shells[jshell],bfs.shells[kshell],bfs.shells[lshell])
