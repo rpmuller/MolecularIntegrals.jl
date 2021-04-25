@@ -175,7 +175,6 @@ may be formed via:
 ```    
 """
 function eri_fetcher(bfs::Basis)
-    #ao2m,m2ao = ao_arrays()
     fetcher = Dict() # TODO: set type Tuple{Int,4},Vector{Tuple{Int,5}} ??
     for (index,ijkl) in enumerate(iiterator(length(bfs)))
         i,j,k,l = ijkl
@@ -183,10 +182,20 @@ function eri_fetcher(bfs::Basis)
         lj,mj = bfs.ishell[j],bfs.mshell[j]
         lk,mk = bfs.ishell[k],bfs.mshell[k]
         ll,ml = bfs.ishell[l],bfs.mshell[l]
-        #hi = m2ao[mi]
-        #hj = m2ao[mj]
-        #hk = m2ao[mk]
-        #hl = m2ao[ml]
+
+        # Attempting to swap indices to make integral calls easier, but doesn't work:
+        #=
+        if li<lj
+            li,mi,lj,mj = lj,mj,li,mi
+        end
+        if lk<ll
+            lk,mk,ll,ml = ll,ml,lk,mk
+        end
+        if li+lj < lk+ll
+            li,mi,lj,mj,lk,mk,ll,ml = lk,mk,ll,ml,li,mi,lj,mj
+        end
+        =#
+
         if haskey(fetcher,(li,lj,lk,ll))
             push!(fetcher[li,lj,lk,ll],(index,mi,mj,mk,ml))
         else
