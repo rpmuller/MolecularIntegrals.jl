@@ -224,8 +224,10 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             am = vdiff(ap,i,-2)
             for m in 1:(mmax-ashell) 
                 vrrs[apindex,1,m] = (P[i]-A[i])*vrrs[aindex,1,m]+(W[i]-P[i])*vrrs[aindex,1,m+1]
-                if am[i] >= 0
-                    amindex = m2ao[am]
+            end
+            if am[i] >= 0
+                amindex = m2ao[am]
+                for m in 1:(mmax-ashell) 
                     vrrs[apindex,1,m] += a[i]/(2*zeta)*(vrrs[amindex,1,m]-eta/ze*vrrs[amindex,1,m+1])
                 end
             end
@@ -246,8 +248,10 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             cm = vdiff(cp,i,-2)
            for m in 1:(mmax-cshell) 
                 vrrs[1,cpindex,m] = (Q[i]-C[i])*vrrs[1,cindex,m]+(W[i]-Q[i])*vrrs[1,cindex,m+1]
-                if cm[i] >= 0
-                    cmindex = m2ao[cm]
+            end
+            if cm[i] >= 0
+                cmindex = m2ao[cm]
+                for m in 1:(mmax-cshell) 
                     vrrs[1,cpindex,m] += c[i]/(2*eta)*(vrrs[1,cmindex,m]-zeta/ze*vrrs[1,cmindex,m+1])
                 end
             end
@@ -272,15 +276,19 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     am = vdiff(a,j,-1)
                     for m in 1:(mmax-ashell-cshell) 
                         vrrs[aindex,cpindex,m] = (Q[j]-C[j])*vrrs[aindex,cindex,m]+(W[j]-Q[j])*vrrs[aindex,cindex,m+1]
-                        if cm[j] >= 0
-                            cmindex = m2ao[cm]
+                    end
+                    if cm[j] >= 0
+                        cmindex = m2ao[cm]
+                        for m in 1:(mmax-ashell-cshell) 
                             vrrs[aindex,cpindex,m] += c[j]/(2*eta)*(vrrs[aindex,cmindex,m]-zeta/ze*vrrs[aindex,cmindex,m+1])
                         end
-                        if am[j] >= 0 
-                            amindex = m2ao[am]
-                            vrrs[aindex,cpindex,m] += a[j]/(2*ze)*(vrrs[amindex,cindex,m+1])
-                        end                             
                     end
+                    if am[j] >= 0 
+                        amindex = m2ao[am]
+                        for m in 1:(mmax-ashell-cshell) 
+                            vrrs[aindex,cpindex,m] += a[j]/(2*ze)*(vrrs[amindex,cindex,m+1])
+                        end
+                    end                             
                 end
             end
         end 
