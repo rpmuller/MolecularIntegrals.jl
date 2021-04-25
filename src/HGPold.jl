@@ -234,7 +234,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
     for ashell in 1:amax
-        for ap in shell_indices[ashell]
+        for ap in global_shell_indices[ashell]
             apx,apy,apz = ap
             i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
             a = vdiff(ap,i,-1)
@@ -256,7 +256,7 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
     # 
     for cshell in 1:cmax
-        for cp in shell_indices[cshell]
+        for cp in global_shell_indices[cshell]
             cpx,cpy,cpz = cp
             i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
             c = vdiff(cp,i,-1)
@@ -278,10 +278,10 @@ function vrr2(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
     for ashell in 1:amax
-        for a in shell_indices[ashell]
+        for a in global_shell_indices[ashell]
             ax,ay,az = a
             for cshell in 1:cmax
-                for cp in shell_indices[cshell]
+                for cp in global_shell_indices[cshell]
                     cpx,cpy,cpz = cp
                     j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
                     c = vdiff(cp,j,-1)
@@ -329,16 +329,16 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
-        for bp in shell_indices[bs]
+        for bp in global_shell_indices[bs]
             bpx,bpy,bpz = bp
             j = argmax(bp)
             bx,by,bz = vdiff(bp,j,-1)
             for as in ashell:(ashell+bshell-bs) # -1 guess
-                for a in shell_indices[as]
+                for a in global_shell_indices[as]
                     ax,ay,az = a
                     apx,apy,apz = vdiff(a,j,1)
                     for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
+                        for c in global_shell_indices[cs]
                             cx,cy,cz = c
                             values[(ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0)] = values[(apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0)] +
                                 (A[j]-B[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0)]
@@ -350,17 +350,17 @@ function hrr2(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
-        for dp in shell_indices[ds]
+        for dp in global_shell_indices[ds]
             dpx,dpy,dpz = dp
             j = argmax(dp)
             dx,dy,dz = vdiff(dp,j,-1)
             for cs in cshell:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
+                for c in global_shell_indices[cs]
                     cx,cy,cz = c
                     cpx,cpy,cpz = vdiff(c,j,1)
-                    for a in shell_indices[ashell]
+                    for a in global_shell_indices[ashell]
                         ax,ay,az = a
-                        for b in shell_indices[bshell]
+                        for b in global_shell_indices[bshell]
                             bx,by,bz = b
                             values[(ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz)] = values[(ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz)] +
                                 (C[j]-D[j])*values[(ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz)]
@@ -395,16 +395,16 @@ function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
-        for bp in shell_indices[bs]
+        for bp in global_shell_indices[bs]
             bpx,bpy,bpz = bp
             j = argmax(bp)
             bx,by,bz = vdiff(bp,j,-1)
             for as in ashell:(ashell+bshell-bs) # -1 guess
-                for a in shell_indices[as]
+                for a in global_shell_indices[as]
                     ax,ay,az = a
                     apx,apy,apz = vdiff(a,j,1)
                     for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
+                        for c in global_shell_indices[cs]
                             cx,cy,cz = c
                             values[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = values[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] +
                                 (A[j]-B[j])*values[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
@@ -416,17 +416,17 @@ function hrr3(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
-        for dp in shell_indices[ds]
+        for dp in global_shell_indices[ds]
             dpx,dpy,dpz = dp
             j = argmax(dp)
             dx,dy,dz = vdiff(dp,j,-1)
             for cs in cshell:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
+                for c in global_shell_indices[cs]
                     cx,cy,cz = c
                     cpx,cpy,cpz = vdiff(c,j,1)
-                    for a in shell_indices[ashell]
+                    for a in global_shell_indices[ashell]
                         ax,ay,az = a
-                        for b in shell_indices[bshell]
+                        for b in global_shell_indices[bshell]
                             bx,by,bz = b
                             values[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = values[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
                                 (C[j]-D[j])*values[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]

@@ -100,18 +100,18 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
-        for bp in shell_indices[bs]
+        for bp in global_shell_indices[bs]
             bpindex = m2ao[bp]
             j = argmax(bp)
             b = vdiff(bp,j,-1)
             bindex = m2ao[b]
             for as in 0:(ashell+bshell-bs)
-                for a in shell_indices[as]
+                for a in global_shell_indices[as]
                     aindex = m2ao[a]
                     ap = vdiff(a,j,1)
                     apindex = m2ao[ap]
                     for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
+                        for c in global_shell_indices[cs]
                             cindex = m2ao[c]
                             hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
                                 (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
@@ -123,21 +123,21 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     end
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
-        for dp in shell_indices[ds]
+        for dp in global_shell_indices[ds]
             dpindex = m2ao[dp]
             j = argmax(dp)
             d = vdiff(dp,j,-1)
             dindex = m2ao[d]
             for cs in 0:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
+                for c in global_shell_indices[cs]
                     cindex = m2ao[c]
                     cp = vdiff(c,j,1)
                     cpindex = m2ao[cp]
                     for as in 0:ashell
-                        for a in shell_indices[as]
+                        for a in global_shell_indices[as]
                             aindex = m2ao[a]
                             for bs in 0:bshell
-                                for b in shell_indices[bs]
+                                for b in global_shell_indices[bs]
                                     bindex = m2ao[b]
                                     hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
                                         (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
@@ -217,7 +217,7 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
 
     for ashell in 1:amax
-        for ap in shell_indices[ashell]
+        for ap in global_shell_indices[ashell]
             apindex = m2ao[ap]
             i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
             a = vdiff(ap,i,-1)
@@ -241,7 +241,7 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + ci/2eta ([1,c-1]m - zeta/zeta+eta[1,c-1]m+1)         # eq 6c
     # 
     for cshell in 1:cmax
-        for cp in shell_indices[cshell]
+        for cp in global_shell_indices[cshell]
             cpindex = m2ao[cp]
             i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
             c = vdiff(cp,i,-1)
@@ -265,10 +265,10 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
     for ashell in 1:amax
-        for a in shell_indices[ashell]
+        for a in global_shell_indices[ashell]
             aindex = m2ao[a]
             for cshell in 1:cmax
-                for cp in shell_indices[cshell]
+                for cp in global_shell_indices[cshell]
                     cpindex = m2ao[cp]
                     j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
                     c = vdiff(cp,j,-1)
@@ -345,7 +345,7 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #   [a+1,0]m = (Pi-Ai)[a,0]m + (Wi-Pi)[a,0]m+1 
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
     for ashell in 1:amax
-        for ap in shell_indices[ashell]
+        for ap in global_shell_indices[ashell]
             apx,apy,apz = ap
             i = argmax(ap) # Choose argmax(ap) as the direction to use for building new terms
             a = vdiff(ap,i,-1)
@@ -367,7 +367,7 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + ci/2eta ([0,c-1]m - zeta/zeta+eta[0,c-1]m+1)         # eq 6c
     # 
     for cshell in 1:cmax
-        for cp in shell_indices[cshell]
+        for cp in global_shell_indices[cshell]
             cpx,cpy,cpz = cp
             i = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
             c = vdiff(cp,i,-1)
@@ -389,10 +389,10 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
     for ashell in 1:amax
-        for a in shell_indices[ashell]
+        for a in global_shell_indices[ashell]
             ax,ay,az = a
             for cshell in 1:cmax
-                for cp in shell_indices[cshell]
+                for cp in global_shell_indices[cshell]
                     cpx,cpy,cpz = cp
                     j = argmax(cp)  # Choose argmax(cp) as the direction to use for building new terms
                     c = vdiff(cp,j,-1)
@@ -442,18 +442,18 @@ function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
-        for bp in shell_indices[bs]
+        for bp in global_shell_indices[bs]
             bpindex = m2ao[bp]
             j = argmax(bp)
             b = vdiff(bp,j,-1)
             bindex = m2ao[b]
             for as in 0:(ashell+bshell-bs)
-                for a in shell_indices[as]
+                for a in global_shell_indices[as]
                     aindex = m2ao[a]
                     ap = vdiff(a,j,1)
                     apindex = m2ao[ap]
                     for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
+                        for c in global_shell_indices[cs]
                             cindex = m2ao[c]
                             hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
                                 (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
@@ -465,21 +465,21 @@ function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D
     end
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
-        for dp in shell_indices[ds]
+        for dp in global_shell_indices[ds]
             dpindex = m2ao[dp]
             j = argmax(dp)
             d = vdiff(dp,j,-1)
             dindex = m2ao[d]
             for cs in 0:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
+                for c in global_shell_indices[cs]
                     cindex = m2ao[c]
                     cp = vdiff(c,j,1)
                     cpindex = m2ao[cp]
                     for as in 0:ashell
-                        for a in shell_indices[as]
+                        for a in global_shell_indices[as]
                             aindex = m2ao[a]
                             for bs in 0:bshell
-                                for b in shell_indices[bs]
+                                for b in global_shell_indices[bs]
                                     bindex = m2ao[b]
                                     hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
                                         (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
@@ -517,9 +517,9 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     hrrs = Dict{NTuple{12,Int},Float64}() 
 
     for as in 0:(ashell+bshell)
-        for (ax,ay,az) in shell_indices[as]
+        for (ax,ay,az) in global_shell_indices[as]
             for cs in 0:(cshell+dshell)
-                for (cx,cy,cz) in shell_indices[cs]
+                for (cx,cy,cz) in global_shell_indices[cs]
                     hrrs[ax,ay,az,0,0,0,cx,cy,cz,0,0,0] = vrrs[ax,ay,az,cx,cy,cz]
                 end
             end
@@ -528,16 +528,16 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
-        for bp in shell_indices[bs]
+        for bp in global_shell_indices[bs]
             bpx,bpy,bpz = bp       
             j = argmax(bp)
             bx,by,bz = vdiff(bp,j,-1)
             for as in 0:(ashell+bshell-bs)
-                for a in shell_indices[as]
+                for a in global_shell_indices[as]
                     ax,ay,az = a
                     apx,apy,apz = vdiff(a,j,1)
                     for cs in 0:(cshell+dshell)
-                        for c in shell_indices[cs]
+                        for c in global_shell_indices[cs]
                             cx,cy,cz = c
                             hrrs[ax,ay,az,bpx,bpy,bpz,cx,cy,cz,0,0,0] = hrrs[apx,apy,apz,bx,by,bz,cx,cy,cz,0,0,0] + 
                                 (A[j]-B[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,0,0,0]
@@ -550,19 +550,19 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # now build (ab,cd) from (ab,c0)
     for ds in 1:dshell
-        for dp in shell_indices[ds]
+        for dp in global_shell_indices[ds]
             dpx,dpy,dpz = dp
             j = argmax(dp)
             dx,dy,dz = vdiff(dp,j,-1)
             for cs in 0:(cshell+dshell-ds) 
-                for c in shell_indices[cs]
+                for c in global_shell_indices[cs]
                     cx,cy,cz = c
                     cpx,cpy,cpz = vdiff(c,j,1)
                     for as in 0:ashell
-                        for a in shell_indices[as]
+                        for a in global_shell_indices[as]
                             ax,ay,az = a
                             for bs in 0:bshell
-                                for b in shell_indices[bs]
+                                for b in global_shell_indices[bs]
                                     bx,by,bz = b
                                     hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz] = hrrs[ax,ay,az,bx,by,bz,cpx,cpy,cpz,dx,dy,dz] +
                                         (C[j]-D[j])*hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dx,dy,dz]
