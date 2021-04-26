@@ -63,6 +63,29 @@ hrr_array
 hrr_dict
 ```
 
+### Computing two-electron integrals over contracted functions
+Because the HRRs are independent of the basis function exponents, these can
+operate over both primitive and contracted basis functions. This makes
+an ideal time to contract the integrals between the VRR and HRR steps.
+
+The routine `cvrr` makes multiple calls to `vrr_array` using different
+exponents and contraction coefficients.
+```@docs
+cvrr
+```
+
+The routine `chrr` uses the output from `cvrr` to form the final two
+electron integrals.
+```@docs
+chrr
+```
+
+The `all_twoe_ints_chrr` function uses `chrr` for form all required two-
+electron integrals in a basis set `bfs`.
+```@docs
+all_twoe_ints_chrr
+```
+
 
 # References
 [^HGP]: [A method for two-electron Gaussian integral and integral derivative

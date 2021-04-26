@@ -53,9 +53,20 @@ export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray
 # [^3]: The Prism Algorithm for Two-Electron Integrals. Peter M. W. Gill and John
 #       A. Pople. IJQC, 40, 753 (1991).
 
-"cvrr - compute and contract the vertical recurrence relations 
- between shells ash,bsh,csh,dsh. 
-"
+"""
+    cvrr (ash,bsh,csh,dsh)
+
+Compute and contract the vertical recurrence relations 
+between shells ash,bsh,csh,dsh. 
+
+This routine takes advantage of the fact that the optimal time for
+contracting integrals is after the VRR step.   
+
+This function returns a nao[ash.L+bsh.L] x nao[csh.L+dsh.L]
+with the contracted coefficients (a0|b0). It calls the
+primitive function vrr_array multiple times using different
+exponents and contraction coefficients.        
+"""
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L+dsh.L
     cvrrs = zeros(Float64,nao[amax],nao[cmax])
@@ -72,6 +83,14 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     return cvrrs
 end
 
+"""
+    all_twoe_ints_chrr
+
+Make multiple calls to `chrr` to form all required two-electron
+integrals for a molecular basis set `bfs`.
+
+Returns a 1d array of these integrals [ijkl] with i<j, k<l, and ij<kl. 
+"""
 function all_twoe_ints_chrr(bfs)
     nbf = length(bfs)
     nints = length(collect(MolecularIntegrals.iiterator(nbf)))
@@ -90,6 +109,19 @@ end
 #  - For ethane/sto3g, why am I getting calls to shells (8,8,11,11), where all the
 #       a.m. is on the c/d aos.
 
+"""
+    chrr (ash,bsh,csh,dsh)
+
+Compute the contracted horizontal recurrence relations 
+between shells ash,bsh,csh,dsh. 
+
+This routine makes calls `cvrr` to form the input VRRs,
+and then applies the HRRs to form the full set of two
+electron integrals for the four shells ash,bsh,csh,dsh.
+    
+The routine returns a 4d array where each dimensional
+ranges over the number of orbitals in the shell.
+"""
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
