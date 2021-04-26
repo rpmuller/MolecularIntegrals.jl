@@ -135,7 +135,7 @@ Structure for a basis function shell, containing multiple
 CGBFs of different angular momenta.        
 """
 mutable struct Shell
-    xyz::Vector{Float64}
+    xyz::SVector{3,Float64}
     L::Int
     expns::Vector{Float64}
     coefs::Vector{Float64}
