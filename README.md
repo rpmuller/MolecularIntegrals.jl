@@ -41,6 +41,6 @@ Compare to roughly 0.1 sec albeit on completely different hardware. This is most
 | Method           | Timing |
 | ---------------- | ------ |
 | Huzinaga/Coulomb | 7.33   |
-| HGP              | 22.0   |
+| HGP              | 7.83   |
 
-The HGP results are still quite a bit slower than the Huzinaga method, surprisingly.
+The HGP results still have lots of room for speedups.
