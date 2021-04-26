@@ -66,7 +66,7 @@
 
 
 ## Get SP shells working
-- May have to redo indexing of global_shell_indices to make this work
+- May have to redo indexing of shell_indices to make this work
 - SP shells could be one of the things that is easier to do in the 
     generated code (below)
 

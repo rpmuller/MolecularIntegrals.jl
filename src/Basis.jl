@@ -1,5 +1,6 @@
-
+using OffsetArrays
 export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis,eri_fetcher, Shell, Basis
+export m2ao, shell_indices,nao
 
 """
     PGBF(expn,xyz,I,J,K,norm)
@@ -113,7 +114,7 @@ function build_basis(atoms::Vector{Atom},name="sto3g")
     ishs = Int[]
     mshs = Int[]
     for (ish,sh) in enumerate(shs)
-        for (msh,(I,J,K)) in enumerate(global_shell_indices[sh.L])
+        for (msh,(I,J,K)) in enumerate(shell_indices[sh.L])
             cbf = cgbf(sh.xyz...,I,J,K)
             push!(bfs,cbf)
             push!(ishs,ish)
@@ -138,7 +139,7 @@ mutable struct Shell
     expns::Vector{Float64}
     coefs::Vector{Float64}
 end
-nbf(sh::Shell) = length(global_shell_indices(sh.L))
+nbf(sh::Shell) = length(shell_indices(sh.L))
 
 """
     Basis(cgbfs,shells,ishell,mshell)
@@ -205,12 +206,12 @@ function eri_fetcher(bfs::Basis)
     return fetcher
 end
 
-# global_shell_indices map from a shell l-value to the Cartesian version of m-values that are the 
+# shell_indices map from a shell l-value to the Cartesian version of m-values that are the 
 #   powers of the Cartesian Gaussian basis functions.
 # 
-# If desired, we can also invert global_shell_indices to map IJK triplets to l,m pairs:
-# IJK2lm = Dict(IJK =>(l,m) for l in 0:4 for (m,IJK) in enumerate(global_shell_indices[l]))
-global_shell_indices = Dict(
+# If desired, we can also invert shell_indices to map IJK triplets to l,m pairs:
+# IJK2lm = Dict(IJK =>(l,m) for l in 0:4 for (m,IJK) in enumerate(shell_indices[l]))
+const shell_indices = Dict(
     0 => [[0,0,0]], # 1
     1 => [[1,0,0],[0,1,0],[0,0,1]], # 3
     2 => [[2,0,0],[1,1,0],[1,0,1],[0,2,0],[0,1,1],[0,0,2]],
@@ -221,14 +222,6 @@ global_shell_indices = Dict(
             [1,3,0],[1,2,1],[1,1,2],[1,0,3],
             [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
 )
-
-function make_shell_indices(lmax=4)
-    shell_indices = Dict{Int64, Vector{Vector{Int64}}}()
-    for l in 0:lmax
-        shell_indices[l] = [[I,J,K] for K in 0:l for J in 0:l for I in 0:l if I+J+K == l]
-    end
-    return shell_indices
-end
 
 llabel = Dict(0=>"s",1=>"p",2=>"d",3=>"f",4=>"g",5=>"h")
 lvalue = merge(Dict((v,k) for (k,v) in llabel),Dict((uppercase(v),k) for (k,v) in llabel))
@@ -243,20 +236,21 @@ function bfpow(s,j)
 	return "$s$j"
 end	
 
-"ao_arrays - Map between ao indices and a sequential list of (mx,my,mz) values"
-function ao_arrays(lmax=4)
+"make_m2ao - Make map between a sequential list of (mx,my,mz) values and ao indices"
+function make_m2ao(lmax=4)
     m2ao = Dict{Vector{Int64}, Int64}()
-    shell_indices = Dict{Int64, Vector{Vector{Int64}}}()
     iao = 0
     for l in 0:lmax
-        shell_indices[l] = [[I,J,K] for K in 0:l for J in 0:l for I in 0:l if I+J+K == l]
         for ms in shell_indices[l]
             iao += 1
             m2ao[ms] = iao
         end
     end
-    return shell_indices,m2ao
+    return m2ao
 end
 
-"nao - Number of AOs for system with l shells"
-nao(l) = sum(length(global_shell_indices[i]) for i in 0:l)
+const m2ao = make_m2ao()
+
+"make_nao - Number of AOs for system with l shells"
+make_nao(l) = sum(length(shell_indices[i]) for i in 0:l)
+const nao = OffsetArray([make_nao(l) for l in 0:4],0:4)

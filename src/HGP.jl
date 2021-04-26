@@ -58,7 +58,7 @@ export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray
 "
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L+dsh.L
-    cvrrs = zeros(Float64,nao(amax),nao(cmax))
+    cvrrs = zeros(Float64,nao[amax],nao[cmax])
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
@@ -91,11 +91,10 @@ end
 #       a.m. is on the c/d aos.
 
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    shell_indices,m2ao = ao_arrays()
     ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
-    hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
+    hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
     hrrs[:,1,:,1] = vrrs[:,:]
 
     # First build (ab,c0) from (a0,c0)
@@ -149,7 +148,7 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
             end
         end
     end
-    return hrrs#[1:nao(ashell),:,1:nao(cshell),:]
+    return hrrs#[1:nao[ashell],:,1:nao[cshell],:]
 end
 
 """
@@ -172,8 +171,7 @@ and both interfaces are being retained for convenience.
 """
 function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
-    shell_indices,m2ao = ao_arrays(max(amax,cmax))
-    vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
+    vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
 
     # Try to speed this up using a dispatch table to call
     # the hand-written routines. Doesn't appear to help.
@@ -316,8 +314,6 @@ and both interfaces are being retained for convenience.
 """
 function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
-    shell_indices = make_shell_indices(max(amax,cmax))
-
     vrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1,mmax+1),
          0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax,0:mmax) 
     P = gaussian_product_center(aexpn,A,bexpn,B)
@@ -436,12 +432,10 @@ The function returns a (k,l,m,n)-dimensional array, where the
 dimensions correspond to the number of aos in the a,b,c,d shells.        
 """
 function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    shell_indices,m2ao = ao_arrays()
-
-    # Get the relevant vrr terms. 
+   # Get the relevant vrr terms. 
     vrrs = vrr_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
-    hrrs = zeros(Float64,nao(ashell+bshell),nao(bshell),nao(cshell+dshell),nao(dshell))
-    hrrs[:,1,:,1] = vrrs[:,:] # This is why this version is fastest
+    hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
+    hrrs[:,1,:,1] = vrrs[:,:] 
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
@@ -494,7 +488,7 @@ function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D
             end
         end
     end
-    return hrrs[1:nao(ashell),:,1:nao(cshell),:]
+    return hrrs[1:nao[ashell],:,1:nao[cshell],:]
 end
 
 """
@@ -516,7 +510,6 @@ contains the integral corresponding to the bfs with powers `ax,ay,az`,
 `hrr_dict` is slower than `hrr_array`, but is kept for convenience.        
 """
 function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    shell_indices = make_shell_indices(max(ashell+bshell,cshell+dshell))
     vrrs = vrr_widearray(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     hrrs = Dict{NTuple{12,Int},Float64}() 
 
