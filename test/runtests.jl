@@ -53,9 +53,10 @@ addbf!(c2,0.5,0.2)
 
         @test MolecularIntegrals.lvalue["S"] == 0
 
+        # Move somewhere else?
         bfs = build_basis(h2)
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
-        @show MolecularIntegrals.all_twoe_ints_chrr(bfs)
+        @test MolecularIntegrals.all_twoe_ints_chrr(bfs) ≈ MolecularIntegrals.all_twoe_ints(bfs)
 
     end
 
