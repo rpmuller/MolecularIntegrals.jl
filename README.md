@@ -38,9 +38,10 @@ As a starting point to motivate the development, we will consider Table 5 from t
 ### Preliminary Julia Timings for Ethane/6-31G
 Compare to roughly 0.1 sec albeit on completely different hardware. This is mostly just to set a crude benchmark to compare coding improvements to.
 
-| Method           | Timing |
-| ---------------- | ------ |
-| Huzinaga/Coulomb | 7.33   |
-| HGP              | 7.83   |
+| Basis   | size   | Huz    | HGP    |
+| ------- | ------ | ------ | ------ |
+| sto-3G  | 16     | 1.73   | 0.75   |
+| 6-31G   | 30     | 6.60   | 3.03   |
+| cc-pVDZ | 58     |        |        |
 
-The HGP results still have lots of room for speedups.
+The HGP results hopefully still have lots of room for speedups.
