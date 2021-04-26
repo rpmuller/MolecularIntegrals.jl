@@ -33,10 +33,8 @@ addbf!(c2,0.5,0.2)
         @test MolecularIntegrals.nao(1) == 4
         @test MolecularIntegrals.nao(2) == 10
 
-        ao2m,m2ao = MolecularIntegrals.ao_arrays()
-        @test ao2m[1] == [0,0,0]
+        shell_indices,m2ao = MolecularIntegrals.ao_arrays()
         @test m2ao[[0,0,0]] == 1
-        @test ao2m[4] == [0,0,1]
         @test m2ao[[0,0,1]] == 4
 
         bfs = build_basis(h2)
@@ -124,7 +122,7 @@ addbf!(c2,0.5,0.2)
     end
 
     @testset "VRR tests" begin
-        ao2m, m2ao = MolecularIntegrals.ao_arrays()
+        shell_indices, m2ao = MolecularIntegrals.ao_arrays()
         ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
         aexpn=bexpn=cexpn=dexpn=1.0
         aI=aJ=aK=0
@@ -165,7 +163,7 @@ addbf!(c2,0.5,0.2)
         
     end
     @testset "HRR tests" begin
-        ao2m, m2ao = MolecularIntegrals.ao_arrays()
+        shell_indices, m2ao = MolecularIntegrals.ao_arrays()
         ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
         aexpn=bexpn=cexpn=dexpn=1.0
         aI=aJ=aK=0
