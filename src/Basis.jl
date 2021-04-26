@@ -245,27 +245,18 @@ end
 
 "ao_arrays - Map between ao indices and a sequential list of (mx,my,mz) values"
 function ao_arrays(lmax=4)
-    shell_indices = make_shell_indices(lmax)
-    # TODO: make types for array and dict:
-    ao2m = [] # Consider making an offset array, since the m's will start at 0 anyway
-    m2ao = Dict()
+    m2ao = Dict{Vector{Int64}, Int64}()
+    shell_indices = Dict{Int64, Vector{Vector{Int64}}}()
     iao = 0
-    for i in 0:lmax
-        for ms in shell_indices[i]
-            push!(ao2m,ms)
+    for l in 0:lmax
+        shell_indices[l] = [[I,J,K] for K in 0:l for J in 0:l for I in 0:l if I+J+K == l]
+        for ms in shell_indices[l]
             iao += 1
             m2ao[ms] = iao
         end
     end
-    return ao2m,m2ao
+    return shell_indices,m2ao
 end
-
-function make_m2ao(lmax=4)
-    iao = 0
-    for i in 0:lmax
-    end
-end
-
 
 "nao - Number of AOs for system with l shells"
 nao(l) = sum(length(global_shell_indices[i]) for i in 0:l)

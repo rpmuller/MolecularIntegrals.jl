@@ -91,8 +91,7 @@ end
 #       a.m. is on the c/d aos.
 
 function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    ao2m,m2ao = ao_arrays()
-    shell_indices = make_shell_indices(max(ash.L+bsh.L,csh.L+dsh.L))
+    shell_indices,m2ao = ao_arrays()
     ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
@@ -173,8 +172,7 @@ and both interfaces are being retained for convenience.
 """
 function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
-    ao2m,m2ao = ao_arrays(max(amax,cmax))
-    shell_indices = make_shell_indices(max(amax,cmax))
+    shell_indices,m2ao = ao_arrays(max(amax,cmax))
     vrrs = zeros(Float64,nao(amax),nao(cmax),mmax)
 
     # Try to speed this up using a dispatch table to call
@@ -438,8 +436,7 @@ The function returns a (k,l,m,n)-dimensional array, where the
 dimensions correspond to the number of aos in the a,b,c,d shells.        
 """
 function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    ao2m,m2ao = ao_arrays()
-    shell_indices = make_shell_indices(max(ashell+bshell,cshell+dshell))
+    shell_indices,m2ao = ao_arrays()
 
     # Get the relevant vrr terms. 
     vrrs = vrr_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
