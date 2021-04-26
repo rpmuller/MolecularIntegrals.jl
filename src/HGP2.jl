@@ -286,9 +286,9 @@ function vrrda(amax,cmax,aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
     for aL in 2:amax
-        vrrs[aL,0] = zeros(Float64,nao(aL),mmax-aL)
+        vrrs[aL,0] = zeros(Float64,nao[aL],mmax-aL)
         for m in 1:mmax-1
-            for i in nao(aL)
+            for i in nao[aL]
               vrrs[aL,0][i,m] = (P[i]-A[i])*vrrs[aL-1,0][a,b,m] + (W[i]-P[i])*vrrs[aL-1,0][a,b,m+1]
             end
         end

@@ -1,5 +1,7 @@
 # TODO and notes
 
+- Speed vdiff
+
 ## More documentation
 - Add docstrings for PGBF, CGBF and utility functions
 - add docstrings for chrr, cvrr
