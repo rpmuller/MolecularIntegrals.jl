@@ -12,7 +12,7 @@ The function parameters `xyz` correspond to [x0,y0,z0].
 """
 mutable struct PGBF
     expn::Float64
-    xyz::Vector{Float64}
+    xyz::SVector{3,Float64}
     I::Int64
     J::Int64
     K::Int64
@@ -25,14 +25,14 @@ end
 Helper function to create a normalized PGBF with some optional
 defaults set.    
 """
-function pgbf(expn,x=0,y=0,z=0,I=0,J=0,K=0,norm=1)
-    p = PGBF(expn,[x,y,z],I,J,K,norm)
+function pgbf(expn,x=0.0,y=0.0,z=0.0,I=0,J=0,K=0,norm=1)
+    p = PGBF(expn,SA[x,y,z],I,J,K,norm)
     normalize!(p)
     return p
 end
 
 function amplitude(bf::PGBF,x,y,z)
-    dx,dy,dz = dxyz = bf.xyz-[x,y,z]
+    dx,dy,dz = dxyz = bf.xyz-SA[x,y,z]
     r2 = dist2(dxyz)
     return bf.norm*(dx^bf.I)*(dy^bf.J)*(dz^bf.K)*exp(-bf.expn*r2)
 end
@@ -50,7 +50,7 @@ the functions in [pgbfs] with coefficients [coefs].
 Also track the origin `xyz` and powers `I,J,K`.
 """
 mutable struct CGBF
-    xyz::Vector{Float64}
+    xyz::SVector{3,Float64}
     I::Int64
     J::Int64
     K::Int64
@@ -64,7 +64,7 @@ end
 
 Helper function to create a CGBF with optional defaults.
 """
-cgbf(x=0,y=0,z=0,I=0,J=0,K=0) = CGBF([x,y,z],I,J,K,1.0,[],[])
+cgbf(x=0.0,y=0.0,z=0.0,I=0,J=0,K=0) = CGBF(SA[x,y,z],I,J,K,1.0,[],[])
 
 amplitude(bf::CGBF,x,y,z) = bf.norm*sum(c*amplitude(pbf,x,y,z) for (c,pbf) in primitives(bf))
 (bf::CGBF)(x,y,z) = amplitude(bf::CGBF,x,y,z)
