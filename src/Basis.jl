@@ -223,7 +223,7 @@ global_shell_indices = Dict(
 )
 
 function make_shell_indices(lmax=4)
-    shell_indices = Dict()
+    shell_indices = Dict{Int64, Vector{Vector{Int64}}}()
     for l in 0:lmax
         shell_indices[l] = [[I,J,K] for K in 0:l for J in 0:l for I in 0:l if I+J+K == l]
     end
