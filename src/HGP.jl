@@ -1,6 +1,6 @@
 # HGP - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrence relations.
-export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray
+export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray, all_twoe_ints_chrr
 #
 # We're going to break this into several steps:
 #
