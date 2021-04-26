@@ -232,8 +232,9 @@ end
 
 "Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18)
+    mhalf = m+0.5
     x = max(x,SMALL) # Evidently needs underflow protection
-    return 0.5*x^(-m-0.5)*gammainc(m+0.5,x)
+    return 0.5*x^-mhalf*gammainc(mhalf,x)
 end
 
 "gammainc returns the lower incomplete gamma function"

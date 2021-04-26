@@ -1,9 +1,13 @@
 # TODO and notes
 
+## Speed improvements
 - Speed vdiff
+- Speed Fgamma
+- Reduce number of getindex calls to dicts and arrays
 
 ## Contracted routines
 - Test chrr
+- Figure out right place to add normalization consts
 - [X] Write out a standard integral record using this code
 - [X] Time for ethane
 
