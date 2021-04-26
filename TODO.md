@@ -2,14 +2,10 @@
 
 - Speed vdiff
 
-## More documentation
-- Add docstrings for PGBF, CGBF and utility functions
-- add docstrings for chrr, cvrr
-
 ## Contracted routines
 - Test chrr
-- Write out a standard integral record using this code
-- Time for ethane
+- [X] Write out a standard integral record using this code
+- [X] Time for ethane
 
 
 ## Release version 0.1.0
