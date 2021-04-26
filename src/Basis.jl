@@ -1,4 +1,5 @@
 using OffsetArrays
+using StaticArrays
 export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis,eri_fetcher, Shell, Basis
 export m2ao, shell_indices,nao
 
@@ -212,15 +213,15 @@ end
 # If desired, we can also invert shell_indices to map IJK triplets to l,m pairs:
 # IJK2lm = Dict(IJK =>(l,m) for l in 0:4 for (m,IJK) in enumerate(shell_indices[l]))
 const shell_indices = Dict(
-    0 => [[0,0,0]], # 1
-    1 => [[1,0,0],[0,1,0],[0,0,1]], # 3
-    2 => [[2,0,0],[1,1,0],[1,0,1],[0,2,0],[0,1,1],[0,0,2]],
-    3 => [[3,0,0],[2,1,0],[2,0,1],
-            [1,2,0],[1,0,2],[1,1,1],
-            [0,3,0],[0,2,1],[0,1,2],[0,0,3]], # 10
-    4 => [[4,0,0],[3,1,0],[3,0,1],[2,2,0],[2,1,1],[2,0,2],
-            [1,3,0],[1,2,1],[1,1,2],[1,0,3],
-            [0,4,0],[0,3,1],[0,2,2],[0,1,3],[0,0,4]] # 15
+    0 => [MVector(0,0,0)], # 1
+    1 => [MVector(1,0,0),MVector(0,1,0),MVector(0,0,1)], # 3
+    2 => [MVector(2,0,0),MVector(1,1,0),MVector(1,0,1),MVector(0,2,0),MVector(0,1,1),MVector(0,0,2)],
+    3 => [MVector(3,0,0),MVector(2,1,0),MVector(2,0,1),
+            MVector(1,2,0),MVector(1,0,2),MVector(1,1,1),
+            MVector(0,3,0),MVector(0,2,1),MVector(0,1,2),MVector(0,0,3)], # 10
+    4 => [MVector(4,0,0),MVector(3,1,0),MVector(3,0,1),MVector(2,2,0),MVector(2,1,1),MVector(2,0,2),
+            MVector(1,3,0),MVector(1,2,1),MVector(1,1,2),MVector(1,0,3),
+            MVector(0,4,0),MVector(0,3,1),MVector(0,2,2),MVector(0,1,3),MVector(0,0,4)] # 15
 )
 
 llabel = Dict(0=>"s",1=>"p",2=>"d",3=>"f",4=>"g",5=>"h")
