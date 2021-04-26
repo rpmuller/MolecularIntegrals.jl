@@ -1,16 +1,17 @@
 using Printf
+using StaticArrays
 
 export Atom
 
 mutable struct Atom
     atno::Int
-    xyz::Vector{Float64}
+    xyz::MVector{3,Float64}
 end
 
-atom(sym::String,xyz::Vector{Float64},units=:Angstrom) = atom(sym2no[sym],xyz,units) 
-atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom) = atom(atno,[x,y,z],units)
-atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)= atom(sym2no[sym],[x,y,z],units)
-function atom(atno::Int,xyz::Vector{Float64},units=:Angstrom)
+atom(sym::String,xyz::MVector{3,Float64},units=:Angstrom) = atom(sym2no[sym],xyz,units) 
+atom(atno::Int,x::Float64,y::Float64,z::Float64,units=:Angstrom) = atom(atno,MVector(x,y,z),units)
+atom(sym::String,x::Float64,y::Float64,z::Float64,units=:Angstrom)= atom(sym2no[sym],MVector(x,y,z),units)
+function atom(atno::Int,xyz::MVector{3,Float64},units=:Angstrom)
     if units == :Angstrom xyz /= 0.52918 end
     return Atom(atno,xyz)
 end
@@ -65,7 +66,7 @@ mass = [
             words = split(lines[2+i])
             sym = words[1]
             atno = sym2no[sym]
-            xyz = [parse(Float64,w) for w in words[2:4]]
+            xyz = MVector(parse(Float64,w) for w in words[2:4])
             push!(atoms,Atom(atno,xyz))
         end
         return atoms
