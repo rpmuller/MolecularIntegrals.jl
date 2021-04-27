@@ -69,13 +69,17 @@ exponents and contraction coefficients.
 """
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L+dsh.L
-    cvrrs = zeros(Float64,nao[amax],nao[cmax])
+    #cvrrs = zeros(Float64,nao[amax],nao[cmax]) vrr_array
+    cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
+        0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) # vrr_widearray
+
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    #cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -105,10 +109,6 @@ function all_twoe_ints_chrr(bfs)
     return ints
 end        
 
-# Questions:
-#  - For ethane/sto3g, why am I getting calls to shells (8,8,11,11), where all the
-#       a.m. is on the c/d aos.
-
 """
     chrr (ash,bsh,csh,dsh)
 
@@ -127,7 +127,27 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
     hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
-    hrrs[:,1,:,1] = vrrs[:,:]
+    wide = true
+    if wide
+        # Transfer vrrs using vrr_widearray into hrrs
+        for as in 0:(ashell+bshell)
+            for aijk in shell_indices[as]
+                ai,aj,ak = aijk
+                a = m2ao[aijk]
+                for cs in 0:(cshell+dshell)
+                    for cijk in shell_indices[cs]
+                        ci,cj,ck = cijk
+                        c = m2ao[cijk]
+                        hrrs[a,1,c,1] = vrrs[ai,aj,ak,ci,cj,ck]
+                    end
+                end
+            end
+        end
+    else
+        # Transfer vrrs using vrr_array
+        hrrs[:,1,:,1] = vrrs[:,:] 
+    end
+
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
@@ -327,6 +347,108 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
+# Move to utils
+function index_shift(a,i=0)
+    m = ao2m[a]
+    if i==0  i = argmax(m) end
+    if m[i] == 0 return 0,i end
+    mm = copy(m)
+    mm[i] -= 1
+    am = m2ao[mm]
+    return am,i
+end
+index_values(a,i) = ao2m[a][i]
+index_shell(a) = sum(ao2m[a])
+
+# The aoloop version is unfortunately much slower, despite the fact that
+# it finally get the looping over ao's to work properly, and it also
+# gets the array calls working. Keeping it around in case I can speed it
+# up later.
+function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+    vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
+
+    P = gaussian_product_center(aexpn,A,bexpn,B)
+    Q = gaussian_product_center(cexpn,C,dexpn,D)
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    W = gaussian_product_center(zeta,P,eta,Q)
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2/ze
+    Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+    Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+    
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (1,1,m) using eq 12
+    vrrs[1,1,1:mmax] = Kab*Kcd/sqrt(ze)*Fgamma.(0:(mmax-1),T)
+
+    # Generate (A,1,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    for aplus in 2:nao[amax]
+        ashell = index_shell(aplus)
+        a,i = index_shift(aplus)
+        lim = mmax-ashell
+        vrrs[aplus,1,1:lim] = (P[i]-A[i])*vrrs[a,1,1:lim] + (W[i]-P[i])*vrrs[a,1,2:(lim+1)]
+        aminus,j = index_shift(a,i)
+        if aminus > 0
+            a_i = index_values(a,i)
+            vrrs[aplus,1,1:lim] += a_i/(2*zeta)*(vrrs[aminus,1,1:lim]-eta/ze*vrrs[aminus,1,2:(lim+1)])
+        end
+    end
+
+    # Next build (1,C,m)
+    # The c-based version of 6a is:
+    #   [0,c+1]m = (Qi-Bi)[1,c]m + (Wi-Qi)[1,c]m+1
+    #       + ci/2eta ([1,c-1]m - zeta/zeta+eta[1,c-1]m+1)         # eq 6c
+    # 
+    for cplus in 2:nao[cmax]
+        cshell = index_shell(cplus)
+        c,i = index_shift(cplus)
+        lim = mmax-cshell
+        vrrs[1,cplus,1:lim] = (Q[i]-C[i])*vrrs[1,c,1:lim]+(W[i]-Q[i])*vrrs[1,c,2:(lim+1)]
+        cminus,j = index_shift(c,i)
+        if cminus > 0
+            c_i = index_values(c,i)
+            vrrs[1,cplus,1:lim] += c_i/(2*eta)*(vrrs[1,cminus,1:lim]-zeta/ze*vrrs[1,cminus,2:(lim+1)])
+        end
+    end
+
+    # Now build (A,C,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
+    for a in 2:nao[amax]
+        ashell = index_shell(a)
+        for cplus in 2:nao[cmax]
+            cshell = index_shell(cplus)
+            c,i = index_shift(cplus)
+            lim = mmax-cshell-ashell
+            vrrs[a,cplus,1:lim] = (Q[i]-C[i])*vrrs[a,c,1:lim]+(W[i]-Q[i])*vrrs[a,c,2:(lim+1)]
+            cminus,j = index_shift(c,i)
+            if cminus > 0
+                c_i = index_values(c,i)
+                vrrs[a,cplus,1:lim] += c_i/(2*eta)*(vrrs[a,cminus,1:lim]-zeta/ze*vrrs[a,cminus,2:(lim+1)])
+            end
+            aminus,j = index_shift(a,i)
+            if aminus > 0 
+                a_i = index_values(a,i)
+                vrrs[a,cplus,1:lim] += a_i/(2*ze)*(vrrs[aminus,c,2:(lim+1)])
+            end                             
+        end
+    end
+    return vrrs[:,:,1]
+end
+
 """
 vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
@@ -366,6 +488,7 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
     # First generate (0,0,0, 0,0,0, m) using eq 12
+    #vrrs[0,0,0, 0,0,0,0:mmax] = Kab*Kcd/sqrt(ze)*Fgamma.(0:mmax,T)
     for m in 0:mmax
         vrrs[0,0,0, 0,0,0, m] = Kab*Kcd*Fgamma(m,T)/sqrt(ze)
     end
@@ -384,7 +507,9 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             amx,amy,amz = am
             for m in 0:(mmax-ashell)
                 vrrs[apx,apy,apz,0,0,0,m] = (P[i]-A[i])*vrrs[ax,ay,az,0,0,0,m]+(W[i]-P[i])*vrrs[ax,ay,az,0,0,0,m+1]
-                if am[i] >= 0
+            end
+            if am[i] >= 0
+                for m in 0:(mmax-ashell)
                     vrrs[apx,apy,apz,0,0,0,m] += a[i]/(2*zeta)*(vrrs[amx,amy,amz,0,0,0,m]-eta/ze*vrrs[amx,amy,amz,0,0,0,m+1])
                 end
             end
@@ -406,7 +531,9 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             cmx,cmy,cmz = cm
             for m in 0:(mmax-cshell)
                 vrrs[0,0,0,cpx,cpy,cpz,m] = (Q[i]-C[i])*vrrs[0,0,0,cx,cy,cz,m]+(W[i]-Q[i])*vrrs[0,0,0,cx,cy,cz,m+1]
-                if cm[i] >= 0
+            end
+            if cm[i] >= 0
+                for m in 0:(mmax-cshell)
                     vrrs[0,0,0,cpx,cpy,cpz,m] += c[i]/(2*eta)*(vrrs[0,0,0,cmx,cmy,cmz,m]-zeta/ze*vrrs[0,0,0,cmx,cmy,cmz,m+1])
                 end
             end
@@ -434,10 +561,14 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     amx,amy,amz = am
                     for m in 0:(mmax-ashell-cshell)
                         vrrs[ax,ay,az,cpx,cpy,cpz,m] = (Q[j]-C[j])*vrrs[ax,ay,az,cx,cy,cz,m]+(W[j]-Q[j])*vrrs[ax,ay,az,cx,cy,cz,m+1]
-                        if cm[j] >= 0
+                    end
+                    if cm[j] >= 0
+                        for m in 0:(mmax-ashell-cshell)
                             vrrs[ax,ay,az,cpx,cpy,cpz,m] += c[j]/(2*eta)*(vrrs[ax,ay,az,cmx,cmy,cmz,m]-zeta/ze*vrrs[ax,ay,az,cmx,cmy,cmz,m+1])
                         end
-                        if am[j] >= 0 
+                    end
+                    if am[j] >= 0 
+                        for m in 0:(mmax-ashell-cshell)
                             vrrs[ax,ay,az,cpx,cpy,cpz,m] += a[j]/(2*ze)*(vrrs[amx,amy,amz,cx,cy,cz,m+1])
                         end                             
                     end
