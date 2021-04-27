@@ -23,6 +23,8 @@ function vrr_timings()
     @btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr_array($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr_array($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr_array_aoloop($amax,$cmax) ")
+    @btime MolecularIntegrals.vrr_array_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
 end
 
