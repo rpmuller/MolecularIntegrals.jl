@@ -249,8 +249,18 @@ function make_m2ao(lmax=4)
     end
     return m2ao
 end
+function make_ao2m(lmax=4)
+    ao2m = []
+    for l in 0:lmax
+        for ms in shell_indices[l]
+            push!(ao2m,ms)
+        end
+    end
+    return ao2m
+end
 
 const m2ao = make_m2ao()
+const ao2m = make_ao2m()
 
 "make_nao - Number of AOs for system with l shells"
 make_nao(l) = sum(length(shell_indices[i]) for i in 0:l)
