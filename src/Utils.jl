@@ -1,4 +1,5 @@
 using LinearAlgebra
+using StaticArrays
 export factorial2, dist2, ipairs, rpairs, spairs, iindex
 
 factorial2(n::Int64) = prod(n:-2:1) # double factorial !!
@@ -19,7 +20,7 @@ iindex(i::Int64,j::Int64,k::Int64,l::Int64) = triangle(triangle(i,j),triangle(k,
 trace2(A,B) = sum(A.*B)
 
 "vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
-function vdiff(a,i,n) 
+function vdiff(a::MVector{3,Int},i::Int,n::Int) 
     b = copy(a)
     b[i] += n
     return b
