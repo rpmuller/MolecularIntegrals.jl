@@ -1,7 +1,5 @@
 # TODO and notes
 
-- Memoize vdiff and index_shift, etc.
-
 ## Contracted routines
 - Test chrr
 - Figure out right place to add normalization consts
