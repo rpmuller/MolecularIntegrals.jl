@@ -265,3 +265,48 @@ const ao2m = make_ao2m()
 "make_nao - Number of AOs for system with l shells"
 make_nao(l) = sum(length(shell_indices[i]) for i in 0:l)
 const nao = OffsetArray([make_nao(l) for l in 0:4],0:4)
+
+# Data functions and tables over basis functions
+# todo: keep a constant of maxao or something
+# and use it to construct tables
+function make_shift_index()
+    n = length(ao2m)
+    shift_index = zeros(Int,n,3)
+    for a in 1:n
+        m = ao2m[a]
+        for i in 1:3
+            if m[i] == 0
+                shift_index[a,i] = 0
+            else
+                mm = copy(m)
+                mm[i] -= 1
+                am = m2ao[mm]
+                shift_index[a,i] = am
+            end
+        end
+    end
+    return shift_index
+end
+const shift_index = make_shift_index()
+
+function make_shift_direction()
+    n = length(ao2m)
+    shift_direction = zeros(Int,n)
+    for a in 1:n
+        shift_direction[a] = argmax(ao2m[a])
+    end
+    return shift_direction
+end
+const shift_direction = make_shift_direction()
+
+function make_shell_number()
+    n = length(ao2m)
+    shell_number = zeros(Int,n)
+    for a in 1:n
+        shell_number[a] = sum(ao2m[a])
+    end
+    return shell_number
+end
+const shell_number = make_shell_number()
+
+index_values(a,i) = ao2m[a][i]

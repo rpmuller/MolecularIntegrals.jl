@@ -54,41 +54,7 @@ export vrr_array,hrr_array,chrr,cvrr, hrr_dict, vrr_widearray, all_twoe_ints_chr
 #       A. Pople. IJQC, 40, 753 (1991).
 
 """
-    cvrr (ash,bsh,csh,dsh)
-
-Compute and contract the vertical recurrence relations 
-between shells ash,bsh,csh,dsh. 
-
-This routine takes advantage of the fact that the optimal time for
-contracting integrals is after the VRR step.   
-
-This function returns a nao[ash.L+bsh.L] x nao[csh.L+dsh.L]
-with the contracted coefficients (a0|b0). It calls the
-primitive function vrr_array multiple times using different
-exponents and contraction coefficients.        
-"""
-function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
-    amax,cmax = ash.L+bsh.L,csh.L+dsh.L
-    #cvrrs = zeros(Float64,nao[amax],nao[cmax]) vrr_array
-    cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
-        0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) # vrr_widearray
-
-    A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
-    for (aexpn,acoef) in zip(ash.expns,ash.coefs)
-        for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
-            for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
-                for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
-                    #cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
-                end
-            end
-        end
-    end
-    return cvrrs
-end
-
-"""
-    all_twoe_ints_chrr
+    all_twoe_ints_chrr(bfs)
 
 Make multiple calls to `chrr` to form all required two-electron
 integrals for a molecular basis set `bfs`.
@@ -110,6 +76,40 @@ function all_twoe_ints_chrr(bfs)
 end        
 
 """
+    cvrr (ash,bsh,csh,dsh)
+
+Compute and contract the vertical recurrence relations 
+between shells ash,bsh,csh,dsh. 
+
+This routine takes advantage of the fact that the optimal time for
+contracting integrals is after the VRR step.   
+
+This function returns a nao[ash.L+bsh.L] x nao[csh.L+dsh.L]
+with the contracted coefficients (a0|b0). It calls the
+primitive function vrr_array multiple times using different
+exponents and contraction coefficients.        
+"""
+function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    amax,cmax = ash.L+bsh.L,csh.L+dsh.L
+    cvrrs = zeros(Float64,nao[amax],nao[cmax]) # vrr_array
+    #cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
+    #    0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) # vrr_widearray
+
+    A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
+    for (aexpn,acoef) in zip(ash.expns,ash.coefs)
+        for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
+            for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
+                for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
+                    #cvrrs += acoef*bcoef*ccoef*dcoef*vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                end
+            end
+        end
+    end
+    return cvrrs
+end
+
+"""
     chrr (ash,bsh,csh,dsh)
 
 Compute the contracted horizontal recurrence relations 
@@ -127,27 +127,24 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
     hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
-    wide = true
-    if wide
-        # Transfer vrrs using vrr_widearray into hrrs
-        for as in 0:(ashell+bshell)
-            for aijk in shell_indices[as]
-                ai,aj,ak = aijk
-                a = m2ao[aijk]
-                for cs in 0:(cshell+dshell)
-                    for cijk in shell_indices[cs]
-                        ci,cj,ck = cijk
-                        c = m2ao[cijk]
-                        hrrs[a,1,c,1] = vrrs[ai,aj,ak,ci,cj,ck]
-                    end
+    # Transfer vrrs using vrr_widearray into hrrs
+    #=
+    for as in 0:(ashell+bshell)
+        for aijk in shell_indices[as]
+            ai,aj,ak = aijk
+            a = m2ao[aijk]
+            for cs in 0:(cshell+dshell)
+                for cijk in shell_indices[cs]
+                    ci,cj,ck = cijk
+                    c = m2ao[cijk]
+                    hrrs[a,1,c,1] = vrrs[ai,aj,ak,ci,cj,ck]
                 end
             end
         end
-    else
-        # Transfer vrrs using vrr_array
-        hrrs[:,1,:,1] = vrrs[:,:] 
     end
-
+    =#
+    # Transfer vrrs using vrr_array
+    hrrs[:,1,:,1] = vrrs[:,:] 
 
     # First build (ab,c0) from (a0,c0)
     for bs in 1:bshell 
@@ -224,20 +221,6 @@ and both interfaces are being retained for convenience.
 function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
-
-    # Try to speed this up using a dispatch table to call
-    # the hand-written routines. Doesn't appear to help.
-    #=
-    dispatch = Dict(
-        (0,0) => vrr_ss,
-        (0,1) => vrr_sp,
-        (1,0) => vrr_ps,
-        (1,1) => vrr_pp
-    )
-    if haskey(dispatch,(amax,cmax))
-        return dispatch[(amax,cmax)](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    end
-    =#
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
     Q = gaussian_product_center(cexpn,C,dexpn,D)
@@ -347,20 +330,8 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[:,:,1]
 end
 
-# Move to utils
-function index_shift(a,i=0)
-    m = ao2m[a]
-    if i==0  i = argmax(m) end
-    if m[i] == 0 return 0,i end
-    mm = copy(m)
-    mm[i] -= 1
-    am = m2ao[mm]
-    return am,i
-end
-index_values(a,i) = ao2m[a][i]
-index_shell(a) = sum(ao2m[a])
 
-# The aoloop version is unfortunately much slower, despite the fact that
+# The aoloop version is 3x slower, despite the fact that
 # it finally get the looping over ao's to work properly, and it also
 # gets the array calls working. Keeping it around in case I can speed it
 # up later.
@@ -394,11 +365,12 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
 
     for aplus in 2:nao[amax]
-        ashell = index_shell(aplus)
-        a,i = index_shift(aplus)
+        ashell = shell_number[aplus]
+        i = shift_direction[aplus]
+        a = shift_index[aplus,i]
         lim = mmax-ashell
         vrrs[aplus,1,1:lim] = (P[i]-A[i])*vrrs[a,1,1:lim] + (W[i]-P[i])*vrrs[a,1,2:(lim+1)]
-        aminus,j = index_shift(a,i)
+        aminus = shift_index[a,i]
         if aminus > 0
             a_i = index_values(a,i)
             vrrs[aplus,1,1:lim] += a_i/(2*zeta)*(vrrs[aminus,1,1:lim]-eta/ze*vrrs[aminus,1,2:(lim+1)])
@@ -411,11 +383,12 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + ci/2eta ([1,c-1]m - zeta/zeta+eta[1,c-1]m+1)         # eq 6c
     # 
     for cplus in 2:nao[cmax]
-        cshell = index_shell(cplus)
-        c,i = index_shift(cplus)
+        cshell = shell_number[cplus]
+        i = shift_direction[cplus]
+        c = shift_index[cplus,i]
         lim = mmax-cshell
         vrrs[1,cplus,1:lim] = (Q[i]-C[i])*vrrs[1,c,1:lim]+(W[i]-Q[i])*vrrs[1,c,2:(lim+1)]
-        cminus,j = index_shift(c,i)
+        cminus = shift_index[c,i]
         if cminus > 0
             c_i = index_values(c,i)
             vrrs[1,cplus,1:lim] += c_i/(2*eta)*(vrrs[1,cminus,1:lim]-zeta/ze*vrrs[1,cminus,2:(lim+1)])
@@ -428,18 +401,19 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
     for a in 2:nao[amax]
-        ashell = index_shell(a)
+        ashell = shell_number[a]
         for cplus in 2:nao[cmax]
-            cshell = index_shell(cplus)
-            c,i = index_shift(cplus)
+            cshell = shell_number[cplus]
+            i = shift_direction[cplus]
+            c = shift_index[cplus,i]
             lim = mmax-cshell-ashell
             vrrs[a,cplus,1:lim] = (Q[i]-C[i])*vrrs[a,c,1:lim]+(W[i]-Q[i])*vrrs[a,c,2:(lim+1)]
-            cminus,j = index_shift(c,i)
+            cminus = shift_index[c,i]
             if cminus > 0
                 c_i = index_values(c,i)
                 vrrs[a,cplus,1:lim] += c_i/(2*eta)*(vrrs[a,cminus,1:lim]-zeta/ze*vrrs[a,cminus,2:(lim+1)])
             end
-            aminus,j = index_shift(a,i)
+            aminus = shift_index[a,i]
             if aminus > 0 
                 a_i = index_values(a,i)
                 vrrs[a,cplus,1:lim] += a_i/(2*ze)*(vrrs[aminus,c,2:(lim+1)])
