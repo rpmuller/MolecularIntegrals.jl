@@ -3,9 +3,10 @@
 ## Cleanup
 - Move old versions to _shell
     - Make sure tests still work
-    - Move shell versions to HGP2
-    - Move hrr_dict to HGP2
+    - [X] Move shell versions to HGP2
+    - [X] Move hrr_dict to HGP2
     - Move _wide_array to HGP2
+    - Remove _array tag
 - Remove wide-array commented code
 - Test/time/commit
 
