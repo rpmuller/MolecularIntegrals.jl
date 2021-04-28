@@ -822,3 +822,64 @@ function vrr_array_shells(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     return vrrs[:,:,1]
 end
+
+function chrr_shell(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
+    ashell,bshell,cshell,dshell = ash.L,bsh.L,csh.L,dsh.L
+    A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
+    vrrs = cvrr(ash,bsh,csh,dsh) 
+    hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
+    hrrs[:,1,:,1] = vrrs[:,:] 
+
+    # First build (ab,c0) from (a0,c0)
+    for bs in 1:bshell 
+        for bp in shell_indices[bs]
+            bpindex = m2ao[bp]
+            j = argmax(bp)
+            b = vdiff(bp,j,-1)
+            bindex = m2ao[b]
+            for as in 0:(ashell+bshell-bs)
+                for a in shell_indices[as]
+                    aindex = m2ao[a]
+                    ap = vdiff(a,j,1)
+                    apindex = m2ao[ap]
+                    for cs in 0:(cshell+dshell)
+                        for c in shell_indices[cs]
+                            cindex = m2ao[c]
+                            hrrs[aindex,bpindex,cindex,1] = hrrs[apindex,bindex,cindex,1] + 
+                                (A[j]-B[j])*hrrs[aindex,bindex,cindex,1]
+                        end
+                    end
+                end
+            end
+        end
+    end
+    # now build (ab,cd) from (ab,c0)
+    for ds in 1:dshell
+        for dp in shell_indices[ds]
+            dpindex = m2ao[dp]
+            j = argmax(dp)
+            d = vdiff(dp,j,-1)
+            dindex = m2ao[d]
+            for cs in 0:(cshell+dshell-ds) 
+                for c in shell_indices[cs]
+                    cindex = m2ao[c]
+                    cp = vdiff(c,j,1)
+                    cpindex = m2ao[cp]
+                    for as in 0:ashell
+                        for a in shell_indices[as]
+                            aindex = m2ao[a]
+                            for bs in 0:bshell
+                                for b in shell_indices[bs]
+                                    bindex = m2ao[b]
+                                    hrrs[aindex,bindex,cindex,dpindex] = hrrs[aindex,bindex,cpindex,dindex] +
+                                        (C[j]-D[j])*hrrs[aindex,bindex,cindex,dindex]
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return hrrs#[1:nao[ashell],:,1:nao[cshell],:]
+end
