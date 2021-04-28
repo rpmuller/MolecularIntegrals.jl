@@ -177,27 +177,13 @@ may be formed via:
 ```    
 """
 function eri_fetcher(bfs::Basis)
-    fetcher = Dict() # TODO: set type Tuple{Int,4},Vector{Tuple{Int,5}} ??
+    fetcher = Dict{NTuple{4, Int}, Vector{NTuple{5, Int}}}()
     for (index,ijkl) in enumerate(iiterator(length(bfs)))
         i,j,k,l = ijkl
         li,mi = bfs.ishell[i],bfs.mshell[i]
         lj,mj = bfs.ishell[j],bfs.mshell[j]
         lk,mk = bfs.ishell[k],bfs.mshell[k]
         ll,ml = bfs.ishell[l],bfs.mshell[l]
-
-        # Attempting to swap indices to make integral calls easier, but doesn't work:
-        #=
-        if li<lj
-            li,mi,lj,mj = lj,mj,li,mi
-        end
-        if lk<ll
-            lk,mk,ll,ml = ll,ml,lk,mk
-        end
-        if li+lj < lk+ll
-            li,mi,lj,mj,lk,mk,ll,ml = lk,mk,ll,ml,li,mi,lj,mj
-        end
-        =#
-
         if haskey(fetcher,(li,lj,lk,ll))
             push!(fetcher[li,lj,lk,ll],(index,mi,mj,mk,ml))
         else

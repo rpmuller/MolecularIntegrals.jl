@@ -1,17 +1,6 @@
 # TODO and notes
 
-## Cleanup
-- [X] Move old versions to _shell
-- [X] Make sure tests still work
-- [X] Move shell versions to HGP2
-- [X] Move hrr_dict to HGP2
-- [X] Move _wide_array to HGP2
-- [X] Update chrr
-- Speed eri_fetcher
-- Speed all_twoe
 - Remove _array tag
-- [X] Remove wide-array commented code
-- Test/time/commit
 
 - Move HGP2.jl to HGPgen.jl (for code generation)
 - remove profile_hgp.jl
