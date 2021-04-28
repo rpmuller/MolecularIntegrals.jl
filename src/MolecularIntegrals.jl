@@ -6,7 +6,7 @@ include("OneInts.jl")
 include("Utils.jl")
 include("ERI.jl")
 include("HGP.jl")
-include("HGP2.jl")
+include("HGPgen.jl")
 include("Data.jl")
 
 end # module

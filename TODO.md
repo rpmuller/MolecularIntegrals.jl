@@ -2,9 +2,6 @@
 
 - Remove _array tag
 
-- Move HGP2.jl to HGPgen.jl (for code generation)
-- remove profile_hgp.jl
-
 ## Contracted routines
 - Test chrr
 - Figure out right place to add normalization consts

@@ -1,3 +1,5 @@
+#HGPgen - code for hand-written and auto-generated routines
+
 """
 vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
