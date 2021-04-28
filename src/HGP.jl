@@ -101,7 +101,7 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
                     #cvrrs += acoef*bcoef*ccoef*dcoef*vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -357,7 +357,9 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
     # First generate (1,1,m) using eq 12
-    vrrs[1,1,1:mmax] = Kab*Kcd/sqrt(ze)*Fgamma.(0:(mmax-1),T)
+    for m in 1:mmax
+        vrrs[1,1,m] = Kab*Kcd/sqrt(ze)*Fgamma(m-1,T)
+    end
 
     # Generate (A,1,m) 
     # Eq 6a, with c=0 also:
@@ -369,11 +371,15 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         i = shift_direction[aplus]
         a = shift_index[aplus,i]
         lim = mmax-ashell
-        vrrs[aplus,1,1:lim] = (P[i]-A[i])*vrrs[a,1,1:lim] + (W[i]-P[i])*vrrs[a,1,2:(lim+1)]
+        for m in 1:lim
+            vrrs[aplus,1,m] = (P[i]-A[i])*vrrs[a,1,m] + (W[i]-P[i])*vrrs[a,1,m+1]
+        end
         aminus = shift_index[a,i]
         if aminus > 0
             a_i = index_values(a,i)
-            vrrs[aplus,1,1:lim] += a_i/(2*zeta)*(vrrs[aminus,1,1:lim]-eta/ze*vrrs[aminus,1,2:(lim+1)])
+            for m in 1:lim
+                vrrs[aplus,1,m] += a_i/(2*zeta)*(vrrs[aminus,1,m]-eta/ze*vrrs[aminus,1,m+1])
+            end
         end
     end
 
@@ -387,11 +393,15 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         i = shift_direction[cplus]
         c = shift_index[cplus,i]
         lim = mmax-cshell
-        vrrs[1,cplus,1:lim] = (Q[i]-C[i])*vrrs[1,c,1:lim]+(W[i]-Q[i])*vrrs[1,c,2:(lim+1)]
+        for m in 1:lim
+            vrrs[1,cplus,m] = (Q[i]-C[i])*vrrs[1,c,m]+(W[i]-Q[i])*vrrs[1,c,m+1]
+        end
         cminus = shift_index[c,i]
         if cminus > 0
             c_i = index_values(c,i)
-            vrrs[1,cplus,1:lim] += c_i/(2*eta)*(vrrs[1,cminus,1:lim]-zeta/ze*vrrs[1,cminus,2:(lim+1)])
+            for m in 1:lim
+                vrrs[1,cplus,m] += c_i/(2*eta)*(vrrs[1,cminus,m]-zeta/ze*vrrs[1,cminus,m+1])
+            end
         end
     end
 
@@ -407,16 +417,22 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             i = shift_direction[cplus]
             c = shift_index[cplus,i]
             lim = mmax-cshell-ashell
-            vrrs[a,cplus,1:lim] = (Q[i]-C[i])*vrrs[a,c,1:lim]+(W[i]-Q[i])*vrrs[a,c,2:(lim+1)]
+            for m in 1:lim
+                vrrs[a,cplus,m] = (Q[i]-C[i])*vrrs[a,c,m]+(W[i]-Q[i])*vrrs[a,c,m+1]
+            end
             cminus = shift_index[c,i]
             if cminus > 0
                 c_i = index_values(c,i)
-                vrrs[a,cplus,1:lim] += c_i/(2*eta)*(vrrs[a,cminus,1:lim]-zeta/ze*vrrs[a,cminus,2:(lim+1)])
+                for m in 1:lim
+                    vrrs[a,cplus,m] += c_i/(2*eta)*(vrrs[a,cminus,m]-zeta/ze*vrrs[a,cminus,m+1])
+                end
             end
             aminus = shift_index[a,i]
             if aminus > 0 
                 a_i = index_values(a,i)
-                vrrs[a,cplus,1:lim] += a_i/(2*ze)*(vrrs[aminus,c,2:(lim+1)])
+                for m in 1:lim
+                    vrrs[a,cplus,m] += a_i/(2*ze)*(vrrs[aminus,c,m+1])
+                end
             end                             
         end
     end
