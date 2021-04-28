@@ -296,3 +296,4 @@ function vrrda(amax,cmax,aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     return vrrs
 end
+
