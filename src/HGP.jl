@@ -410,12 +410,12 @@ function vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
     #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
     #       + a_j/2(zeta+eta)[a-1,c]m+1
-    for a in 2:nao[amax]
-        ashell = shell_number[a]
-        for cplus in 2:nao[cmax]
-            cshell = shell_number[cplus]
-            i = shift_direction[cplus]
-            c = shift_index[cplus,i]
+    for cplus in 2:nao[cmax]
+        cshell = shell_number[cplus]
+        i = shift_direction[cplus]
+        c = shift_index[cplus,i]
+        for a in 2:nao[amax]
+            ashell = shell_number[a]    
             lim = mmax-cshell-ashell
             for m in 1:lim
                 vrrs[a,cplus,m] = (Q[i]-C[i])*vrrs[a,c,m]+(W[i]-Q[i])*vrrs[a,c,m+1]
