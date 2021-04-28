@@ -49,17 +49,14 @@ exponents and contraction coefficients.
 """
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L+dsh.L
-    cvrrs = zeros(Float64,nao[amax],nao[cmax]) # vrr_array
-    #cvrrs = OffsetArray(zeros(Float64,amax+1,amax+1,amax+1,cmax+1,cmax+1,cmax+1),
-    #    0:amax,0:amax,0:amax, 0:cmax,0:cmax,0:cmax) # vrr_widearray
+    cvrrs = zeros(Float64,nao[amax],nao[cmax])
 
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (aexpn,acoef) in zip(ash.expns,ash.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    #cvrrs += acoef*bcoef*ccoef*dcoef*vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array_aoloop(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -85,23 +82,6 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
     hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
-    # Transfer vrrs using vrr_widearray into hrrs
-    #=
-    for as in 0:(ashell+bshell)
-        for aijk in shell_indices[as]
-            ai,aj,ak = aijk
-            a = m2ao[aijk]
-            for cs in 0:(cshell+dshell)
-                for cijk in shell_indices[cs]
-                    ci,cj,ck = cijk
-                    c = m2ao[cijk]
-                    hrrs[a,1,c,1] = vrrs[ai,aj,ak,ci,cj,ck]
-                end
-            end
-        end
-    end
-    =#
-    # Transfer vrrs using vrr_array
     hrrs[:,1,:,1] = vrrs[:,:] 
 
     # First build (ab,c0) from (a0,c0)
@@ -172,9 +152,6 @@ momenta for the `a+b`, and `c+d` shells, respectively.
 The function returns an `n`x`m` array, where `n` is the number
 of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
-
-The speeds of `vrr_array` and `vrr_widearray` are roughly equivalent,
-and both interfaces are being retained for convenience.
 """
 function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1

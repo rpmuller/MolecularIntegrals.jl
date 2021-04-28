@@ -19,12 +19,12 @@ function vrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     amax = cmax = 4
 
-    print("# vrr_widearray($amax,$cmax) ")
-    @btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    #print("# vrr_widearray($amax,$cmax) ")
+    #@btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr_array($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr_array($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("# vrr_array_aoloop($amax,$cmax) ")
-    @btime MolecularIntegrals.vrr_array_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    #print("# vrr_array_aoloop($amax,$cmax) ")
+    #@btime MolecularIntegrals.vrr_array_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
 end
 
@@ -43,8 +43,8 @@ function hand_vrr_timings()
     C = D = xyza
     cx,cy,cz = dx,dy,dz = xyza
     amax = cmax = 1
-    print("# vrr_widearray($amax,$cmax) ")
-    @btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    #print("# vrr_widearray($amax,$cmax) ")
+    #@btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr_array($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr_array($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr_pp               ")
@@ -70,8 +70,8 @@ function hrr_timings()
     ashell,bshell,cshell,dshell = (2,2,2,2)
     print("# hrr_array($ashell,$bshell,$cshell,$dshell) ")
     @btime MolecularIntegrals.hrr_array($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
-    print("# hrr_dict($ashell,$bshell,$cshell,$dshell)  ")
-    @btime MolecularIntegrals.hrr_dict($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
+    #print("# hrr_dict($ashell,$bshell,$cshell,$dshell)  ")
+    #@btime MolecularIntegrals.hrr_dict($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     nothing
 end
 
