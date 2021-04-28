@@ -1,5 +1,14 @@
 # TODO and notes
 
+## Cleanup
+- Move old versions to _shell
+    - Make sure tests still work
+    - Move shell versions to HGP2
+    - Move hrr_dict to HGP2
+    - Move _wide_array to HGP2
+- Remove wide-array commented code
+- Test/time/commit
+
 ## Contracted routines
 - Test chrr
 - Figure out right place to add normalization consts

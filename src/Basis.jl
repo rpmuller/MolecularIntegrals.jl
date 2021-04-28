@@ -289,6 +289,7 @@ function make_shift_index()
 end
 const shift_index = make_shift_index()
 
+
 function make_shift_direction()
     n = length(ao2m)
     shift_direction = zeros(Int,n)
@@ -308,5 +309,26 @@ function make_shell_number()
     return shell_number
 end
 const shell_number = make_shell_number()
+
+function make_shift_index_plus()
+    n = length(ao2m)
+    maxsh = shell_number[n]
+    shift_index = zeros(Int,n,3)
+    for a in 1:n
+        m = ao2m[a]
+        for i in 1:3
+            if sum(m) == maxsh
+                shift_index[a,i] = 0
+            else
+                mm = copy(m)
+                mm[i] += 1
+                am = m2ao[mm]
+                shift_index[a,i] = am
+            end
+        end
+    end
+    return shift_index
+end
+const shift_index_plus = make_shift_index_plus()
 
 index_values(a,i) = ao2m[a][i]
