@@ -21,16 +21,16 @@ function vrr_timings()
 
     #print("# vrr_widearray($amax,$cmax) ")
     #@btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("# vrr_array($amax,$cmax)      ")
-    @btime MolecularIntegrals.vrr_array($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    #print("# vrr_array_aoloop($amax,$cmax) ")
-    #@btime MolecularIntegrals.vrr_array_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr($amax,$cmax)      ")
+    @btime MolecularIntegrals.vrr($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    #print("# vrr_aoloop($amax,$cmax) ")
+    #@btime MolecularIntegrals.vrr_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
 end
 
 # vrr2(4,4)            17.560 ms (166510 allocations: 6.46 MiB)
 # vrr_widearray(4,4)   3.572 ms (104351 allocations: 3.85 MiB)
-# vrr_array(4,4)        3.864 ms (81789 allocations: 1.70 MiB)
+# vrr(4,4)        3.864 ms (81789 allocations: 1.70 MiB)
 
 function hand_vrr_timings()
     x=y=z=0.0
@@ -45,8 +45,8 @@ function hand_vrr_timings()
     amax = cmax = 1
     #print("# vrr_widearray($amax,$cmax) ")
     #@btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("# vrr_array($amax,$cmax)      ")
-    @btime MolecularIntegrals.vrr_array($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("# vrr($amax,$cmax)      ")
+    @btime MolecularIntegrals.vrr($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("# vrr_pp               ")
     @btime MolecularIntegrals.vrr_pp($ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
 end
@@ -68,8 +68,8 @@ function hrr_timings()
     cx,cy,cz = dx,dy,dz = xyza
     aexpn=bexpn=cexpn=dexpn = ex
     ashell,bshell,cshell,dshell = (2,2,2,2)
-    print("# hrr_array($ashell,$bshell,$cshell,$dshell) ")
-    @btime MolecularIntegrals.hrr_array($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
+    print("# hrr($ashell,$bshell,$cshell,$dshell) ")
+    @btime MolecularIntegrals.hrr($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     #print("# hrr_dict($ashell,$bshell,$cshell,$dshell)  ")
     #@btime MolecularIntegrals.hrr_dict($ashell,$bshell,$cshell,$dshell, $aexpn,$bexpn,$cexpn,$dexpn, $A,$B,$C,$D);
     nothing

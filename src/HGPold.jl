@@ -453,9 +453,6 @@ momenta for the `a+b`, and `c+d` shells, respectively.
     
 The function returns a six-dimensional array over the possible
 powers of the `a+b` and `c+d` shell functions.
-
-The speeds of `vrr_array` and `vrr_widearray` are roughly equivalent,
-and both interfaces are being retained for convenience.
 """
 function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax
@@ -569,9 +566,9 @@ function vrr_widearray(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     return vrrs[:,:,:,:,:,:,0]
 end
-function hrr_array_shells(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function hrr_shells(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Get the relevant vrr terms. 
-     vrrs = vrr_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
      hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
      hrrs[:,1,:,1] = vrrs[:,:] 
  
@@ -645,7 +642,7 @@ relevant integrals. E.g., `hrrs[ax,ay,az,bx,by,bz,cx,cy,cz,dpx,dpy,dpz]`
 contains the integral corresponding to the bfs with powers `ax,ay,az`,
 `bx,by,bz`, `cx,cy,cz`, `dx,dy,dz`.
 
-`hrr_dict` is slower than `hrr_array`, but is kept for convenience.        
+`hrr_dict` is slower than `hrr`, but is kept for convenience.        
 """
 function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs = vrr_widearray(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
@@ -711,7 +708,7 @@ function hrr_dict(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     return hrrs
 end
-function vrr_array_shells(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function vrr_shells(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
 

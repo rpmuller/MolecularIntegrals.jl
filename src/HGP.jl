@@ -1,4 +1,4 @@
-export vrr_array,hrr_array,chrr,cvrr,all_twoe_ints_chrr
+export vrr,hrr,chrr,cvrr,all_twoe_ints_chrr
 # HGP - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrence relations.
 #
@@ -44,7 +44,7 @@ contracting integrals is after the VRR step.
 
 This function returns a nao[ash.L+bsh.L] x nao[csh.L+dsh.L]
 with the contracted coefficients (a0|b0). It calls the
-primitive function vrr_array multiple times using different
+primitive function vrr multiple times using different
 exponents and contraction coefficients.        
 """
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
@@ -56,7 +56,7 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -116,7 +116,7 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
 
 
 """
-vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
 Use Head-Gordon/Pople's vertical recurrence relations to compute
 an array of two-electron integrals.
@@ -130,7 +130,7 @@ The function returns an `n`x`m` array, where `n` is the number
 of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
 """
-function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
 
@@ -213,7 +213,7 @@ function vrr_array(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 end
 
 """
-hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
 Use Head-Gordon/Pople's horizontal recurrence relations to compute
 an array of two-electron integrals.
@@ -226,9 +226,9 @@ momenta for the `a`, `b`, `c`, and `d` shells, respectively.
 The function returns a (k,l,m,n)-dimensional array, where the 
 dimensions correspond to the number of aos in the a,b,c,d shells.        
 """
-function hrr_array(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Get the relevant vrr terms. 
-     vrrs = vrr_array(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
+     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
      hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
      hrrs[:,1,:,1] = vrrs[:,:] 
  

@@ -1,7 +1,5 @@
 # TODO and notes
 
-- Remove _array tag
-
 ## Contracted routines
 - Test chrr
 - Figure out right place to add normalization consts
@@ -15,7 +13,7 @@
 ## Write HGPgenerate.jl script
 - Julia code that generates more julia code
 - Will generate a HGPgen.jl file that contains generated hrr_abcd and vrr_ab code
-- Fall back to hrr_array and vrr_array versions
+- Fall back to hrr and vrr versions
 - Which directory do support scripts like this live in? tools?
 - Write test routines to test **all** of HGPgen.jl.
 - Expand timing routines to include HGPgen routines.
@@ -32,12 +30,12 @@
 
 ## Write fuzz-like test functions in runtests.jl
 - vrr_test(ashell,cshell) code:
-    - Test all elements of vrr_array and vrr_widearray against ERI.jl code
+    - Test all elements of vrr and vrr_widearray against ERI.jl code
     - Random A,C, aex, cex? Or maybe fallback if A,C,aex,cex not specified
     - Can use this as an excuse to write functions to generate random PGBFs
         in some distance/exp/powers
 - hrr_test(ashell,bshell,cshell,dshell)
-    - Test all elements of hrr_array and hrr_dict against ERI.jl code
+    - Test all elements of hrr and hrr_dict against ERI.jl code
     - Random A,B,C,D??? Or maybe fallback if A,B,C,D not specified
 - Add comments to ERI code to the effect that it is slow code that is very
     likely to be correct that is kept around for reference and testing.
@@ -56,12 +54,6 @@
 
 
 ## Bump version to 0.2
-- Write integral records to .jld files using JLD2 HDF5 format
-- Should be able to call *either* vrr_array or vrr_wide
-    - E.g. :use_widearray symbol/keyword option
-- Prune out unnecessary results from hrr_dict (when != ashell, != bshell, etc.)
-
-
 
 ## Get SP shells working
 - May have to redo indexing of shell_indices to make this work

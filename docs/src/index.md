@@ -50,17 +50,14 @@ construct integrals of the form [a0|c0] from kernels [00|00]^m via eq 6. Horizon
 construct integrals of the form [ab|cd] from kernels [a0|c0].
 
 ### Vertical recurrence relations
-MolecularIntegrals.jl returns VRRs either as a 2d array using `vrr_array`, or as 
-a 6d array using `vrr_widearray`:
 ```@docs
-vrr_array
+vrr
 vrr_widearray
 ```
 
 ### Horizontal recurrence relations
 ```@docs
-hrr_array
-hrr_dict
+hrr
 ```
 
 ### Computing two-electron integrals over contracted functions
@@ -68,7 +65,7 @@ Because the HRRs are independent of the basis function exponents, these can
 operate over both primitive and contracted basis functions. This makes
 an ideal time to contract the integrals between the VRR and HRR steps.
 
-The routine `cvrr` makes multiple calls to `vrr_array` using different
+The routine `cvrr` makes multiple calls to `vrr` using different
 exponents and contraction coefficients.
 ```@docs
 cvrr
