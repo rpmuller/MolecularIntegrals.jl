@@ -80,13 +80,12 @@ end
 # hrr5(2,2,2,2)   19.829 ms (257436 allocations: 6.44 MiB)
 
 function ethane_timing()
-    #for bname in ["sto3g","6-31G","cc-pvdz"]
-    for bname in ["cc-pvdz"]
+    for bname in ["sto3g","6-31G","cc-pvdz"]
         bfs = build_basis(ethane,bname)
         println("Ethane: nbf=$(length(bfs))")
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
-        print("Huzinaga ")
-        @btime MolecularIntegrals.all_twoe_ints($bfs);
+        #print("Huzinaga ")
+        #@btime MolecularIntegrals.all_twoe_ints($bfs);
         print("HGP      ")
         @btime MolecularIntegrals.all_twoe_ints_chrr($bfs);
     end
