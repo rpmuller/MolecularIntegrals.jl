@@ -141,6 +141,16 @@ mutable struct Shell
     coefs::Vector{Float64}
 end
 nbf(sh::Shell) = length(shell_indices(sh.L))
+function pgbfs(sh::Shell)
+    x,y,z = sh.xyz
+    pgbfs = PGBF[]
+    for (I,J,K) in shell_indices[sh.L]
+        for (expn,coef) in zip(sh.expns,sh.coefs)
+            push!(pgbfs,pgbf(expn,x,y,z,I,J,K))
+        end
+    end
+    return pgbfs
+end
 
 """
     Basis(cgbfs,shells,ishell,mshell)

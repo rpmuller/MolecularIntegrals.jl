@@ -1,15 +1,15 @@
 # TODO and notes
 
 ## Timing and benchmarks
-- Compare to JERI.jl benchmarks
-- Would be nice to be within a factor of 10 by release 0.1.0
+- [ ] Compare to JERI.jl benchmarks
+- [ ] Would be nice to be within a factor of 10 by release 0.1.0
 
 ## Contracted routines
-- Test chrr
-- Determine whether the normalization constants are the same for all m-values corresponding to an L-value.
-- Figure out right place to add normalization consts
+- [X] Determine whether the normalization constants are the same for all m-values corresponding to an L-value. They're NOT.
 - [X] Write out a standard integral record using this code
 - [X] Time for ethane
+- [ ] Figure out right place to add normalization consts
+- [ ] Working test chrr
 
 ## More documentation
 - Host a webpage for MolecularIntegrals.jl

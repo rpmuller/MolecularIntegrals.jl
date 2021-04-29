@@ -58,6 +58,11 @@ addbf!(c2,0.5,0.2)
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
         @test MolecularIntegrals.all_twoe_ints_chrr(bfs) ≈ MolecularIntegrals.all_twoe_ints(bfs)
 
+        # demonstrate that the normalization constants are not the same
+        #  for all m-levels:
+        #sh = Shell([0.0,0.0,0.0],2,[1.0],[1.0])
+        #@show [pgbf.norm for pgbf in MolecularIntegrals.pgbfs(sh)]
+
     end
 
     @testset "OneInts" begin
