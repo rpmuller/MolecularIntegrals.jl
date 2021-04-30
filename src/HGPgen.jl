@@ -299,3 +299,8 @@ function vrrda(amax,cmax,aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs
 end
 
+const vrr_dispatch = Dict((0,0) => vrr_ss,
+                        (1,0) => vrr_ps,
+                        (0,1) => vrr_sp,
+                        (1,1) => vrr_pp)
+

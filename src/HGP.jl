@@ -132,6 +132,22 @@ of aos in the `a+b` shell, and `m` is the number of aos in the
 """
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
+    # There is a slight advantage to calling these early:
+    # Slower:
+    #if haskey(vrr_dispatch,(amax,cmax)) return vrr_dispatch[amax,cmax](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    # Faster:
+    if mmax == 1
+        return vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    elseif cmax == 1
+        if amax == 0
+            return vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 1
+            return vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        end
+    elseif cmax == 0 && amax == 1
+        return vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    end
+
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
 
     P = gaussian_product_center(aexpn,A,bexpn,B)
