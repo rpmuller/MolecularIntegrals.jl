@@ -10,7 +10,7 @@ Like I said, I have fairly decent Julia code in [5] (see the [HGP.jl](https://gi
 
 I've written some hand-optimized Julia code in the [HGPgen.jl](https://github.com/rpmuller/MolecularIntegrals.jl/blob/master/src/HGPgen.jl) file that doesn't have any loops or conditionals in it. This code is 10-20 times faster than the normal Julia code. I'm pretty confident I could write a Julia function that would generate a Julia file that I could then compile. But that seems like a waste of Julia's metaprogramming capabilities. Shouldn't there be a way to auto-generate these functions directly, rather than writing and compiling a file?
 
-I'm just going to dive in and start writing routines to generate other routines, and hopefully something clever will suggest itself along the way. 
+I'm just going to dive in and start writing routines to generate other routines, and hopefully something clever will suggest itself along the way. But I'd love to hear anyone's ideas about other ways to do this well, particularly if there are examples of other packages that have done so.
 
 References
 [1] [Libint: high-performance library for computing Gaussian integrals in quantum mechanics](https://github.com/evaleev/libint)
