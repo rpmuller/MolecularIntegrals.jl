@@ -146,10 +146,14 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 1
             return vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 2
+            return vrr_dp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     elseif cmax == 2
         if amax == 0
             return vrr_sd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 1
+            return vrr_pd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
 
