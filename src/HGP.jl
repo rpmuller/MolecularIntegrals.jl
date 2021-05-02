@@ -130,9 +130,13 @@ The function returns an `n`x`m` array, where `n` is the number
 of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
 """
-function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D
+    # Pass in global arrays explicitly to local scope
+    ,shift_index=shift_index,shift_direction=shift_direction
+    )
     mmax=amax+cmax+1
-    # There is a slight advantage (maybe 10%) to calling hand-coded routines:
+    # Removing hand-generated code and retiming:
+    #=
     if mmax == 1
         return vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     elseif cmax == 0
@@ -156,7 +160,7 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_pd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
-
+    =#
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
 
     P = gaussian_product_center(aexpn,A,bexpn,B)

@@ -82,7 +82,7 @@ end
 function ethane_timing()
     for bname in ["sto3g","6-31G","cc-pvdz"]
         bfs = build_basis(ethane,bname)
-        println("Ethane: nbf=$(length(bfs))")
+        println("Ethane/$bname: nbf=$(length(bfs))")
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
         #print("Huzinaga ")
         #@btime MolecularIntegrals.all_twoe_ints($bfs);
