@@ -604,7 +604,6 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs[4,3,1] = (QC[2])*vrrs[4,1,1] + (WQ[2])*vrrs[4,1,2] + 0.5/ze*vrrs[1,1,2]
     vrrs[4,4,1] = (QC[3])*vrrs[4,1,1] + (WQ[3])*vrrs[4,1,2] + 0.5/ze*vrrs[1,1,2]
  
-    # [MVector(2,0,0),MVector(1,1,0),MVector(1,0,1),MVector(0,2,0),MVector(0,1,1),MVector(0,0,2)],
     vrrs[1,5,1] = (QC[1])*vrrs[1,2,1] + (WQ[1])*vrrs[1,2,2] +
               1/(2*zeta)*(vrrs[1,1,1]-eta/ze*vrrs[1,1,2])
     vrrs[1,6,1] = (QC[2])*vrrs[1,2,1] + (WQ[2])*vrrs[1,2,2] +
@@ -709,8 +708,58 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs[10,4,1] =(PA[3])*vrrs[4,4,1] + (WP[3])*vrrs[4,4,2] +
               1/(2*zeta)*(vrrs[1,4,1]-eta/ze*vrrs[1,4,2]) + 0.5/ze*vrrs[1,1,2]
 
-    vrrs[4,5,1] = (QC[1])*vrrs[4,2,1] + (WQ[1])*vrrs[4,2,2] +
-              1/(2*zeta)*(vrrs[4,1,1]-eta/ze*vrrs[4,1,2]) + 0.5/ze*vrrs[1,1,2]
+    # [MVector(2,0,0),MVector(1,1,0),MVector(1,0,1),MVector(0,2,0),MVector(0,1,1),MVector(0,0,2)],
+    # xx = x-shift from px
+    # [xx,xx] = [a,c+1] = x[xx,x] + [xx,s] + 2[x,x]
+    # [xy,xx] = x[xy,x] + [xy,s] + [y,x]
+    # [xz,xx] = x[xz,x] + [xz,s] + [z,x]
+    # [yy,xx] = x[yy,x] + [yy,s]
+    # [yz,xx] = x[yz,x] + [yz,s]
+    # [zz,xx] = x[zz,x] + [zz,s]
+    vrrs[5,5,1] = (QC[1])*vrrs[5,2,1] + (WQ[1])*vrrs[5,2,2] +
+         1/(2*zeta)*(vrrs[5,1,1]-eta/ze*vrrs[5,1,2]) + 1/ze*vrrs[2,2,2]
+    vrrs[6,5,1] = (QC[1])*vrrs[6,2,1] + (WQ[1])*vrrs[6,2,2] +
+         1/(2*zeta)*(vrrs[6,1,1]-eta/ze*vrrs[6,1,2]) + 0.5/ze*vrrs[3,2,2]
+    vrrs[7,5,1] = (QC[1])*vrrs[7,2,1] + (WQ[1])*vrrs[7,2,2] +
+        1/(2*zeta)*(vrrs[7,1,1]-eta/ze*vrrs[7,1,2]) + 0.5/ze*vrrs[4,2,2]
+    vrrs[8,5,1] = (QC[1])*vrrs[8,2,1] + (WQ[1])*vrrs[8,2,2] +
+        1/(2*zeta)*(vrrs[8,1,1]-eta/ze*vrrs[8,1,2])
+    vrrs[9,5,1] = (QC[1])*vrrs[9,2,1] + (WQ[1])*vrrs[9,2,2] +
+        1/(2*zeta)*(vrrs[9,1,1]-eta/ze*vrrs[9,1,2])
+    vrrs[10,5,1] = (QC[1])*vrrs[10,2,1] + (WQ[1])*vrrs[10,2,2] +
+        1/(2*zeta)*(vrrs[10,1,1]-eta/ze*vrrs[10,1,2])
+
+    # xy = y-shift from px
+    # [xx,xy] = y[xx,x] +
+    # [xy,xy] = y[xy,x] + [x,x]
+    # [xz,xy] = y[xz,x] +
+    # [yy,xy] = y[yy,x] + 2[y,x] 
+    # [yz,xy] = y[yz,x] + [z,x]
+    # [zz,xy] = y[zz,x] + 
+
+    vrrs[5,6,1] = (QC[2])*vrrs[5,2,1] + (WQ[2])*vrrs[5,2,2]
+    vrrs[6,6,1] = (QC[2])*vrrs[6,2,1] + (WQ[2])*vrrs[6,2,2] + 0.5/ze*vrrs[2,2,2]
+    vrrs[7,6,1] = (QC[2])*vrrs[7,2,1] + (WQ[2])*vrrs[7,2,2] 
+    vrrs[8,6,1] = (QC[2])*vrrs[8,2,1] + (WQ[2])*vrrs[8,2,2] + 1/ze*vrrs[3,2,2]
+    vrrs[9,6,1] = (QC[2])*vrrs[9,2,1] + (WQ[2])*vrrs[9,2,2] + 0.5/ze*vrrs[4,2,2]
+    vrrs[10,6,1] =(QC[2])*vrrs[10,2,1] + (WQ[2])*vrrs[10,2,2]
+
+    # xz = z-shift from px
+    # [xx,xz] = z[xx,x] +
+    # [xy,xz] = z[xy,x] + [x,x]
+    # [xz,xz] = z[xz,x] +
+    # [yy,xz] = z[yy,x] + 2[y,x] 
+    # [yz,xz] = z[yz,x] + [z,x]
+    # [zz,xz] = z[zz,x] + 
+
+    vrrs[5,6,1] = (QC[2])*vrrs[5,2,1] + (WQ[2])*vrrs[5,2,2]
+    vrrs[6,6,1] = (QC[2])*vrrs[6,2,1] + (WQ[2])*vrrs[6,2,2] + 0.5/ze*vrrs[2,2,2]
+    vrrs[7,6,1] = (QC[2])*vrrs[7,2,1] + (WQ[2])*vrrs[7,2,2] 
+    vrrs[8,6,1] = (QC[2])*vrrs[8,2,1] + (WQ[2])*vrrs[8,2,2] + 1/ze*vrrs[3,2,2]
+    vrrs[9,6,1] = (QC[2])*vrrs[9,2,1] + (WQ[2])*vrrs[9,2,2] + 0.5/ze*vrrs[4,2,2]
+    vrrs[10,6,1] =(QC[2])*vrrs[10,2,1] + (WQ[2])*vrrs[10,2,2]
+         
+
 
     return vrrs[:,:,1]
 end
