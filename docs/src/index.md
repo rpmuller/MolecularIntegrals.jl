@@ -52,7 +52,6 @@ construct integrals of the form [ab|cd] from kernels [a0|c0].
 ### Vertical recurrence relations
 ```@docs
 vrr
-vrr_widearray
 ```
 
 ### Horizontal recurrence relations
