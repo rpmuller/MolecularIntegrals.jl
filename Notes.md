@@ -1,4 +1,9 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-05
+Finished the vrr_dd code, but it's untested and I assume has lots
+of mistakes the code. It might be easier to write the autogen code
+than to debug this code.
+
 ## 2021-05-02
 Attempted to pass in global arrays explicitly to local scope, i.e.:
 ```
