@@ -548,6 +548,8 @@ an array of two-electron integrals.
 This is a hand-written routine specific to when the A shell has
 d-type angular momentum and the C shell has d-type a.m. It is meant to be
 a model for machine generated angular momentum specific code.
+
+This function is still incomplete.
 """
 function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax = 5
@@ -730,12 +732,12 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         1/(2*zeta)*(vrrs[10,1,1]-eta/ze*vrrs[10,1,2])
 
     # xy = y-shift from px
-    # [xx,xy] = y[xx,x] +
+    # [xx,xy] = y[xx,x] 
     # [xy,xy] = y[xy,x] + [x,x]
-    # [xz,xy] = y[xz,x] +
+    # [xz,xy] = y[xz,x] 
     # [yy,xy] = y[yy,x] + 2[y,x] 
     # [yz,xy] = y[yz,x] + [z,x]
-    # [zz,xy] = y[zz,x] + 
+    # [zz,xy] = y[zz,x] 
 
     vrrs[5,6,1] = (QC[2])*vrrs[5,2,1] + (WQ[2])*vrrs[5,2,2]
     vrrs[6,6,1] = (QC[2])*vrrs[6,2,1] + (WQ[2])*vrrs[6,2,2] + 0.5/ze*vrrs[2,2,2]
@@ -746,20 +748,63 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     # xz = z-shift from px
     # [xx,xz] = z[xx,x] +
-    # [xy,xz] = z[xy,x] + [x,x]
-    # [xz,xz] = z[xz,x] +
-    # [yy,xz] = z[yy,x] + 2[y,x] 
-    # [yz,xz] = z[yz,x] + [z,x]
-    # [zz,xz] = z[zz,x] + 
+    # [xy,xz] = z[xy,x] + 
+    # [xz,xz] = z[xz,x] + [x,x]
+    # [yy,xz] = z[yy,x] + 
+    # [yz,xz] = z[yz,x] + [y,x]
+    # [zz,xz] = z[zz,x] + 2[z,x]
 
-    vrrs[5,6,1] = (QC[2])*vrrs[5,2,1] + (WQ[2])*vrrs[5,2,2]
-    vrrs[6,6,1] = (QC[2])*vrrs[6,2,1] + (WQ[2])*vrrs[6,2,2] + 0.5/ze*vrrs[2,2,2]
-    vrrs[7,6,1] = (QC[2])*vrrs[7,2,1] + (WQ[2])*vrrs[7,2,2] 
-    vrrs[8,6,1] = (QC[2])*vrrs[8,2,1] + (WQ[2])*vrrs[8,2,2] + 1/ze*vrrs[3,2,2]
-    vrrs[9,6,1] = (QC[2])*vrrs[9,2,1] + (WQ[2])*vrrs[9,2,2] + 0.5/ze*vrrs[4,2,2]
-    vrrs[10,6,1] =(QC[2])*vrrs[10,2,1] + (WQ[2])*vrrs[10,2,2]
+    vrrs[5,7,1] = (QC[3])*vrrs[5,2,1] + (WQ[3])*vrrs[5,2,2]
+    vrrs[6,7,1] = (QC[3])*vrrs[6,2,1] + (WQ[3])*vrrs[6,2,2] 
+    vrrs[7,7,1] = (QC[3])*vrrs[7,2,1] + (WQ[3])*vrrs[7,2,2] + 0.5/ze*vrrs[2,2,2]
+    vrrs[8,7,1] = (QC[3])*vrrs[8,2,1] + (WQ[3])*vrrs[8,2,2] 
+    vrrs[9,7,1] = (QC[3])*vrrs[9,2,1] + (WQ[3])*vrrs[9,2,2] + 0.5/ze*vrrs[3,2,2]
+    vrrs[10,7,1] =(QC[3])*vrrs[10,2,1] + (WQ[3])*vrrs[10,2,2] + 1/ze*vrrs[4,2,2]
          
+    # yy = y-shift from py
+    # [xx,yy] = y[xx,y] +
+    # [xy,yy] = y[xy,y] + [x,y]
+    # [xz,yy] = y[xz,y] + 
+    # [yy,yy] = y[yy,y] + 2[y,y]
+    # [yz,yy] = y[yz,y] + [z,y]
+    # [zz,yy] = y[zz,y] + 
 
+    vrrs[5,8,1] = (QC[2])*vrrs[5,3,1] + (WQ[2])*vrrs[5,3,2]
+    vrrs[6,8,1] = (QC[2])*vrrs[6,3,1] + (WQ[2])*vrrs[6,3,2] + 0.5/ze*vrrs[2,3,2]
+    vrrs[7,8,1] = (QC[2])*vrrs[7,3,1] + (WQ[2])*vrrs[7,3,2] 
+    vrrs[8,8,1] = (QC[2])*vrrs[8,3,1] + (WQ[2])*vrrs[8,3,2] + 0.5/ze*vrrs[3,3,2]
+    vrrs[9,8,1] = (QC[2])*vrrs[9,3,1] + (WQ[2])*vrrs[9,3,2] + 1/ze*vrrs[4,3,2]
+    vrrs[10,8,1] =(QC[2])*vrrs[10,3,1] + (WQ[2])*vrrs[10,3,2] 
+         
+    # yz = z-shift from py
+    # [xx,yz] = z[xx,y] +
+    # [xy,yz] = z[xy,y] +
+    # [xz,yz] = z[xz,y] +  [x,y]
+    # [yy,yz] = z[yy,y] +
+    # [yz,yz] = z[yz,y] + [y,y]
+    # [zz,yz] = z[zz,y] + 2[z,y]
+
+    vrrs[5,9,1] = (QC[3])*vrrs[5,3,1] + (WQ[3])*vrrs[5,3,2]
+    vrrs[6,9,1] = (QC[3])*vrrs[6,3,1] + (WQ[3])*vrrs[6,3,2] 
+    vrrs[7,9,1] = (QC[3])*vrrs[7,3,1] + (WQ[3])*vrrs[7,3,2] + 0.5/ze*vrrs[2,3,2]
+    vrrs[8,9,1] = (QC[3])*vrrs[8,3,1] + (WQ[3])*vrrs[8,3,2] 
+    vrrs[9,9,1] = (QC[3])*vrrs[9,3,1] + (WQ[3])*vrrs[9,3,2] + 1/ze*vrrs[3,3,2]
+    vrrs[10,9,1] =(QC[3])*vrrs[10,3,1] + (WQ[3])*vrrs[10,3,2] + 0.5/ze*vrrs[4,3,2]
+         
+    # zz = z-shift from pz
+    # [xx,zz] = z[xx,z] +
+    # [xy,zz] = z[xy,z] +
+    # [xz,zz] = z[xz,z] + [x,z]
+    # [yy,zz] = z[yy,z] +
+    # [yz,zz] = z[yz,z] + [y,z]
+    # [zz,zz] = z[zz,z] + 2[z,z]
+
+    vrrs[5,10,1] = (QC[3])*vrrs[5,4,1] + (WQ[3])*vrrs[5,4,2]
+    vrrs[6,10,1] = (QC[3])*vrrs[6,4,1] + (WQ[3])*vrrs[6,4,2] 
+    vrrs[7,10,1] = (QC[3])*vrrs[7,4,1] + (WQ[3])*vrrs[7,4,2] + 0.5/ze*vrrs[2,4,2]
+    vrrs[8,10,1] = (QC[3])*vrrs[8,4,1] + (WQ[3])*vrrs[8,4,2] 
+    vrrs[9,10,1] = (QC[3])*vrrs[9,4,1] + (WQ[3])*vrrs[9,4,2] + 1/ze*vrrs[3,4,2]
+    vrrs[10,10,1] =(QC[3])*vrrs[10,4,1] + (WQ[3])*vrrs[10,4,2] + 0.5/ze*vrrs[4,4,2]
 
     return vrrs[:,:,1]
 end
