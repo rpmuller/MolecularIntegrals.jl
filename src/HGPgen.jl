@@ -811,6 +811,35 @@ end
 
 # Starting to work on code generation
 function vrr_autogen(amax,cmax)
+        mmax = amax+cmax+1
+        syma = symbol[amax]
+        symb = symbol[cmax]
+        indent = "   "
+        asize = nao[amax]
+        csize = nao[cmax]
+        s_array = String[]
+        for m in 1:mmax
+                push!(s_array,"$indent vrrs[1,1,$m] = Kab*Kcd*Fgamma($(m-1),T)/sqrt(ze)")
+        end
+        slines = join(s_array,"\n")
+        genlines = ""
+
+        # may have to specify the variables further
+        #=
+        s_line_template = "$indent vrrs[$i,$j,$m] = Kab*Kcd*Fgamma($mm,T)/sqrt(ze)"
+        gen_line_template = "$indent vrrs[$i,$j,$m] = ($PQAB[$dir])*vrrs[$i2,$j2,$m] + ($WPQ[$dir])*vrrs[$i2,$j2,$mp]"
+        gen_line_a_template = "$indent $coef_a*vrrs[$i3,$j3,$mp]"
+        gen_line_c_template = "$indent $coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp])"
+
+# here are the variables I've used:
+#       syma,symc,mmax,
+#       i,j,m,mm,i2,j2,dir
+#       PQAB,WPQ
+#       coef_a,i3,j3,mp
+#       coef_c,coef_c2,$i4,$j4
+#       slines
+#       genlines
+        =#
 
         function_template = """
 function vrr_$syma$symc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
@@ -839,19 +868,6 @@ function vrr_$syma$symc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         return vrrs[:,:,1]
 end
 """
-        # may have to specify the variables further
-        s_line_template = "$indent vrrs[$i,$j,$m] = Kab*Kcd*Fgamma($mm,T)/sqrt(ze)"
-        gen_line_template = "$indent vrrs[$i,$j,$m] = ($PQAB[$dir])*vrrs[$i2,$j2,$m] + ($WPQ[$dir])*vrrs[$i2,$j2,$mp]"
-        gen_line_a_template = "$indent $coef_a*vrrs[$i3,$j3,$mp]"
-        gen_line_c_template = "$indent $coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp])"
 
-# here are the variables I've used:
-#       syma,symc,mmax,
-#       i,j,m,mm,i2,j2,dir
-#       PQAB,WPQ
-#       coef_a,i3,j3,mp
-#       coef_c,coef_c2,$i4,$j4
-#       slines
-#       genlines
-        return
+return function_template
 end
