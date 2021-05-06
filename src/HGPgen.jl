@@ -810,7 +810,9 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 end
 
 # Starting to work on code generation
-const function_template = """
+function vrr_autogen(amax,cmax)
+
+        function_template = """
 function vrr_$syma$symc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         mmax = $mmax
         vrrs = zeros(Float64,$asize,$csize,mmax)
@@ -837,12 +839,12 @@ function vrr_$syma$symc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         return vrrs[:,:,1]
 end
 """
-# may have to specify the variables further
-const s_line_template = "vrrs[$i,$j,$m] = Kab*Kcd*Fgamma($mm,T)/sqrt(ze)"
-const gen_line_template = "vrrs[$i,$j,$m] = ($PQAB[$dir])*vrrs[$i2,$j2,$m] + ($WPQ[$dir])*vrrs[$i2,$j2,$mp]"
-const gen_line_a_template = "$coef_a*vrrs[$i3,$j3,$mp]"
-const gen_line_c_template = "$coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp])"
-"
+        # may have to specify the variables further
+        s_line_template = "$indent vrrs[$i,$j,$m] = Kab*Kcd*Fgamma($mm,T)/sqrt(ze)"
+        gen_line_template = "$indent vrrs[$i,$j,$m] = ($PQAB[$dir])*vrrs[$i2,$j2,$m] + ($WPQ[$dir])*vrrs[$i2,$j2,$mp]"
+        gen_line_a_template = "$indent $coef_a*vrrs[$i3,$j3,$mp]"
+        gen_line_c_template = "$indent $coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp])"
+
 # here are the variables I've used:
 #       syma,symc,mmax,
 #       i,j,m,mm,i2,j2,dir
@@ -851,3 +853,5 @@ const gen_line_c_template = "$coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp
 #       coef_c,coef_c2,$i4,$j4
 #       slines
 #       genlines
+        return
+end
