@@ -808,3 +808,46 @@ function vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
     return vrrs[:,:,1]
 end
+
+# Starting to work on code generation
+const function_template = """
+function vrr_$syma$symc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        mmax = $mmax
+        vrrs = zeros(Float64,$asize,$csize,mmax)
+    
+        P = gaussian_product_center(aexpn,A,bexpn,B)
+        Q = gaussian_product_center(cexpn,C,dexpn,D)
+        zeta,eta = aexpn+bexpn,cexpn+dexpn
+        ze = zeta+eta
+        W = gaussian_product_center(zeta,P,eta,Q)
+        rab2 = dist2(A-B)
+        rcd2 = dist2(C-D)
+        rpq2 = dist2(P-Q)
+        T = zeta*eta*rpq2/ze
+        Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+        Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+        PA = P-A
+        WP = W-P
+        QC = Q-C
+        WQ = W-Q
+        
+        $slines
+        $genlines
+
+        return vrrs[:,:,1]
+end
+"""
+# may have to specify the variables further
+const s_line_template = "vrrs[$i,$j,$m] = Kab*Kcd*Fgamma($mm,T)/sqrt(ze)"
+const gen_line_template = "vrrs[$i,$j,$m] = ($PQAB[$dir])*vrrs[$i2,$j2,$m] + ($WPQ[$dir])*vrrs[$i2,$j2,$mp]"
+const gen_line_a_template = "$coef_a*vrrs[$i3,$j3,$mp]"
+const gen_line_c_template = "$coef_c*(vrrs[$i4,$j4,$m]-$coef_c2*vrrs[$i4,$j4,$mp])"
+"
+# here are the variables I've used:
+#       syma,symc,mmax,
+#       i,j,m,mm,i2,j2,dir
+#       PQAB,WPQ
+#       coef_a,i3,j3,mp
+#       coef_c,coef_c2,$i4,$j4
+#       slines
+#       genlines
