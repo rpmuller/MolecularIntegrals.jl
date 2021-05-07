@@ -230,6 +230,23 @@ function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     return -2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
 end
 
+# This is slower than Fgamma, below
+function fm_ref(m,T)
+    denom = (m + 0.5)
+    term = exp(-T) /2denom
+    old_term = 0.0
+    sum = term
+    eps = 1e-10 # magic number - set machine precision
+    while true
+        denom += 1
+        old_term = term
+        term = old_term * T / denom
+        sum += term
+        term > sum*eps || old_term < term || break
+    end
+    return sum
+end
+
 "Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18)
     mhalf = m+0.5
