@@ -1,7 +1,7 @@
 using MolecularIntegrals
 
-open("HGPgen_test.jl","w") do io
-    for amax in 0:2
+open("src/HGPgen3.jl","w") do io
+    for amax in 0:3
         for cmax in 0:(amax-1)
             f = MolecularIntegrals.vrr_autogen(amax,cmax)
             write(io,f)

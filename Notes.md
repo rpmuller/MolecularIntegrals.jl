@@ -1,4 +1,11 @@
 # Notes on changes to MolecularIntegrals.jl
+
+## 2021-05-06
+Got the code generation working for vrr. Doesn't flag any bugs
+that the vrr code didn't already flag, but it's certainly not
+tested sufficiently. Code is in `tools/generate_vrr.jl` and
+`HGP/vrr_autogen`.
+
 ## 2021-05-05
 Finished the vrr_dd code, but it's untested and I assume has lots
 of mistakes the code. It might be easier to write the autogen code

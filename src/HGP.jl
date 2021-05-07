@@ -155,7 +155,16 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_sd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 1
             return vrr_pd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 2
+            return vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
+    end
+    # Dispatch table is still much slower than the if/if block:
+    dispatch = Dict((0,0) => vrr_ss,(0,1)=> vrr_sp, (0,2)=> vrr_sd,
+                    (1,0) => vrr_ps,(1,1)=> vrr_pp, (1,2)=> vrr_pd,
+                    (2,0) => vrr_ds,(2,1)=> vrr_dp, (2,2)=> vrr_dd)
+    if (amax,cmax) in keys(dispatch)
+        return dispatch[amax,cmax](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     end
     =#
     vrrs = zeros(Float64,nao[amax],nao[cmax],mmax)
