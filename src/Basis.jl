@@ -246,7 +246,7 @@ function make_m2ao(lmax=4)
     return m2ao
 end
 function make_ao2m(lmax=4)
-    ao2m = []
+    ao2m = MVector{3, Int64}[]
     for l in 0:lmax
         for ms in shell_indices[l]
             push!(ao2m,ms)
@@ -326,5 +326,3 @@ function make_shift_index_plus()
     return shift_index
 end
 const shift_index_plus = make_shift_index_plus()
-
-index_values(a,i) = ao2m[a][i]
