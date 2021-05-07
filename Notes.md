@@ -7,6 +7,11 @@ difference in the performance.
 There is something wrong with the f-shell generated code. Seems to
 infinite loop.
 
+Actually, there isn't a problem with the f-shell, it just takes forever to compile, since those routines are >1kloc.
+
+For now, removing the generated code, and trying to speed 
+the rest.
+
 ## 2021-05-06
 Got the code generation working for vrr. Doesn't flag any bugs
 that the vrr code didn't already flag, but it's certainly not
