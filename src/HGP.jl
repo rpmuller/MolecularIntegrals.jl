@@ -56,7 +56,7 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += acoef*bcoef*ccoef*dcoef*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    cvrrs += (acoef*bcoef*ccoef*dcoef)*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
                 end
             end
         end
@@ -133,6 +133,7 @@ of aos in the `a+b` shell, and `m` is the number of aos in the
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
     # Removing hand-generated code and retiming:
+    #=
     if mmax == 1
         return vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     elseif cmax == 0
@@ -174,7 +175,6 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_ff(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
-    #=
     # Dispatch table is still much slower than the if/if block:
     dispatch = Dict((0,0) => vrr_ss,(0,1)=> vrr_sp, (0,2)=> vrr_sd,
                     (1,0) => vrr_ps,(1,1)=> vrr_pp, (1,2)=> vrr_pd,
@@ -222,15 +222,16 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         i = shift_direction[aplus]
         a = shift_index[aplus,i]
         lim = mmax-ashell
-        for m in 1:lim
-            vrrs[aplus,1,m] = PA[i]*vrrs[a,1,m] + WP[i]*vrrs[a,1,m+1]
-        end
         aminus = shift_index[a,i]
         if aminus > 0
-            a_i = 0.5*ooz*index_values(a,i)
+            a_i = 0.5*ooz*ao2m[a][i]
             for m in 1:lim
-                vrrs[aplus,1,m] += a_i*(vrrs[aminus,1,m]-eta*ooze*vrrs[aminus,1,m+1])
+                vrrs[aplus,1,m] = PA[i]*vrrs[a,1,m] + WP[i]*vrrs[a,1,m+1] + a_i*(vrrs[aminus,1,m]-eta*ooze*vrrs[aminus,1,m+1])
             end
+        else
+            for m in 1:lim
+                vrrs[aplus,1,m] = PA[i]*vrrs[a,1,m] + WP[i]*vrrs[a,1,m+1]
+            end    
         end
     end
 
@@ -246,23 +247,34 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         for a in 1:nao[amax]
             ashell = shell_number[a]    
             lim = mmax-cshell-ashell
-            for m in 1:lim
-                vrrs[a,cplus,m] = QC[i]*vrrs[a,c,m]+WQ[i]*vrrs[a,c,m+1]
-            end
             cminus = shift_index[c,i]
+            aminus = shift_index[a,i]
             if cminus > 0
-                c_i = 0.5*ooe*index_values(c,i)
+                c_i = 0.5*ooe*ao2m[c][i]
+                if aminus > 0
+                    a_i = 0.5*ooze*ao2m[a][i]
+                    for m in 1:lim
+                        vrrs[a,cplus,m] = QC[i]*vrrs[a,c,m]+WQ[i]*vrrs[a,c,m+1] + 
+                            a_i*vrrs[aminus,c,m+1] +
+                            c_i*(vrrs[a,cminus,m]-zeta*ooze*vrrs[a,cminus,m+1])
+                    end
+                else
+                    for m in 1:lim
+                        vrrs[a,cplus,m] = QC[i]*vrrs[a,c,m]+WQ[i]*vrrs[a,c,m+1] + 
+                            c_i*(vrrs[a,cminus,m]-zeta*ooze*vrrs[a,cminus,m+1])
+                    end
+                end
+            elseif aminus > 0
+                a_i = 0.5*ooze*ao2m[a][i]
                 for m in 1:lim
-                    vrrs[a,cplus,m] += c_i*(vrrs[a,cminus,m]-zeta*ooze*vrrs[a,cminus,m+1])
+                    vrrs[a,cplus,m] = QC[i]*vrrs[a,c,m]+WQ[i]*vrrs[a,c,m+1] + 
+                        a_i*vrrs[aminus,c,m+1]
+                end
+            else
+                for m in 1:lim
+                    vrrs[a,cplus,m] = QC[i]*vrrs[a,c,m]+WQ[i]*vrrs[a,c,m+1]
                 end
             end
-            aminus = shift_index[a,i]
-            if aminus > 0 
-                a_i = 0.5*ooze*index_values(a,i)
-                for m in 1:lim
-                    vrrs[a,cplus,m] += a_i*vrrs[aminus,c,m+1]
-                end
-            end                             
         end
     end
     return vrrs[:,:,1]
@@ -350,7 +362,7 @@ function vrr_autogen(amax,cmax)
         for m in 1:lim
             line = ["$(indent)vrrs[$aplus,1,$m] = PA[$i]*vrrs[$a,1,$m] + WP[$i]*vrrs[$a,1,$(m+1)]"]
             if aminus > 0
-                a_i = index_values(a,i)
+                a_i = ao2m[a][i]
                 #push!(line," +\n$indent$indent") # newline + indent
                 push!(line," + ") # append to old line
                 push!(line,"$a_i*0.5*ooz*(vrrs[$aminus,1,$m]-eta*ooze*vrrs[$aminus,1,$(m+1)])")
@@ -371,13 +383,13 @@ function vrr_autogen(amax,cmax)
             for m in 1:lim
                 line = ["$(indent)vrrs[$a,$cplus,$m] = QC[$i]*vrrs[$a,$c,$m] + WQ[$i]*vrrs[$a,$c,$(m+1)]"]
                 if cminus > 0
-                    c_i = index_values(c,i)
+                    c_i = ao2m[c][i]
                     #push!(line," +\n$indent$indent") # newline + indent
                     push!(line," + ") # append to old line
                     push!(line,"$c_i*0.5*ooe*(vrrs[$a,$cminus,$m]-zeta*ooze*vrrs[$a,$cminus,$(m+1)])")
                 end
                 if aminus > 0 
-                    a_i = index_values(a,i)
+                    a_i = ao2m[a][i]
                     #push!(line," +\n$indent$indent") # newline + indent
                     push!(line," + ") # append to old line
                     push!(line,"$a_i*0.5*ooze*vrrs[$aminus,$c,$(m+1)]")
