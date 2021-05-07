@@ -1,5 +1,12 @@
 # Notes on changes to MolecularIntegrals.jl
 
+## 2021-05-07
+Streamlined the codegen a bit to reduce flops, but not a huge 
+difference in the performance.
+
+There is something wrong with the f-shell generated code. Seems to
+infinite loop.
+
 ## 2021-05-06
 Got the code generation working for vrr. Doesn't flag any bugs
 that the vrr code didn't already flag, but it's certainly not
