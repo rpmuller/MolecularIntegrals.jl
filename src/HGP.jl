@@ -287,7 +287,116 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
      end
      return hrrs[1:nao[ashell],:,1:nao[cshell],:]
  end
-
+ 
+ """
+ vrr_autogen(amax,cmax)
+ 
+ Autogenerate the unbranched, unrolled vrr routine between shells
+ `amax` and `cmax`.
+ """
+ function vrr_autogen(amax,cmax)
+     mmax = amax+cmax+1
+     sa = llabel[amax]
+     sc = llabel[cmax]
+     indent = "   "
+     asize = nao[amax]
+     csize = nao[cmax]
+     lines = []
+     for m in 1:mmax
+         push!(lines,"$indent vrrs[1,1,$m] = Kab*Kcd*Fgamma($(m-1),T)/sqrt(ze)")
+     end
+     slines = join(lines,"\n")
+     
+     lines = []
+     for aplus in 2:nao[amax]
+         ashell = shell_number[aplus]
+         i = shift_direction[aplus]
+         a = shift_index[aplus,i]
+         lim = mmax-ashell
+         aminus = shift_index[a,i]
+         for m in 1:lim
+             line = ["$indent vrrs[$aplus,1,$m] = PA[$i]*vrrs[$a,1,$m] + WP[$i]*vrrs[$a,1,$(m+1)]"]
+             if aminus > 0
+                 a_i = index_values(a,i)
+                 push!(line," +\n$indent$indent")
+                 push!(line,"$a_i/2zeta*(vrrs[$aminus,1,$m]-eta/ze*vrrs[$aminus,1,$(m+1)])")
+             end
+             push!(lines,join(line,""))
+         end
+     end
+ 
+     for cplus in 2:nao[cmax]
+         cshell = shell_number[cplus]
+         i = shift_direction[cplus]
+         c = shift_index[cplus,i]
+         for a in 1:nao[amax]
+             ashell = shell_number[a]    
+             lim = mmax-cshell-ashell
+             cminus = shift_index[c,i]
+             aminus = shift_index[a,i]
+             for m in 1:lim
+                 line = ["$indent vrrs[$a,$cplus,$m] = QC[$i]*vrrs[$a,$c,$m] + WQ[$i]*vrrs[$a,$c,$(m+1)]"]
+                 if cminus > 0
+                     c_i = index_values(c,i)
+                     push!(line," +\n$indent$indent")
+                     push!(line,"$c_i/2eta*(vrrs[$a,$cminus,$m]-zeta/ze*vrrs[$a,$cminus,$(m+1)])")
+                 end
+                 if aminus > 0 
+                     a_i = index_values(a,i)
+                     push!(line," +\n$indent$indent")
+                     push!(line,"$a_i/2ze*vrrs[$aminus,$c,$(m+1)]")
+                 end
+                 push!(lines,join(line,""))
+             end                             
+         end
+     end
+     glines = join(lines,"\n")
+  
+     function_template = """
+ "
+ vrr_$sa$sc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+ 
+ Use Head-Gordon/Pople's vertical recurrence relations to compute
+ an array of two-electron integrals.
+ 
+ `A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+ `aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+ 
+ This is an auto generated routine specific to when the A shell 
+ has $sa-type angular momentum, and the C shell has $sc-type
+ angular momentum.
+ "
+ function vrr_$sa$sc(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+     mmax = $mmax
+     vrrs = zeros(Float64,$asize,$csize,mmax)
+     
+     P = gaussian_product_center(aexpn,A,bexpn,B)
+     Q = gaussian_product_center(cexpn,C,dexpn,D)
+     zeta,eta = aexpn+bexpn,cexpn+dexpn
+     ze = zeta+eta
+     W = gaussian_product_center(zeta,P,eta,Q)
+     rab2 = dist2(A-B)
+     rcd2 = dist2(C-D)
+     rpq2 = dist2(P-Q)
+     T = zeta*eta*rpq2/ze
+     Kab = sqrt(2)pi^1.25/zeta*exp(-aexpn*bexpn*rab2/zeta)
+     Kcd = sqrt(2)pi^1.25/eta*exp(-cexpn*dexpn*rcd2/eta)
+     PA = P-A
+     WP = W-P
+     QC = Q-C
+     WQ = W-Q
+ 
+ $slines
+ 
+ $glines
+ 
+     return vrrs[:,:,1]
+ end
+ """
+ 
+     return function_template
+ end
+ 
  #= Works in progress:
  function vrr_shell_recursive(amax,cmax,mmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     P = gaussian_product_center(aexpn,A,bexpn,B)
@@ -431,3 +540,4 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return prunem(values)
 end
 =#
+
