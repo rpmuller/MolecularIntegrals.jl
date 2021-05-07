@@ -140,8 +140,8 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 2
             return vrr_ds(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        #elseif amax == 3
-        #    return vrr_fs(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 3
+            return vrr_fs(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     elseif cmax == 1
         if amax == 0
@@ -150,8 +150,8 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 2
             return vrr_dp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        #elseif amax == 3
-        #    return vrr_fp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 3
+            return vrr_fp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     elseif cmax == 2
         if amax == 0
@@ -160,10 +160,9 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             return vrr_pd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 2
             return vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        #elseif amax == 3
-        #    return vrr_fd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+        elseif amax == 3
+            return vrr_fd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
-    #=
     elseif cmax == 3
         if amax == 0
             return vrr_sf(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
@@ -174,7 +173,6 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         elseif amax == 3
             return vrr_ff(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
-    =#
     end
     #=
     # Dispatch table is still much slower than the if/if block:
