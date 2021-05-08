@@ -56,7 +56,12 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs)
             for (cexpn,ccoef) in zip(csh.expns,csh.coefs)
                 for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs)
-                    cvrrs += (acoef*bcoef*ccoef*dcoef)*vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    vrrs = vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+                    for i in 1:nao[amax]
+                        for j in 1:nao[cmax]
+                            cvrrs[i,j] += (acoef*bcoef*ccoef*dcoef)*vrrs[i,j]
+                        end
+                    end
                 end
             end
         end
@@ -82,7 +87,11 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     vrrs = cvrr(ash,bsh,csh,dsh) 
     hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
-    hrrs[:,1,:,1] = vrrs[:,:] 
+    for i in 1:nao[ashell+bshell]
+        for j in 1:nao[cshell+dshell]
+            hrrs[i,1,j,1] = vrrs[i,j]
+        end
+    end
 
     # First build (ab,c0) from (a0,c0)
     for bplus in 2:nao[bshell]
@@ -93,26 +102,27 @@ function chrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
             aplus = shift_index_plus[a,j]
             for c in 1:nao[cshell+dshell] 
                 hrrs[a,bplus,c,1] = hrrs[aplus,b,c,1] + (A[j]-B[j])*hrrs[a,b,c,1]
-             end
-         end
-     end
+            end
+        end
+    end
 
      # now build (ab,cd) from (ab,c0)
-     for dplus in 2:nao[dshell]
-        j = shift_direction[dplus]
-        d = shift_index[dplus,j]
-        ds = shell_number[d]
-        for c in 1:nao[cshell+dshell-ds-1] 
-            cplus = shift_index_plus[c,j]
-            for a in 1:nao[ashell]
-                for b in 1:nao[bshell]
-                    hrrs[a,b,c,dplus] = hrrs[a,b,cplus,d] +(C[j]-D[j])*hrrs[a,b,c,d]
-                 end
-             end
-         end
-     end
-     return hrrs[1:nao[ashell],:,1:nao[cshell],:]
- end
+    for dplus in 2:nao[dshell]
+       j = shift_direction[dplus]
+       d = shift_index[dplus,j]
+       ds = shell_number[d]
+       for c in 1:nao[cshell+dshell-ds-1] 
+           cplus = shift_index_plus[c,j]
+           for a in 1:nao[ashell]
+               for b in 1:nao[bshell]
+                   hrrs[a,b,c,dplus] = hrrs[a,b,cplus,d] +(C[j]-D[j])*hrrs[a,b,c,d]
+                end
+            end
+        end
+    end
+    #return hrrs[1:nao[ashell],:,1:nao[cshell],:]
+    return hrrs
+end
 
 
 """
@@ -196,7 +206,7 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     rcd2 = dist2(C-D)
     rpq2 = dist2(P-Q)
     T = zeta*eta*rpq2*ooze
-    KabKcd_rtze = 2pi*pi*sqrt(pi)*ooze*exp(-aexpn*bexpn*rab2*ooz-cexpn*dexpn*rcd2*ooe)*oortze
+    KabKcd_rtze = 2pi*pi*sqrt(pi)*ooze*oortze*exp(-aexpn*bexpn*rab2*ooz-cexpn*dexpn*rcd2*ooe)
     PA = P-A
     WP = W-P
     QC = Q-C
@@ -298,7 +308,11 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     # Get the relevant vrr terms. 
      vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
      hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
-     hrrs[:,1,:,1] = vrrs[:,:] 
+     for i in 1:nao[ashell+bshell]
+        for j in 1:nao[cshell+dshell]
+            hrrs[i,1,j,1] = vrrs[i,j]
+        end
+    end
  
      # First build (ab,c0) from (a0,c0)
      for bplus in 2:nao[bshell]
