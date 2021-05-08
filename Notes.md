@@ -1,4 +1,10 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-08
+Played around a little bit with the generated code dispatch table, and
+even [asked a question on the Julia list](https://discourse.julialang.org/t/how-do-i-make-a-dispatch-table-using-multiple-dispatch-instead-of-dict/60784), 
+but didn't succeed in making the code fast.
+
+Working on a Pluto notebook for calculating `Fgamma` faster.
 
 ## 2021-05-07
 Streamlined the codegen a bit to reduce flops, but not a huge 

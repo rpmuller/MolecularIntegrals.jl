@@ -173,7 +173,7 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         end
     end
     # Dispatch table is still much slower than the if/if block:
-    dispatch = Dict((0,0) => vrr_ss,(0,1)=> vrr_sp, (0,2)=> vrr_sd,
+    dispatch = Dict{Tuple{Int,Int},Any}((0,0) => vrr_ss,(0,1)=> vrr_sp, (0,2)=> vrr_sd,
                     (1,0) => vrr_ps,(1,1)=> vrr_pp, (1,2)=> vrr_pd,
                     (2,0) => vrr_ds,(2,1)=> vrr_dp, (2,2)=> vrr_dd)
     if (amax,cmax) in keys(dispatch)
