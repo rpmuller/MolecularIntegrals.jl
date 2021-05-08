@@ -230,7 +230,7 @@ function nuclear_attraction(aexpn,axyz,aI,aJ,aK,bexpn,bxyz,bI,bJ,bK,cxyz)
     return -2pi*exp(-aexpn*bexpn*rab2/gamma)*total/gamma
 end
 
-# This is slower than Fgamma, below
+# This is the ref function from libint, which is slower than Fgamma, below
 function fm_ref(m,T)
     denom = (m + 0.5)
     term = exp(-T) /2denom
@@ -248,10 +248,16 @@ function fm_ref(m,T)
 end
 
 "Boys Fgamma function, using the lower incomplete gamma function."
-function Fgamma(m,x,SMALL=1e-18)
+function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0) 
+    # Note, most programs use a much larger value for Tcrit (117)
     mhalf = m+0.5
     x = max(x,SMALL) # Evidently needs underflow protection
-    return 0.5*x^-mhalf*gammainc(mhalf,x)
+    if x>Tcrit 
+        retval = sqrt(pi/2)*factorial2(2m-1)/(2x)^mhalf
+    else
+        retval = 0.5*x^-mhalf*gammainc(mhalf,x)
+    end
+    return retval
 end
 
 "gammainc returns the lower incomplete gamma function"
