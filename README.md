@@ -11,13 +11,18 @@ There are many excellent molecular integral packages available to Julia programm
 
 The code is released under a [MIT License](LICENSE.md).
 
-## Starting points
-MolecularIntegrals.jl will do its best to leverage the wonderful work done by many similar projects:
+If you're only interested in *using* molecular integral code, we highly recommend using one of these existing projects:
 
 - [libints](https://github.com/evaleev/libint) and its Julia bindings [Lints.jl](https://github.com/FermiQC/Lints.jl)
 - [Pyscf](https://github.com/pyscf/pyscf), the [libcint](https://github.com/sunqm/libcint) package.
 - [JuliaChem.jl](https://github.com/davpoolechem/JuliaChem.jl)'s [JERI bindings](https://github.com/davpoolechem/JuliaChem.jl/tree/development/deps/src)
-- [PyQuante](https://github.com/rpmuller/pyquante2)'s [python](https://github.com/rpmuller/pyquante2/tree/master/pyquante2/ints) and [c/cython](https://github.com/rpmuller/pyquante2/tree/master/cython) integrals, and the experimental [Julia version](https://github.com/rpmuller/pyquante2/tree/master/julia)
+
+Briefly, the `libints` packages implement Obara-Saiko and Head-Gordon/Pople recurrence relations, and the `libcints` packages implement 
+Rys quadrature based methods. Both are excellent, and, more importantly, are well-tested by being used in many current projects.
+
+What we hope `MolecularIntegrals.jl` will provide is simple, easily understandable methods that are nonetheless 
+fast enough for production use and that will be valuable for people interested in understanding 
+how these integration techniques work, and in modifying and improving them.
 
 
 ## Timing comparison
