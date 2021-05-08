@@ -12,6 +12,10 @@ Actually, there isn't a problem with the f-shell, it just takes forever to compi
 For now, removing the generated code, and trying to speed 
 the rest.
 
+Actually got the regular non-generated code to be much faster 
+than the generated code. Much of this came from specifying
+a type for ao2m[].
+
 ## 2021-05-06
 Got the code generation working for vrr. Doesn't flag any bugs
 that the vrr code didn't already flag, but it's certainly not
