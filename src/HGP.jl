@@ -241,10 +241,10 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         cshell = shell_number[cplus]
         i = shift_direction[cplus]
         c = shift_index[cplus,i]
+        cminus = shift_index[c,i]
         for a in 1:nao[amax]
             ashell = shell_number[a]    
             lim = mmax-cshell-ashell
-            cminus = shift_index[c,i]
             aminus = shift_index[a,i]
             if cminus > 0
                 c_i = 0.5*ooe*ao2m[c][i]
