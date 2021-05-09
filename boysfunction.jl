@@ -168,9 +168,9 @@ the integral in this range.
 
 Equation 39 in [^GJP] gives the following formula for Δ to generate an approximation of ε:
 
-$ \Delta = \left[\frac{2^n(n+1)!\varepsilon}{\max|f^{n+1}(X)|}\right]^{1/(n+1)}$
+$ \Delta = \left[\frac{2^n(n+1)!\varepsilon}{\max|f^{(n+1)}(X)|}\right]^{1/(n+1)}$
 
-Taking $\max|f|=1$, we can implement this as:
+(I think the following is wrong. Upon further reading, I think the exponent of $f$ represent the derivative, not a power.) Taking $\max|f|=1$, we can implement this as:
 "
 
 # ╔═╡ 95b9df90-5c41-40b0-b512-12b3f2faa4bf
@@ -207,6 +207,19 @@ This changes the integrand to:
 # ╔═╡ dfa027f3-bf56-427b-97c9-129e7a16eda2
 function integrandx(m,T)
 	fm(x) = (x/2+0.5)^2m*exp(-T*(x/2+0.5)^2)
+end
+
+# ╔═╡ 431a3f4e-e50e-428a-8845-a1482ca058c0
+md"Double-check that these still look right when plotted against [-1,1]:"
+
+# ╔═╡ 97da2c4f-e816-4687-86a6-e33ae0e733b3
+begin
+	plot(integrandx(0,0),-1,1,label="F0(0)")
+	plot!(integrandx(0,10),-1,1,label="F0(10)")
+	plot!(integrandx(1,0),-1,1,label="F1(0)")
+	plot!(integrandx(1,10),-1,1,label="F1(10)")
+	plot!(integrandx(10,0),-1,1,label="F10(0)")
+	plot!(integrandx(10,10),-1,1,label="F10(10)")
 end
 
 # ╔═╡ e2dc8eed-5a2f-4b5d-b148-7793732eba77
@@ -248,11 +261,13 @@ md"
 # ╟─85a7951e-02cb-46da-8347-35b74f617567
 # ╠═2547855a-4be1-4f0a-bda6-7a415560a741
 # ╟─6e134f8a-177a-453a-aed6-df0efe9f6059
-# ╟─a9b6139e-4c85-4c15-b12c-ac08dd7fe887
+# ╠═a9b6139e-4c85-4c15-b12c-ac08dd7fe887
 # ╠═95b9df90-5c41-40b0-b512-12b3f2faa4bf
 # ╠═8b3933c8-12bc-4684-85dd-5c94f0ebe02d
 # ╠═4a674256-9e4f-40e3-88cf-57639dc46e0c
 # ╟─d457c4b6-a9fa-43f9-a138-423387beb82f
 # ╟─e5e0f24b-2752-4682-bec7-b850d5c6c0af
 # ╠═dfa027f3-bf56-427b-97c9-129e7a16eda2
+# ╟─431a3f4e-e50e-428a-8845-a1482ca058c0
+# ╠═97da2c4f-e816-4687-86a6-e33ae0e733b3
 # ╠═e2dc8eed-5a2f-4b5d-b148-7793732eba77
