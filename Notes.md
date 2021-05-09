@@ -1,4 +1,19 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-08
+Played around a little bit with the generated code dispatch table, and
+even [asked a question on the Julia list](https://discourse.julialang.org/t/how-do-i-make-a-dispatch-table-using-multiple-dispatch-instead-of-dict/60784), 
+but didn't succeed in making the code fast.
+
+Working on a Pluto notebook for calculating `Fgamma` faster. 
+
+Experimented with LoopVectorization.jl/@avx to speed up the inner loops in vrr.
+It uniformly slowed everything down, which I think means that these just aren't
+big enough. Removed.
+
+Also tried to see whether @inbounds would speed things up. It didn't. Removed.
+
+Guess I really need to make Fgamma faster. Moved the stock Fgamma code to using 
+the asymptotic version when x is large. Sped things up maybe 10%.
 
 ## 2021-05-07
 Streamlined the codegen a bit to reduce flops, but not a huge 
@@ -11,6 +26,10 @@ Actually, there isn't a problem with the f-shell, it just takes forever to compi
 
 For now, removing the generated code, and trying to speed 
 the rest.
+
+Actually got the regular non-generated code to be much faster 
+than the generated code. Much of this came from specifying
+a type for ao2m[].
 
 ## 2021-05-06
 Got the code generation working for vrr. Doesn't flag any bugs
