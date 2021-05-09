@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.1
+# v0.14.5
 
 using Markdown
 using InteractiveUtils
@@ -94,6 +94,13 @@ begin
 	plot!(x1,Fasymp.(2,x1)-fm_ref.(2,x1),label="Err2(T)")
 end
 
+# ╔═╡ 71cdeb54-3ed4-4766-b381-f73190a92b11
+md"In the current (5/9/2021) version of the code I have the cutoff set at `Tcrit=20`,
+and values lower than this lead to test cases failing. It's important to note that
+most other codes have this value set very high (`Tcrit=117`), but I believe this is
+also to insure that the downward recursion can be performed assuming that
+$\exp(-T)$ is small."
+
 # ╔═╡ 6821afd0-d2eb-4e84-9ef4-f7512b45387b
 md"The asymptotic approximation should be a lot faster. Let's see how much. Here's the time of the nearly exact approximation:"
 
@@ -147,6 +154,7 @@ md"Using `rtol=1e-4` (which actually reports a error bound of 3.8e-7), we can in
 # ╠═f83eaace-d16c-46ba-adcd-9545e326e54c
 # ╟─1ba537d0-9b98-4cce-b2b8-3dec55fe010b
 # ╠═ef11111a-bbb1-4da4-8f1a-84a3794f6562
+# ╟─71cdeb54-3ed4-4766-b381-f73190a92b11
 # ╟─6821afd0-d2eb-4e84-9ef4-f7512b45387b
 # ╟─64b18a29-083e-4e34-945f-c3f190c179fa
 # ╟─42c6c2c7-6489-4c77-a803-261e8a619ae5
