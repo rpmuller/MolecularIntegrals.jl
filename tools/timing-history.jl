@@ -22,7 +22,9 @@ end
 plot(days,seconds,yaxis=:log,xlabel="Days",ylabel="Seconds",title="Benchmark speed for Ethane/6-31G Integrals",label=false)
 
 # ╔═╡ 59ebedbe-b0c9-439b-bec6-a0aa094e6c84
-md"Here's how to do this using dates instead of days"
+md"Here's how to do this using dates instead of days. You need to define a 
+date format object to parse the dates properly. If you don't specify a year,
+it sets it arbitrarily to 0001, so it's less work just to add years."
 
 # ╔═╡ 0cd27fa0-2e58-4754-973a-66d758560dbc
 df = DateFormat("m/d/y")
