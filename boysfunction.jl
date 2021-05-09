@@ -13,6 +13,9 @@ using BenchmarkTools
 # ╔═╡ 7d206253-167e-42e0-9181-3cfe94a83b43
 using QuadGK
 
+# ╔═╡ eaa38687-7ffc-487d-9f55-e671939ec4f4
+
+
 # ╔═╡ 29c80c8a-afa1-11eb-34ad-43d1456634ee
 md"# Approximating the Boys function for electron repulsion integrals
 Rick Muller, Sandia National Labs
@@ -118,28 +121,105 @@ Let's time the asymptotic value:"
 # ╔═╡ 90ca75fe-a933-4cad-8b88-ace5358f3104
 md"Comes in at 1-2 nsec. Much faster."
 
+# ╔═╡ e5548098-0d8a-4b66-8be6-1ecce6fbf332
+md"## Numerical Integration: Plotting the integrand.
+Most of the fast methods of approximating the Boys function involve clever uses 
+of numerical integration. To get a feeling for what kinds of resolution such an integration needs, let's look at the integrand that we will integrate:"
+
+# ╔═╡ e6c91380-d452-4619-9eef-0812d7e1745b
+function integrand(m,T)
+	fm(u) = u^2m*exp(-T*u*u)
+end
+
+# ╔═╡ 71e52559-6499-42f0-90a5-ebfd410f1fdb
+begin
+	plot(integrand(0,0),0,1,label="F0(0)")
+	plot!(integrand(0,10),0,1,label="F0(10)")
+	plot!(integrand(1,0),0,1,label="F1(0)")
+	plot!(integrand(1,10),0,1,label="F1(10)")
+	plot!(integrand(10,0),0,1,label="F1(0)")
+	plot!(integrand(10,10),0,1,label="F1(10)")
+end
+
+# ╔═╡ 818cf4ac-085c-42a5-ba25-cda1c1c78226
+md"The good news is that these are all smooth and should be straightforward to integrate numerically. I can see why people thought of Chebyshev interpolation for these functions."
+
 # ╔═╡ 971a389c-421f-479f-9942-f7fc71ae988b
 md"
 ## Naive numerical approximation using `QuadGK`
-Most of the fast methods of approximating the Boys function involve clever uses 
-of numerical integration. To start out, let's just use a canned numerical integration 
-scheme from the `QuadGK` Julia module to set a baseline:"
-
-# ╔═╡ e6c91380-d452-4619-9eef-0812d7e1745b
-function ffactory(m,T)
-	fm(u) = u^2m*exp(-T*u*u)
-end
+Let's just use a canned numerical integration 
+scheme from the `QuadGK` Julia module to set a baseline for the more sophisticated approaches."
 
 # ╔═╡ 85a7951e-02cb-46da-8347-35b74f617567
 md"We need to pass in a lower `rtol` so that we can integrate faster."
 
 # ╔═╡ 2547855a-4be1-4f0a-bda6-7a415560a741
-@btime quadgk(ffactory(1,10),0,1,rtol=1e-4)
+@btime quadgk(integrand(1,10),0,1,rtol=1e-4)
 
 # ╔═╡ 6e134f8a-177a-453a-aed6-df0efe9f6059
 md"Using `rtol=1e-4` (which actually reports a error bound of 3.8e-7), we can integrate this in ~240 nsec. It's faster, but not dramatically so."
 
+# ╔═╡ a9b6139e-4c85-4c15-b12c-ac08dd7fe887
+md"## Chebyshev interpolation and integration
+
+The method that Gill, Johnson, and Pople [^GJP] use is to divide the interval
+into widths of 2Δ, and to use a polynomial interpolation technique to approximate
+the integral in this range.
+
+Equation 39 in [^GJP] gives the following formula for Δ to generate an approximation of ε:
+
+$ \Delta = \left[\frac{2^n(n+1)!\varepsilon}{\max|f^{n+1}(X)|}\right]^{1/(n+1)}$
+
+Taking $\max|f|=1$, we can implement this as:
+"
+
+# ╔═╡ 95b9df90-5c41-40b0-b512-12b3f2faa4bf
+delta(n,eps=1e-6) = (2^n*factorial(n+1)*eps)^(1/(n+1))
+
+# ╔═╡ 8b3933c8-12bc-4684-85dd-5c94f0ebe02d
+delta(3)
+
+# ╔═╡ 4a674256-9e4f-40e3-88cf-57639dc46e0c
+delta(7)
+
+# ╔═╡ d457c4b6-a9fa-43f9-a138-423387beb82f
+md"## Clenshaw-Curtis quadrature
+[^GJP]'s method of integrating a Chebyshev expansion looks to be equivalent to 
+[Clenshaw-Curtis quadrature](https://en.wikipedia.org/wiki/Clenshaw%E2%80%93Curtis_quadrature)[^CCQ].
+
+The Julia module `FastTransforms.jl`[^FTjl] provides nodes and weights for Clenshaw-Curtis quadrature.
+"
+
+# ╔═╡ e5e0f24b-2752-4682-bec7-b850d5c6c0af
+md"What if we just try to integrate the [0,1] interval in a single integration step, instead of breaking the integral into Δ-sized pieces?
+
+First, we need to change the interval from [0,1] to [-1,1], via x=2u-1 ⇒ u→(x+1)/2, du→dx/2. This means the integrand goes from
+
+$Fm(T)=\int_0^1 u^{2m}\exp(-Tu^2)du$
+
+to
+
+$Fm(T)=\frac{1}{2}\int_{-1}^1 (x/2+1/2)^{2m}\exp(-T(x/2+1/2)^2)du$
+
+This changes the integrand to:
+"
+
+# ╔═╡ dfa027f3-bf56-427b-97c9-129e7a16eda2
+function integrandx(m,T)
+	fm(x) = (x/2+0.5)^2m*exp(-T*(x/2+0.5)^2)
+end
+
+# ╔═╡ e2dc8eed-5a2f-4b5d-b148-7793732eba77
+md"
+## References
+
+[^GJP]: Two-Electron Repulsion Integrals Over Gaussian s Functions, IJQC, 40, 745, 1991.
+[^CCQ]: [Wikipedia: Clenshaw-Curtis quadrature](https://en.wikipedia.org/wiki/Clenshaw%E2%80%93Curtis_quadrature).
+[^FTjl]: [FastTransforms.jl](https://juliaapproximation.github.io/FastTransforms.jl/v0.2.0/)
+"
+
 # ╔═╡ Cell order:
+# ╠═eaa38687-7ffc-487d-9f55-e671939ec4f4
 # ╟─29c80c8a-afa1-11eb-34ad-43d1456634ee
 # ╠═54e259b0-23ba-4605-8236-c8ff05889aba
 # ╠═9d4250e3-4b5d-4af7-86b7-57da81bda6d4
@@ -160,8 +240,19 @@ md"Using `rtol=1e-4` (which actually reports a error bound of 3.8e-7), we can in
 # ╟─42c6c2c7-6489-4c77-a803-261e8a619ae5
 # ╠═df1383d2-cc02-447c-840a-86d66b48cbab
 # ╟─90ca75fe-a933-4cad-8b88-ace5358f3104
-# ╟─971a389c-421f-479f-9942-f7fc71ae988b
+# ╟─e5548098-0d8a-4b66-8be6-1ecce6fbf332
 # ╠═e6c91380-d452-4619-9eef-0812d7e1745b
+# ╠═71e52559-6499-42f0-90a5-ebfd410f1fdb
+# ╟─818cf4ac-085c-42a5-ba25-cda1c1c78226
+# ╠═971a389c-421f-479f-9942-f7fc71ae988b
 # ╟─85a7951e-02cb-46da-8347-35b74f617567
 # ╠═2547855a-4be1-4f0a-bda6-7a415560a741
 # ╟─6e134f8a-177a-453a-aed6-df0efe9f6059
+# ╟─a9b6139e-4c85-4c15-b12c-ac08dd7fe887
+# ╠═95b9df90-5c41-40b0-b512-12b3f2faa4bf
+# ╠═8b3933c8-12bc-4684-85dd-5c94f0ebe02d
+# ╠═4a674256-9e4f-40e3-88cf-57639dc46e0c
+# ╟─d457c4b6-a9fa-43f9-a138-423387beb82f
+# ╟─e5e0f24b-2752-4682-bec7-b850d5c6c0af
+# ╠═dfa027f3-bf56-427b-97c9-129e7a16eda2
+# ╠═e2dc8eed-5a2f-4b5d-b148-7793732eba77
