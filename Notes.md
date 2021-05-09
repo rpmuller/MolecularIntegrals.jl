@@ -10,6 +10,11 @@ Experimented with LoopVectorization.jl/@avx to speed up the inner loops in vrr.
 It uniformly slowed everything down, which I think means that these just aren't
 big enough. Removed.
 
+Also tried to see whether @inbounds would speed things up. It didn't. Removed.
+
+Guess I really need to make Fgamma faster. Moved the stock Fgamma code to using 
+the asymptotic version when x is large. Sped things up maybe 10%.
+
 ## 2021-05-07
 Streamlined the codegen a bit to reduce flops, but not a huge 
 difference in the performance.
