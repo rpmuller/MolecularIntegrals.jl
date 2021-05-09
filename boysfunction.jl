@@ -137,8 +137,8 @@ begin
 	plot!(integrand(0,10),0,1,label="F0(10)")
 	plot!(integrand(1,0),0,1,label="F1(0)")
 	plot!(integrand(1,10),0,1,label="F1(10)")
-	plot!(integrand(10,0),0,1,label="F1(0)")
-	plot!(integrand(10,10),0,1,label="F1(10)")
+	plot!(integrand(10,0),0,1,label="F10(0)")
+	plot!(integrand(10,10),0,1,label="F10(10)")
 end
 
 # ╔═╡ 818cf4ac-085c-42a5-ba25-cda1c1c78226
