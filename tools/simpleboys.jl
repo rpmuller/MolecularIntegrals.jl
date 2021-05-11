@@ -195,48 +195,43 @@ end
 md"""
 ## Plot of multiple Fm(T) values
 
-Let's generalize this process a bit. 
+Plot the family of m values on a semilog-y plot. Very regular behavior:
 """
 
 # ╔═╡ 3923126f-93be-48f2-bd37-3ef50588ff47
 begin
-	plot(rs,fboys.(0,rs))
-	plot!(rs,fboys.(1,rs))
-	plot!(rs,fboys.(2,rs))
-	plot!(rs,fboys.(3,rs))
-	plot!(rs,fboys.(4,rs))
-	plot!(rs,fboys.(5,rs))
-	plot!(rs,fboys.(6,rs))
+	rs4 = 0:0.1:10
+	plot(rs4,fboys.(0,rs4),yaxis=:log,legend=false)
+	plot!(rs4,fboys.(1,rs4))
+	plot!(rs4,fboys.(2,rs4))
+	plot!(rs4,fboys.(3,rs4))
+	plot!(rs4,fboys.(4,rs4))
+	plot!(rs4,fboys.(5,rs4))
+	plot!(rs4,fboys.(6,rs4))
 end
 
 # ╔═╡ eb05a798-8eb2-4ff1-b88f-b58babe64891
-boysdecay(T,m) = prod((2m-1):-2:1)/fboys(m,T) - (2T)^(m+0.5)/sqrt(pi/2);
+denom(T,m) = prod((2m-1):-2:1)/fboys(m,T);
 
-# ╔═╡ 7023c918-04ee-45da-8f5d-daca68ba0930
+# ╔═╡ 08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
 begin
-	plot(rs,boysdecay.(rs,0))
-	plot!(rs,boysdecay.(rs,1))
-	plot!(rs,boysdecay.(rs,2))
-	plot!(rs,boysdecay.(rs,3))
-	plot!(rs,boysdecay.(rs,4))
-	plot!(rs,boysdecay.(rs,5))
-	plot!(rs,boysdecay.(rs,6))
-	plot!(rs,boysdecay.(rs,7))
-	plot!(rs,boysdecay.(rs,8))
-	plot!(rs,boysdecay.(rs,9))
+	let rs4 = 0:0.1:5
+	plot(rs4,denom.(0,rs4),legend=false)
+	#plot!(rs4,denom.(1,rs4))
+	#plot!(rs4,denom.(2,rs4))
+	#plot!(rs4,denom.(3,rs4))
+	#plot!(rs4,denom.(4,rs4))
+	#plot!(rs4,denom.(5,rs4))
+	#plot!(rs4,denom.(6,rs4))
+	end
 end
-	
 
-# ╔═╡ bbac1813-8a6f-4984-828a-a51cc577f730
-md"""
-I can certainly fit this to a spline, but I feel like I'm missing a term or two. Part of the problem is that since `fboys` goes to zero so quickly for `m>1`, the residue
-becomes large quickly.
-"""
+# ╔═╡ 3d0a6144-7a1f-4aef-8897-572bb584dac8
+md"
+The bumps have to be an artifact, right?
 
-# ╔═╡ 022cc892-63d4-4c01-9b55-66017d1d90b8
-md"On the other hand, we could always just interpolate the Boys function directly.
-I guess the advantage of interpolating the decay function is that once it's zero,
-it doesn't really matter how much faster it decays."
+Ultimately we're looking for a function that smoothly goes from a to $x^n$
+"
 
 # ╔═╡ 44107e8f-116c-475f-b6d4-2b5aecc2f1e8
 md"""
@@ -249,7 +244,7 @@ md"""
 
 # ╔═╡ Cell order:
 # ╟─6b21238e-f8de-4c77-9c86-9dbd4691b6f5
-# ╠═4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
+# ╟─4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 # ╠═8a736133-17f2-446d-9ab5-4bc46bdd556b
 # ╟─bf014265-210c-412f-9af4-5a654f557de9
 # ╟─d8061039-367c-42ee-8a65-a32dca37fc67
@@ -273,7 +268,6 @@ md"""
 # ╠═d526caa1-ff7e-4ec5-ab59-2a10e9ad9c5e
 # ╠═3923126f-93be-48f2-bd37-3ef50588ff47
 # ╠═eb05a798-8eb2-4ff1-b88f-b58babe64891
-# ╠═7023c918-04ee-45da-8f5d-daca68ba0930
-# ╠═bbac1813-8a6f-4984-828a-a51cc577f730
-# ╠═022cc892-63d4-4c01-9b55-66017d1d90b8
+# ╠═08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
+# ╠═3d0a6144-7a1f-4aef-8897-572bb584dac8
 # ╠═44107e8f-116c-475f-b6d4-2b5aecc2f1e8
