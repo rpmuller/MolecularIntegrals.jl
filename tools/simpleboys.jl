@@ -4,19 +4,16 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ 6b21238e-f8de-4c77-9c86-9dbd4691b6f5
-begin
-	# Imports
-	using Plots
-end
+# ╔═╡ f80fd13d-207a-458a-b326-77256fe946e0
+using Plots
+
+# ╔═╡ bda0f8d4-5ab0-4c65-9d79-71ccbfe8dd3a
+using SpecialFunctions
 
 # ╔═╡ 4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 md"""
 # Simple questions and simple answers about the Boys function
 Rick Muller
-
-## TODOs
-- [ ] Redo this with the special function version of the Boys function.
 
 A large part of electronic structure theory lies in computing the repulsive
 interaction between electrons, and a large part of electron repulsion 
@@ -79,6 +76,27 @@ function fboys(m,T,eps = 1e-10)
     end
     return sum
 end;
+
+# ╔═╡ 1a0bffb2-8656-44db-b3b3-6cf6b2494b7c
+md"This is the version that uses the gamma function:"
+
+# ╔═╡ b6b757ad-7fca-46c5-b42f-20f94ae4cbd7
+"gammainc returns the lower incomplete gamma function"
+gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
+
+# ╔═╡ 145a0007-b8d7-46a1-9cb8-ee063057527c
+"Boys Fgamma function, using the lower incomplete gamma function."
+function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0) 
+    # Note, most programs use a much larger value for Tcrit (117)
+    mhalf = m+0.5
+    x = max(x,SMALL) # Evidently needs underflow protection
+    if x>Tcrit 
+        retval = sqrt(pi/2)*factorial2(2m-1)/(2x)^mhalf
+    else
+        retval = 0.5*x^-mhalf*gammainc(mhalf,x)
+    end
+    return retval
+end
 
 # ╔═╡ f6fa9869-b454-458d-95e3-818a9112cc52
 md"""
@@ -211,27 +229,23 @@ begin
 end
 
 # ╔═╡ eb05a798-8eb2-4ff1-b88f-b58babe64891
-denom(T,m) = prod((2m-1):-2:1)/fboys(m,T);
+denom(T,m) = 1/fboys(m,T);
+
+# ╔═╡ 84df8774-a1f6-49f7-b84f-c1482b51dd9f
+denomg(T,m) = 1/Fgamma(m,T);
 
 # ╔═╡ 08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
 begin
 	let rs4 = 0:0.1:5
-	plot(rs4,denom.(0,rs4),legend=false)
-	#plot!(rs4,denom.(1,rs4))
-	#plot!(rs4,denom.(2,rs4))
-	#plot!(rs4,denom.(3,rs4))
-	#plot!(rs4,denom.(4,rs4))
-	#plot!(rs4,denom.(5,rs4))
-	#plot!(rs4,denom.(6,rs4))
+	plot(rs4,denom.(0,rs4),yaxis=:log,legend=false)
+	plot!(rs4,denom.(1,rs4))
+	plot!(rs4,denom.(2,rs4))
+	plot!(rs4,denom.(3,rs4))
+	plot!(rs4,denom.(4,rs4))
+	plot!(rs4,denom.(5,rs4))
+	plot!(rs4,denom.(6,rs4))
 	end
 end
-
-# ╔═╡ 3d0a6144-7a1f-4aef-8897-572bb584dac8
-md"
-The bumps have to be an artifact, right?
-
-Ultimately we're looking for a function that smoothly goes from a to $x^n$
-"
 
 # ╔═╡ 44107e8f-116c-475f-b6d4-2b5aecc2f1e8
 md"""
@@ -243,12 +257,16 @@ md"""
 """
 
 # ╔═╡ Cell order:
-# ╟─6b21238e-f8de-4c77-9c86-9dbd4691b6f5
+# ╠═f80fd13d-207a-458a-b326-77256fe946e0
+# ╠═bda0f8d4-5ab0-4c65-9d79-71ccbfe8dd3a
 # ╟─4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 # ╠═8a736133-17f2-446d-9ab5-4bc46bdd556b
 # ╟─bf014265-210c-412f-9af4-5a654f557de9
 # ╟─d8061039-367c-42ee-8a65-a32dca37fc67
 # ╠═bc53663d-1f9f-43a6-8140-e8eeac1618bb
+# ╟─1a0bffb2-8656-44db-b3b3-6cf6b2494b7c
+# ╠═145a0007-b8d7-46a1-9cb8-ee063057527c
+# ╠═b6b757ad-7fca-46c5-b42f-20f94ae4cbd7
 # ╟─f6fa9869-b454-458d-95e3-818a9112cc52
 # ╠═e7454913-e406-4b4a-856f-47103a7bf23d
 # ╠═cdc2c6c9-e567-4ee6-a002-8fea660e35fa
@@ -268,6 +286,6 @@ md"""
 # ╠═d526caa1-ff7e-4ec5-ab59-2a10e9ad9c5e
 # ╠═3923126f-93be-48f2-bd37-3ef50588ff47
 # ╠═eb05a798-8eb2-4ff1-b88f-b58babe64891
+# ╠═84df8774-a1f6-49f7-b84f-c1482b51dd9f
 # ╠═08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
-# ╠═3d0a6144-7a1f-4aef-8897-572bb584dac8
 # ╠═44107e8f-116c-475f-b6d4-2b5aecc2f1e8
