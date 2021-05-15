@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.5
+# v0.14.1
 
 using Markdown
 using InteractiveUtils
@@ -13,8 +13,8 @@ using SpecialFunctions
 # ╔═╡ b608f792-dd91-4bd2-97ab-baac7b7d2f9c
 using Dierckx
 
-# ╔═╡ c8c71523-0190-43d3-86d5-33128547499c
-using OffsetArrays
+# ╔═╡ 240e07ba-1508-485c-8fe1-d33e8fa52804
+using SpecialFunctions
 
 # ╔═╡ 4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 md"""
@@ -322,41 +322,6 @@ md"Preliminary timing suggests that this is slow"
 # ╔═╡ 4161d94c-d545-4105-84e0-c92fd1344b05
 md"## Implementing computation of a series of m-values for Fm(T)"
 
-# ╔═╡ 951ace14-d1a1-40cd-9985-ffa515ea3389
-function boys_array_asymp(mmax,x)
-    boys_array = OffsetArray(zeros(mmax+1),0:mmax)
-    denom = 0.5/x # Only used for large x, so don't check for small x
-    boys_array[0] = sqrt(0.5*pi*denom)
-    for m in 1:mmax
-        boys_array[m] = boys_array[m-1]*(2m-1)*denom
-    end
-    return boys_array
-end
-
-# ╔═╡ 31e03292-4cb7-4d10-a69d-fc08fda2dc53
-function boys_array_gamma(mmax,x,SMALL=1e-18)
-    x = max(x,SMALL) # Evidently needs underflow protection
-    boys_array = OffsetArray(zeros(mmax+1),0:mmax)
-    oox = 1/x
-    denom = sqrt(oox)
-    boys_array[0] = 0.5*denom*gammainc(0.5,x)
-    for m in 1:mmax
-        denom *= oox
-        # Can speed this up more by expressing gamma(m) in terms of gamma(m±1)
-        boys_array[m] = 0.5*denom*gammainc(m+0.5,x) 
-    end
-    return boys_array
-end
-
-# ╔═╡ 24bd4b37-76ca-451e-aac7-f82e34504a09
-boys_array_asymp(3,10)
-
-# ╔═╡ 52cdb8ab-73ae-4797-995c-f34e4c751ba4
-boys_array_gamma(3,10)
-
-# ╔═╡ 89c29ecd-4797-4eb5-94e0-2270801e49ea
-
-
 # ╔═╡ 44107e8f-116c-475f-b6d4-2b5aecc2f1e8
 md"""
 ## References
@@ -414,10 +379,4 @@ md"""
 # ╠═88d466c8-1f3f-4c96-9507-18dc8cc123d1
 # ╠═53659193-15dd-4bdc-820b-43422887b580
 # ╠═4161d94c-d545-4105-84e0-c92fd1344b05
-# ╠═c8c71523-0190-43d3-86d5-33128547499c
-# ╠═951ace14-d1a1-40cd-9985-ffa515ea3389
-# ╠═31e03292-4cb7-4d10-a69d-fc08fda2dc53
-# ╠═24bd4b37-76ca-451e-aac7-f82e34504a09
-# ╠═52cdb8ab-73ae-4797-995c-f34e4c751ba4
-# ╠═89c29ecd-4797-4eb5-94e0-2270801e49ea
 # ╠═44107e8f-116c-475f-b6d4-2b5aecc2f1e8
