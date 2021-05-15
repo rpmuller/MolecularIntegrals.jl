@@ -10,6 +10,9 @@ using Plots
 # ╔═╡ bda0f8d4-5ab0-4c65-9d79-71ccbfe8dd3a
 using SpecialFunctions
 
+# ╔═╡ b608f792-dd91-4bd2-97ab-baac7b7d2f9c
+using Dierckx
+
 # ╔═╡ 4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 md"""
 # Simple questions and simple answers about the Boys function
@@ -168,7 +171,9 @@ end;
 # ╔═╡ ae9658a3-9241-423d-9daa-d6644e8a206a
 begin
 	rs2=0:0.1:15
-	plot(rs2,[fboys(0,r) for r in rs2],label="fboys(0,r)")
+	plot(rs2,[fboys(0,r) for r in rs2],label="fboys(0,r)",ylim=(0,1))
+	plot!(rs2,[fasymp(0,r) for r in rs2],label="fasymp(0,r)")
+	plot!(rs2,[fapprox(r,1) for r in rs2],label="fapprox(r,1)")
 	plot!(rs2,[fapprox2(r,1,1.5) for r in rs2],label="fapprox2(r,a=1,b=1.5)")
 	#title!("Parameter-free approximation of Boys function")
 end
@@ -247,6 +252,72 @@ begin
 	end
 end
 
+# ╔═╡ 347ca2e4-b932-4451-a12e-15ca7e23d052
+md"""
+## Interpolation
+The other option that is appealing is to simply tabulate the values of the function
+for the m-values that matter [0,12] on a relatively fine mesh and then interpolate
+them either linearly or using Interpolate.jl.
+
+Tasks:
+- Express Fm(T) on a mesh
+	- Decide on linear or log
+	- Might have to be linear, since we definitely want values at T=0.
+- Write a function to compute the maximum error with that discretization.
+"""
+
+# ╔═╡ b15df2d5-f407-4d2d-959f-18b21c8a3b60
+ts = 0:0.01:100 # Intentially too coarse a mesh
+
+# ╔═╡ ae817c36-d9b8-4d14-8a0e-91f83185d0ad
+table_0 = fboys.(0,ts)
+
+# ╔═╡ c615c015-34f6-441f-a285-0c7b8926660b
+f0 = Spline1D(ts,fboys.(0,ts))
+
+# ╔═╡ 85999318-1639-4677-bd9c-81723b4c809f
+f0(0.5)
+
+# ╔═╡ 61e753cb-f6c5-4301-8248-da8c21ba9186
+fboys(0,0.5)
+
+# ╔═╡ 24273947-c334-4508-a8e3-eab88100a745
+function compute_error(steps)
+	errs = []
+	for step in steps
+		mesh = 0:step:100
+		f = Spline1D(mesh,fboys.(0,mesh))
+		finemesh = 0:0.01:100
+		error(x) = abs(fboys(0,x)-f(x))
+		push!(errs,maximum(error(x) for x in finemesh))
+	end
+	return errs
+end
+
+# ╔═╡ 31c80276-35e5-4dc8-9a26-9600805a32da
+steps = [0.05,0.1,0.2,0.5,1.0]
+
+# ╔═╡ e3d4d6c7-c54b-408e-8575-331c7db3fec3
+errs = compute_error(steps)
+
+# ╔═╡ ca6f1d12-53c9-4df1-9194-aedb9480ec7c
+md"Plot the dependence of the maximum error as a function of the 1d mesh spacing"
+
+# ╔═╡ d73c0af0-559b-450a-b429-6d18991c839a
+plot(steps,errs,yaxis=:log)
+
+# ╔═╡ e0954971-c7a3-4847-a45a-ff22adc71490
+md"Preliminary timing suggests that this is slow"
+
+# ╔═╡ 88d466c8-1f3f-4c96-9507-18dc8cc123d1
+@time f0(0.123)
+
+# ╔═╡ 53659193-15dd-4bdc-820b-43422887b580
+@time fboys(0,0.123)
+
+# ╔═╡ 4161d94c-d545-4105-84e0-c92fd1344b05
+md"## Implementing computation of a series of m-values for Fm(T)"
+
 # ╔═╡ 44107e8f-116c-475f-b6d4-2b5aecc2f1e8
 md"""
 ## References
@@ -288,4 +359,20 @@ md"""
 # ╠═eb05a798-8eb2-4ff1-b88f-b58babe64891
 # ╠═84df8774-a1f6-49f7-b84f-c1482b51dd9f
 # ╠═08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
+# ╟─347ca2e4-b932-4451-a12e-15ca7e23d052
+# ╠═b608f792-dd91-4bd2-97ab-baac7b7d2f9c
+# ╠═b15df2d5-f407-4d2d-959f-18b21c8a3b60
+# ╠═ae817c36-d9b8-4d14-8a0e-91f83185d0ad
+# ╠═c615c015-34f6-441f-a285-0c7b8926660b
+# ╠═85999318-1639-4677-bd9c-81723b4c809f
+# ╠═61e753cb-f6c5-4301-8248-da8c21ba9186
+# ╠═24273947-c334-4508-a8e3-eab88100a745
+# ╠═31c80276-35e5-4dc8-9a26-9600805a32da
+# ╠═e3d4d6c7-c54b-408e-8575-331c7db3fec3
+# ╟─ca6f1d12-53c9-4df1-9194-aedb9480ec7c
+# ╠═d73c0af0-559b-450a-b429-6d18991c839a
+# ╟─e0954971-c7a3-4847-a45a-ff22adc71490
+# ╠═88d466c8-1f3f-4c96-9507-18dc8cc123d1
+# ╠═53659193-15dd-4bdc-820b-43422887b580
+# ╠═4161d94c-d545-4105-84e0-c92fd1344b05
 # ╠═44107e8f-116c-475f-b6d4-2b5aecc2f1e8
