@@ -2,7 +2,7 @@
 using OffsetArrays
 
 function boys_array_asymp(mmax,x)
-    boys_array = OffsetArray(zeros(mmax+1),0:mmax)
+    boys_array = zeros(Float64,mmax)
     denom = 0.5/x # Only used for large x, so don't check for small x
     boys_array[1] = sqrt(0.5*pi*denom)
     for m in 2:mmax
@@ -13,19 +13,20 @@ end
 
 function boys_array_gamma(mmax,x,SMALL=1e-18)
     x = max(x,SMALL) # Evidently needs underflow protection
-    boys_array = OffsetArray(zeros(mmax+1),0:mmax)
+    boys_array = zeros(Float64,mmax)
     oox = 1/x
     denom = sqrt(oox)
-    boys_array[1] = 0.5*denom*gammainc(0.5,x)
+    boys_array[1] = 0.5*denom*gammainc(0.5,x) 
     for m in 2:mmax
         denom *= oox
         # Can speed this up more by expressing gamma(m) in terms of gamma(m±1)
-        boys_array[m] = fm_ref(m-1,x) #0.5*denom*gammainc(m-0.5,x) 
+        boys_array[m] = 0.5*denom*gammainc(m-0.5,x) 
     end
     return boys_array
 end
 
-boys_array_trivial(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
+boys_array_fmref(mmax,x) = [fm_ref(m-1,x) for m in 1:mmax]
+boys_array_Fgamma(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
 
 "Boys Fgamma function, using the lower incomplete gamma function."
 function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0) 
