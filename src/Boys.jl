@@ -20,7 +20,7 @@ function boys_array_gamma(mmax,x,SMALL=1e-18)
     for m in 2:mmax
         denom *= oox
         # Can speed this up more by expressing gamma(m) in terms of gamma(m±1)
-        boys_array[m] = 0.5*denom*gammainc(m-0.5,x) 
+        boys_array[m] = fm_ref(m-1,x) #0.5*denom*gammainc(m-0.5,x) 
     end
     return boys_array
 end
@@ -43,13 +43,12 @@ end
 "gammainc returns the lower incomplete gamma function"
 gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
 
-# This is the ref function from libint, which is slower than Fgamma, below
-function fm_ref(m,T)
+# This is the ref function from libint
+function fm_ref(m,T,eps = 1e-10)
     denom = (m + 0.5)
     term = exp(-T) /2denom
     old_term = 0.0
     sum = term
-    eps = 1e-10 # magic number - set machine precision
     while true
         denom += 1
         old_term = term
@@ -63,7 +62,7 @@ end
 
 # These were taken from Numerical Recipes
 
-function gammainc(a::Float64,x::Float64)
+function gammainc_nr(a::Float64,x::Float64)
     # This is the series version of gamma from pyquante. For reasons I don't get, it 
     # doesn't work around a=1. This works alright, but is only a stopgap solution
     # until Julia gets an incomplete gamma function programmed
