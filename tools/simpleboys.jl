@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.5
+# v0.14.1
 
 using Markdown
 using InteractiveUtils
@@ -9,6 +9,9 @@ begin
 	# Imports
 	using Plots
 end
+
+# ╔═╡ 240e07ba-1508-485c-8fe1-d33e8fa52804
+using SpecialFunctions
 
 # ╔═╡ 4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 md"""
@@ -79,6 +82,24 @@ function fboys(m,T,eps = 1e-10)
     end
     return sum
 end;
+
+# ╔═╡ 06611949-5dca-4a17-ac68-c47bad6a3a4e
+"gammainc returns the lower incomplete gamma function"
+gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
+
+# ╔═╡ 029f862d-1d4b-41c4-a73e-fd8a8d66d42e
+"Boys Fgamma function, using the lower incomplete gamma function."
+function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0) 
+    # Note, most programs use a much larger value for Tcrit (117)
+    mhalf = m+0.5
+    x = max(x,SMALL) # Evidently needs underflow protection
+    #if x>Tcrit 
+    #    retval = sqrt(pi/2)*factorial2(2m-1)/(2x)^mhalf
+    #else
+        retval = 0.5*x^-mhalf*gammainc(mhalf,x)
+    #end
+    return retval
+end
 
 # ╔═╡ f6fa9869-b454-458d-95e3-818a9112cc52
 md"""
@@ -202,6 +223,7 @@ Plot the family of m values on a semilog-y plot. Very regular behavior:
 begin
 	rs4 = 0:0.1:10
 	plot(rs4,fboys.(0,rs4),yaxis=:log,legend=false)
+	plot!(rs4,Fgamma.(0,rs4))
 	plot!(rs4,fboys.(1,rs4))
 	plot!(rs4,fboys.(2,rs4))
 	plot!(rs4,fboys.(3,rs4))
@@ -244,11 +266,14 @@ md"""
 
 # ╔═╡ Cell order:
 # ╟─6b21238e-f8de-4c77-9c86-9dbd4691b6f5
+# ╟─240e07ba-1508-485c-8fe1-d33e8fa52804
 # ╟─4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 # ╠═8a736133-17f2-446d-9ab5-4bc46bdd556b
 # ╟─bf014265-210c-412f-9af4-5a654f557de9
 # ╟─d8061039-367c-42ee-8a65-a32dca37fc67
 # ╠═bc53663d-1f9f-43a6-8140-e8eeac1618bb
+# ╠═029f862d-1d4b-41c4-a73e-fd8a8d66d42e
+# ╠═06611949-5dca-4a17-ac68-c47bad6a3a4e
 # ╟─f6fa9869-b454-458d-95e3-818a9112cc52
 # ╠═e7454913-e406-4b4a-856f-47103a7bf23d
 # ╠═cdc2c6c9-e567-4ee6-a002-8fea660e35fa
