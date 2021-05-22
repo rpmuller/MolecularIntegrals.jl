@@ -357,9 +357,9 @@ version = "0.3.2"
 
 [[FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
-git-tree-sha1 = "d74fd0dae131104471c849f25ba1179fe0fadf47"
+git-tree-sha1 = "cfb694feaddf4f0381ef3cc9d4c0d8fc6b7e2ea7"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.8.2"
+version = "1.9.0"
 
 [[FileWatching]]
 uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
@@ -931,9 +931,9 @@ uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[ProfileSVG]]
 deps = ["Colors", "FlameGraphs", "Profile", "UUIDs"]
-git-tree-sha1 = "8c2bc97ed6225a4c711417413e75d0636d92cbd0"
+git-tree-sha1 = "e4df82a5dadc26736f106f8d7fc97c42cc6c91ae"
 uuid = "132c30aa-f267-4189-9183-c8a63c7e05e6"
-version = "0.2.0"
+version = "0.2.1"
 
 [[Qt5Base_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Fontconfig_jll", "Glib_jll", "JLLWrappers", "Libdl", "Libglvnd_jll", "OpenSSL_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libxcb_jll", "Xorg_xcb_util_image_jll", "Xorg_xcb_util_keysyms_jll", "Xorg_xcb_util_renderutil_jll", "Xorg_xcb_util_wm_jll", "Zlib_jll", "xkbcommon_jll"]

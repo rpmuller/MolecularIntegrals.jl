@@ -1,4 +1,15 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-22
+Passed in pre-allocated space to vrr for some big savings when calling multiple times.
+
+## 2021-05-21
+I'm going to push further Fgamma improvements until after the 0.1.0 release. Here's what I'd like to accomplish before then:
+- Timing comparisons with Libint and Libcint
+- Intelligent way of handling contraction coefficients
+
+After the 0.1.0 release, I'm planning to post a message for help to the Julia discourse channel to speed up VRR further.
+- Thus far, use of things like @inbounds and 
+
 ## 2021-05-08
 Played around a little bit with the generated code dispatch table, and
 even [asked a question on the Julia list](https://discourse.julialang.org/t/how-do-i-make-a-dispatch-table-using-multiple-dispatch-instead-of-dict/60784), 

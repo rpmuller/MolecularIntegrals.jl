@@ -1,6 +1,4 @@
 # Boys.jl contains different implementations and approximations to the Boys function
-using OffsetArrays
-
 function boys_array_asymp(mmax,x)
     boys_array = zeros(Float64,mmax)
     denom = 0.5/x # Only used for large x, so don't check for small x
@@ -12,14 +10,14 @@ function boys_array_asymp(mmax,x)
 end
 
 function boys_array_gamma(mmax,x,SMALL=1e-18)
-    x = max(x,SMALL) # Evidently needs underflow protection
+    x = max(x,SMALL) # needs underflow protection because of inverse
     boys_array = zeros(Float64,mmax)
     oox = 1/x
     denom = sqrt(oox)
     boys_array[1] = 0.5*denom*gammainc(0.5,x) 
     for m in 2:mmax
         denom *= oox
-        # Can speed this up more by expressing gamma(m) in terms of gamma(m±1)
+        # Could speed this up more by expressing gamma(m) in terms of gamma(m±1)
         boys_array[m] = 0.5*denom*gammainc(m-0.5,x) 
     end
     return boys_array
@@ -42,7 +40,7 @@ function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0)
 end
 
 "gammainc returns the lower incomplete gamma function"
-gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
+@inline gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1]
 
 # This is the ref function from libint
 function fm_ref(m,T,eps = 1e-10)

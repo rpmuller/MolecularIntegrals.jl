@@ -21,6 +21,10 @@
 
 ## Post help message to Julia discourse channel
 - [Current version](<Julia\ optimization\ post.md>).
+
+## Additional improvements to Boys
+- Interpolate
+- Gil, Johnson, Pople method
   
 ## Include basis sets in g94 format
 - Don't need to include every one in BSE

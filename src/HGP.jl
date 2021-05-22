@@ -50,13 +50,16 @@ exponents and contraction coefficients.
 function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
     amax,cmax = ash.L+bsh.L,csh.L+dsh.L
     cvrrs = zeros(Float64,nao[amax],nao[cmax])
+    mmax=amax+cmax+1
+    vrrs = zeros(Float64,mmax,nao[amax],nao[cmax])
 
     A,B,C,D = ash.xyz,bsh.xyz,csh.xyz,dsh.xyz
     for (dexpn,dcoef) in zip(dsh.expns,dsh.coefs), (cexpn,ccoef) in zip(csh.expns,csh.coefs)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs), (aexpn,acoef) in zip(ash.expns,ash.coefs)
-            vrrs = vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+            #fill!(vrrs,0) # I don't know if this is really necessary
+            vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
             for j in 1:nao[cmax], i in 1:nao[amax]
-                cvrrs[i,j] += (acoef*bcoef*ccoef*dcoef)*vrrs[i,j]
+                cvrrs[i,j] += (acoef*bcoef*ccoef*dcoef)*vrrs[1,i,j]
             end
         end
     end
@@ -113,10 +116,12 @@ end
 
 
 """
-vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
 Use Head-Gordon/Pople's vertical recurrence relations to compute
 an array of two-electron integrals.
+
+This version passes in the vrrs array to reuse space if possible.
 
 `A`, `B`, `C`, `D` are the centers of four Gaussian functions.
 `aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
@@ -127,60 +132,8 @@ The function returns an `n`x`m` array, where `n` is the number
 of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
 """
-function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+function vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
-    # Removing hand-generated code and retiming:
-    #=
-    if mmax == 1
-        return vrr_ss(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    elseif cmax == 0
-        if amax == 1
-            return vrr_ps(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 2
-            return vrr_ds(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 3
-            return vrr_fs(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        end
-    elseif cmax == 1
-        if amax == 0
-            return vrr_sp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 1
-            return vrr_pp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 2
-            return vrr_dp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 3
-            return vrr_fp(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        end
-    elseif cmax == 2
-        if amax == 0
-            return vrr_sd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 1
-            return vrr_pd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 2
-            return vrr_dd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 3
-            return vrr_fd(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        end
-    elseif cmax == 3
-        if amax == 0
-            return vrr_sf(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 1
-            return vrr_pf(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 2
-            return vrr_df(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        elseif amax == 3
-            return vrr_ff(aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-        end
-    end
-    # Dispatch table is still much slower than the if/if block:
-    dispatch = Dict{Tuple{Int,Int},Any}((0,0) => vrr_ss,(0,1)=> vrr_sp, (0,2)=> vrr_sd,
-                    (1,0) => vrr_ps,(1,1)=> vrr_pp, (1,2)=> vrr_pd,
-                    (2,0) => vrr_ds,(2,1)=> vrr_dp, (2,2)=> vrr_dd)
-    if haskey(dispatch,(amax,cmax))
-        return dispatch[amax,cmax](aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-    end
-    =#
-    vrrs = zeros(Float64,mmax,nao[amax],nao[cmax])
 
     zeta,eta = aexpn+bexpn,cexpn+dexpn
     ze = zeta+eta
@@ -276,7 +229,14 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    return vrrs[1,:,:]
+    return vrrs
+end
+
+function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+    vrrs = zeros(Float64,mmax,nao[amax],nao[cmax])
+    vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    return vrrs
 end
 
 """
@@ -298,7 +258,7 @@ function hrr(ashell,bshell,cshell,dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     vrrs = vrr(ashell+bshell,cshell+dshell, aexpn,bexpn,cexpn,dexpn, A,B,C,D) 
     hrrs = zeros(Float64,nao[ashell+bshell],nao[bshell],nao[cshell+dshell],nao[dshell])
     for j in 1:nao[cshell+dshell], i in 1:nao[ashell+bshell]
-        hrrs[i,1,j,1] = vrrs[i,j]
+        hrrs[i,1,j,1] = vrrs[1,i,j]
     end
  
      # First build (ab,c0) from (a0,c0)
