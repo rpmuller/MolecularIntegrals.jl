@@ -27,14 +27,14 @@ boys_array_fmref(mmax,x) = [fm_ref(m-1,x) for m in 1:mmax]
 boys_array_Fgamma(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
 
 "Boys Fgamma function, using the lower incomplete gamma function."
-function Fgamma(m,x,SMALL=1e-18,Tcrit=20.0) 
+function Fgamma(m,T,SMALL=1e-18,Tcrit=20.0) 
     # Note, most programs use a much larger value for Tcrit (117)
     mhalf = m+0.5
-    x = max(x,SMALL) # Evidently needs underflow protection
-    if x>Tcrit 
-        retval = sqrt(pi/2)*factorial2(2m-1)/(2x)^mhalf
+    T = max(T,SMALL) # Evidently needs underflow protection
+    if T>Tcrit 
+        retval = sqrt(pi/2)*factorial2(2m-1)/(2T)^mhalf
     else
-        retval = 0.5*x^-mhalf*gammainc(mhalf,x)
+        retval = 0.5*T^-mhalf*gammainc(mhalf,T)
     end
     return retval
 end

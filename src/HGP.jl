@@ -158,10 +158,10 @@ function vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
     # First generate (1,1,m) using eq 12
-    Tcrit=20.0 # Most code uses a much higher Tcrit
-    boys_array = T>Tcrit ? boys_array_asymp(mmax,T) : boys_array_gamma(mmax,T)
+    Tcrit=20.0 # Most code uses a much higher Tcrit (117)
+    #boys_array = T>Tcrit ? boys_array_asymp(mmax,T) : boys_array_gamma(mmax,T)
     for m in 1:mmax
-        vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
+        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)# boys_array[m]
     end
 
     # Generate (A,1,m) 
@@ -229,7 +229,7 @@ function vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    return vrrs
+    return nothing
 end
 
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
