@@ -1,4 +1,4 @@
-# TODO and notes
+# MolecularIntegrals.jl tasks and roadmap.
 
 ## Timing and benchmarks
 - [ ] Compare to JERI.jl benchmarks
@@ -19,15 +19,8 @@
 - Register julia package wherever I'm supposed to do this
 - Post to discourse server
 
-## Write HGPgenerate.jl script
-- Julia code that generates more julia code
-- Will generate a HGPgen.jl file that contains generated hrr_abcd and vrr_ab code
-- Fall back to hrr and vrr versions
-- Which directory do support scripts like this live in? tools?
-- Write test routines to test **all** of HGPgen.jl.
-- Expand timing routines to include HGPgen routines.
-- Are there efficiencies I can use to compile HGPgen.jl code directly
-    once I generate it?
+## Post help message to Julia discourse channel
+- [Current version](<Julia\ optimization\ post.md>).
   
 ## Include basis sets in g94 format
 - Don't need to include every one in BSE
