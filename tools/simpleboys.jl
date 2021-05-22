@@ -10,8 +10,14 @@ using Plots
 # ╔═╡ bda0f8d4-5ab0-4c65-9d79-71ccbfe8dd3a
 using SpecialFunctions
 
+# ╔═╡ 932b4197-b2d9-4c71-8daf-71a24b02218d
+using BenchmarkTools
+
 # ╔═╡ b608f792-dd91-4bd2-97ab-baac7b7d2f9c
 using Dierckx
+
+# ╔═╡ d0c20596-f9cc-478e-b05b-55b95c025903
+using Interpolations
 
 # ╔═╡ c8c71523-0190-43d3-86d5-33128547499c
 using OffsetArrays
@@ -271,13 +277,16 @@ Tasks:
 """
 
 # ╔═╡ b15df2d5-f407-4d2d-959f-18b21c8a3b60
-ts = 0:0.01:100 # Intentially too coarse a mesh
+ts = 0:0.1:100 # Intentially too coarse a mesh
 
 # ╔═╡ ae817c36-d9b8-4d14-8a0e-91f83185d0ad
 table_0 = fboys.(0,ts)
 
+# ╔═╡ b4617b84-2c58-4832-a6e6-b49f61901d99
+
+
 # ╔═╡ c615c015-34f6-441f-a285-0c7b8926660b
-f0 = Spline1D(ts,fboys.(0,ts))
+f0 = Spline1D(ts,table_0)
 
 # ╔═╡ 85999318-1639-4677-bd9c-81723b4c809f
 f0(0.5)
@@ -314,10 +323,43 @@ plot(steps,errs,yaxis=:log)
 md"Preliminary timing suggests that this is slow"
 
 # ╔═╡ 88d466c8-1f3f-4c96-9507-18dc8cc123d1
-@time f0(0.123)
+@time f0(0.124)
 
 # ╔═╡ 53659193-15dd-4bdc-820b-43422887b580
-@time fboys(0,0.123)
+@time fboys(0,0.124)
+
+# ╔═╡ 38247577-c696-4567-97e3-4b798bb82c61
+itp = interpolate(table_0, BSpline(Cubic(Line(OnGrid()))))
+
+# ╔═╡ 3caec775-d88c-4af9-8785-2b69405ba458
+fitp0 = scale(itp,ts)
+
+# ╔═╡ d223f795-2060-4c85-b0bb-962d8196ff3a
+fitp0(0.124)
+
+# ╔═╡ 57bf3009-2699-4905-bbc1-bffb93689cca
+r = 10*rand(1000)
+
+# ╔═╡ 6c17f3c1-4e88-4407-a17a-1de1319aba31
+@btime [f0.(r)]
+
+# ╔═╡ 02cff7fa-8441-4f91-ae73-c06cdd8310d7
+@btime [fboys.(0,r)]
+
+# ╔═╡ ff2dbd7e-ac48-4f8b-9ed0-3834ea95e4b6
+@btime [fitp0.(r)]
+
+# ╔═╡ 8ac69aa8-9c98-4f33-98d3-27c8e570b4fe
+md"Times with btime for 1000 random evaluations
+
+| Method | Time (μs) |
+| -------- | -------- |
+| Function | 229.5 |
+| Dierckx  | 123.3 |
+| Interpolate.jl | 17.7 |
+
+Might be worth implementing.
+"
 
 # ╔═╡ 4161d94c-d545-4105-84e0-c92fd1344b05
 md"## Implementing computation of a series of m-values for Fm(T)"
@@ -369,6 +411,7 @@ md"""
 # ╔═╡ Cell order:
 # ╠═f80fd13d-207a-458a-b326-77256fe946e0
 # ╠═bda0f8d4-5ab0-4c65-9d79-71ccbfe8dd3a
+# ╠═932b4197-b2d9-4c71-8daf-71a24b02218d
 # ╟─4e16dbbe-b0fc-11eb-2349-ad7ccd0ff56b
 # ╠═8a736133-17f2-446d-9ab5-4bc46bdd556b
 # ╟─bf014265-210c-412f-9af4-5a654f557de9
@@ -393,15 +436,17 @@ md"""
 # ╟─997e6018-bb0e-4933-8b13-b904e96fc819
 # ╠═894135da-1ef9-4170-aa49-1b6307e398eb
 # ╠═9dfb09bb-22d8-44f2-9c4b-98777e43de64
-# ╠═d526caa1-ff7e-4ec5-ab59-2a10e9ad9c5e
+# ╟─d526caa1-ff7e-4ec5-ab59-2a10e9ad9c5e
 # ╠═3923126f-93be-48f2-bd37-3ef50588ff47
 # ╠═eb05a798-8eb2-4ff1-b88f-b58babe64891
 # ╠═84df8774-a1f6-49f7-b84f-c1482b51dd9f
 # ╠═08c5dc9b-0cb1-4bea-bd97-4872f46e63bf
 # ╟─347ca2e4-b932-4451-a12e-15ca7e23d052
 # ╠═b608f792-dd91-4bd2-97ab-baac7b7d2f9c
+# ╠═d0c20596-f9cc-478e-b05b-55b95c025903
 # ╠═b15df2d5-f407-4d2d-959f-18b21c8a3b60
 # ╠═ae817c36-d9b8-4d14-8a0e-91f83185d0ad
+# ╠═b4617b84-2c58-4832-a6e6-b49f61901d99
 # ╠═c615c015-34f6-441f-a285-0c7b8926660b
 # ╠═85999318-1639-4677-bd9c-81723b4c809f
 # ╠═61e753cb-f6c5-4301-8248-da8c21ba9186
@@ -413,6 +458,14 @@ md"""
 # ╟─e0954971-c7a3-4847-a45a-ff22adc71490
 # ╠═88d466c8-1f3f-4c96-9507-18dc8cc123d1
 # ╠═53659193-15dd-4bdc-820b-43422887b580
+# ╠═38247577-c696-4567-97e3-4b798bb82c61
+# ╠═3caec775-d88c-4af9-8785-2b69405ba458
+# ╠═d223f795-2060-4c85-b0bb-962d8196ff3a
+# ╠═57bf3009-2699-4905-bbc1-bffb93689cca
+# ╠═6c17f3c1-4e88-4407-a17a-1de1319aba31
+# ╠═02cff7fa-8441-4f91-ae73-c06cdd8310d7
+# ╠═ff2dbd7e-ac48-4f8b-9ed0-3834ea95e4b6
+# ╠═8ac69aa8-9c98-4f33-98d3-27c8e570b4fe
 # ╠═4161d94c-d545-4105-84e0-c92fd1344b05
 # ╠═c8c71523-0190-43d3-86d5-33128547499c
 # ╠═951ace14-d1a1-40cd-9985-ffa515ea3389
