@@ -27,14 +27,14 @@ boys_array_fmref(mmax,x) = [fm_ref(m-1,x) for m in 1:mmax]
 boys_array_Fgamma(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
 
 "Boys Fgamma function, using the lower incomplete gamma function."
-function Fgamma(m,T,SMALL=1e-18,Tcrit=20.0) 
+@inline function Fgamma(m,T,SMALL=1e-18,Tcrit=20.0) 
     # Note, most programs use a much larger value for Tcrit (117)
     mhalf = m+0.5
     T = max(T,SMALL) # Evidently needs underflow protection
     if T>Tcrit 
         retval = sqrt(pi/2)*factorial2(2m-1)/(2T)^mhalf
     else
-        retval = 0.5*T^-mhalf*gammainc(mhalf,T)
+        retval = 0.5*T^-mhalf*gammainc_nr(mhalf,T)
     end
     return retval
 end
@@ -48,23 +48,17 @@ function fm_ref(m,T,eps = 1e-10)
     term = exp(-T) /2denom
     old_term = 0.0
     sum = term
-    while true
+    while term > sum*eps || old_term < term
         denom += 1
         old_term = term
         term = old_term * T / denom
         sum += term
-        term > sum*eps || old_term < term || break
     end
     return sum
 end
 
-
 # These were taken from Numerical Recipes
-
-function gammainc_nr(a::Float64,x::Float64)
-    # This is the series version of gamma from pyquante. For reasons I don't get, it 
-    # doesn't work around a=1. This works alright, but is only a stopgap solution
-    # until Julia gets an incomplete gamma function programmed
+@inline function gammainc_nr(a::Float64,x::Float64)
     if abs(a-1) < 1e-3
         println("Warning: gammainc_series is known to have problems for a ~ 1")
     end
@@ -79,7 +73,7 @@ function gammainc_nr(a::Float64,x::Float64)
     return exp(gln)*gam
 end
 
-function gser(a,x,ITMAX=100,EPS=3e-9)
+@inline function gser(a,x,ITMAX=100,EPS=3e-9)
     # Series representation of Gamma. NumRec sect 6.1.
     gln=loggamma(a)
     if x == 0
@@ -98,7 +92,7 @@ function gser(a,x,ITMAX=100,EPS=3e-9)
     return s*exp(-x+a*log(x)-gln),gln
 end
 
-function gcf(a::Float64,x::Float64,ITMAX::Int64=200,EPS::Float64=3e-9,FPMIN::Float64=1e-30)
+@inline function gcf(a::Float64,x::Float64,ITMAX::Int64=200,EPS::Float64=3e-9,FPMIN::Float64=1e-30)
     #Continued fraction representation of Gamma. NumRec sect 6.1"
     gln=loggamma(a)
     b=x+1.0-a

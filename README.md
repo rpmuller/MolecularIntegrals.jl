@@ -45,8 +45,8 @@ Compare to roughly 0.1 sec albeit on *completely different hardware*. This is mo
 
 | Basis   | size   | Huz    | HGP    |
 | ------- | ------ | ------ | ------ |
-| sto-3G  | 16     | 1.71   | 0.099  |
-| 6-31G   | 30     | 6.56   | 0.388  |
-| cc-pVDZ | 58     | 115.4  | 4.635  |
+| sto-3G  | 16     | 1.71   | 0.095  |
+| 6-31G   | 30     | 6.56   | 0.366  |
+| cc-pVDZ | 58     | 115.4  | 4.336  |
 
 The HGP results hopefully still have lots of room for speedups.
