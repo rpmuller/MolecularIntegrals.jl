@@ -36,15 +36,15 @@ boys_array_Fgamma(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
     if T>Tcrit 
         retval = sqrt(pi/2)*factorial2(2m-1)/(2T)^mhalf
     else
-        retval = 0.5*T^-mhalf*gammainc_nr(mhalf,T)
-        #retval = fboys[m+1](T)
+        #retval = 0.5*T^-mhalf*gammainc_nr(mhalf,T)
+        retval = fmspline(m,T)
     end
     return retval
 end
 
-function Fm(m,T)
+function Fm(m,T,SMALL=1e-18)
     mhalf = m+0.5
-    T = max(T,small)
+    T = max(T,SMALL)
     return 0.5*T^-mhalf*gammainc_nr(mhalf,T)
 end
 
@@ -130,18 +130,12 @@ end
     return gammcf,gln
 end
 
-# Still a few bugs in this, but it's 50% slower, so I'm not 
-# going to bother fixing it. It's a shame, since the single-
-# point interpolation looked really good.
-function make_interpolator(mmax=10,Tmax=30)
-    fboys = []
-    Tgrid = 0:0.1:Tmax
-    for m in 0:mmax
-        fmvalues = [fm_ref(m,T) for T in Tgrid]
-        itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
-        sitp = scale(itp,Tgrid)
-        push!(fboys,sitp)
-    end
-    return fboys
+function make_interpolator(mmax=10,Tmax=20.0)
+    Tgrid = 0:0.005:Tmax
+    mgrid = 0:mmax
+    fmvalues = [Fm(m,T) for m in mgrid, T in Tgrid]
+    itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
+    sitp = scale(itp,mgrid,Tgrid)
+    return sitp
 end
-fboys = make_interpolator()
+const fmspline = make_interpolator()

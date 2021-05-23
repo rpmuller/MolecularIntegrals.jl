@@ -5,6 +5,10 @@ Passed in pre-allocated space to vrr for some big savings when calling multiple 
 Interpolation of the Boys function looked like it would be a big win, but it was 50% slower 
 in reality.
 
+Maybe I spoke too soon. Getting much faster results now by defining the interpolation object
+to be `const`. But I'm losing some accuracy in the resulting integrals, and I don't know why.
+I thought that an earlier version didn't loose accuracy, but I don't know what changed.
+
 ## 2021-05-21
 I'm going to push further Fgamma improvements until after the 0.1.0 release. Here's what I'd like to accomplish before then:
 - Timing comparisons with Libint and Libcint
