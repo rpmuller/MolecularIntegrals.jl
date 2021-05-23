@@ -1,4 +1,6 @@
 # Boys.jl contains different implementations and approximations to the Boys function
+using Interpolations
+
 function boys_array_asymp(mmax,x)
     boys_array = zeros(Float64,mmax)
     denom = 0.5/x # Only used for large x, so don't check for small x
@@ -35,8 +37,15 @@ boys_array_Fgamma(mmax,x) = [Fgamma(m-1,x) for m in 1:mmax]
         retval = sqrt(pi/2)*factorial2(2m-1)/(2T)^mhalf
     else
         retval = 0.5*T^-mhalf*gammainc_nr(mhalf,T)
+        #retval = fboys[m+1](T)
     end
     return retval
+end
+
+function Fm(m,T)
+    mhalf = m+0.5
+    T = max(T,small)
+    return 0.5*T^-mhalf*gammainc_nr(mhalf,T)
 end
 
 "gammainc returns the lower incomplete gamma function"
@@ -120,3 +129,19 @@ end
     gammcf = exp(-x+a*log(x)-gln)*h
     return gammcf,gln
 end
+
+# Still a few bugs in this, but it's 50% slower, so I'm not 
+# going to bother fixing it. It's a shame, since the single-
+# point interpolation looked really good.
+function make_interpolator(mmax=10,Tmax=30)
+    fboys = []
+    Tgrid = 0:0.1:Tmax
+    for m in 0:mmax
+        fmvalues = [fm_ref(m,T) for T in Tgrid]
+        itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
+        sitp = scale(itp,Tgrid)
+        push!(fboys,sitp)
+    end
+    return fboys
+end
+fboys = make_interpolator()

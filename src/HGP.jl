@@ -161,7 +161,7 @@ function vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     Tcrit=20.0 # Most code uses a much higher Tcrit (117)
     #boys_array = T>Tcrit ? boys_array_asymp(mmax,T) : boys_array_gamma(mmax,T)
     for m in 1:mmax
-        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)# boys_array[m]
+        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)
     end
 
     # Generate (A,1,m) 

@@ -2,6 +2,9 @@
 ## 2021-05-22
 Passed in pre-allocated space to vrr for some big savings when calling multiple times.
 
+Interpolation of the Boys function looked like it would be a big win, but it was 50% slower 
+in reality.
+
 ## 2021-05-21
 I'm going to push further Fgamma improvements until after the 0.1.0 release. Here's what I'd like to accomplish before then:
 - Timing comparisons with Libint and Libcint
