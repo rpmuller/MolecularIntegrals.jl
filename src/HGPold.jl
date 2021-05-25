@@ -4,10 +4,14 @@
 #
 # These functions implement recursive versions of the integral code,
 # hence the trailing "_r" in the names. These versions are not as fast
-# than the versions in HGP2.jl, which should be preferred.
+# than the versions in HGP.jl.
 
-# There could be a slight space/speed savings in moving ax,ay,az to axyz, but since
-# this code really isn't used, I'm not going to make this change now.
+"vdiff(a,i,n) - Move vector a by n unit vectors in the i direction"
+function vdiff(a::MVector{3,Int},i::Int,n::Int) 
+    b = copy(a)
+    b[i] += n
+    return b
+end
 
 function coulomb_hgp_r(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
     return a.norm*b.norm*c.norm*d.norm*hrr_r(a.expn,a.xyz...,a.I,a.J,a.K,

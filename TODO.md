@@ -15,7 +15,7 @@
 - Host a webpage for MolecularIntegrals.jl
 - Put badge-link to docs in README.md file
 
-## Release version 0.1.0
+## ~~~~~~~~~~~~~ Release version 0.1.0 ~~~~~~~~~~~~~~~~~~~~
 - Register julia package wherever I'm supposed to do this
 - Post to discourse server
 
@@ -23,8 +23,11 @@
 - [Current version](<Julia\ optimization\ post.md>).
 
 ## Additional improvements to Boys
-- Interpolate
+- [X] Interpolate
 - Gil, Johnson, Pople method
+
+## Speed eri_fetcher
+- Loop over basis sets, then use iindex
   
 ## Include basis sets in g94 format
 - Don't need to include every one in BSE
