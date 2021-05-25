@@ -1,4 +1,9 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-24
+Wrote a eri_fetcher that runs over shells instead of bfs, with the hope that it
+would be faster than the one that uses bfs. But they're about the same speed (273 for bfs,
+266 for shs).
+
 ## 2021-05-22
 Passed in pre-allocated space to vrr for some big savings when calling multiple times.
 

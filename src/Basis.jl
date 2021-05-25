@@ -1,5 +1,6 @@
 using OffsetArrays
 using StaticArrays
+using DataStructures
 export pgbf, cgbf, contract, addbf!, PGBF, CGBF, build_basis,eri_fetcher, Shell, Basis
 export m2ao, shell_indices,nao
 
@@ -101,9 +102,18 @@ function shells(atoms::Vector{Atom},name="sto3g")
     shs = Shell[]
     for atom in atoms
         for (sym,primlist) in data[atom.atno]
+            L = lvalue[sym]
             expns = [expn for (expn,coef) in primlist]
             coefs = [coef for (expn,coef) in primlist]
-            push!(shs,Shell(atom.xyz,lvalue[sym],expns,coefs))
+            bfs = CGBF[]
+            for (I,J,K) in shell_indices[L]
+                cbf = cgbf(atom.xyz...,I,J,K)
+                push!(bfs,cbf)
+                for (expn,coef) in zip(expns,coefs)
+                    addbf!(cbf,expn,coef)
+                end
+            end
+            push!(shs,Shell(atom.xyz,lvalue[sym],expns,coefs,bfs))
         end
     end
     return shs
@@ -139,6 +149,7 @@ mutable struct Shell
     L::Int
     expns::Vector{Float64}
     coefs::Vector{Float64}
+    cgbfs::Vector{CGBF}
 end
 nbf(sh::Shell) = length(shell_indices(sh.L))
 function pgbfs(sh::Shell)
@@ -151,6 +162,7 @@ function pgbfs(sh::Shell)
     end
     return pgbfs
 end
+
 
 """
     Basis(cgbfs,shells,ishell,mshell)
@@ -187,19 +199,68 @@ may be formed via:
 ```    
 """
 function eri_fetcher(bfs::Basis)
-    fetcher = Dict{NTuple{4, Int}, Vector{NTuple{5, Int}}}()
+    fetcher = DefaultOrderedDict{NTuple{4, Int}, Vector{NTuple{5, Int}}}(Vector{NTuple{5, Int}}[])
     for (index,ijkl) in enumerate(iiterator(length(bfs)))
         i,j,k,l = ijkl
         li,mi = bfs.ishell[i],bfs.mshell[i]
         lj,mj = bfs.ishell[j],bfs.mshell[j]
         lk,mk = bfs.ishell[k],bfs.mshell[k]
         ll,ml = bfs.ishell[l],bfs.mshell[l]
-        if haskey(fetcher,(li,lj,lk,ll))
-            push!(fetcher[li,lj,lk,ll],(index,mi,mj,mk,ml))
-        else
-            fetcher[li,lj,lk,ll] = [(index,mi,mj,mk,ml)]
-        end
+        push!(fetcher[li,lj,lk,ll],(index,mi,mj,mk,ml))
     end
+    return fetcher
+end
+
+function eri_fetcher(shs::Vector{Shell})
+    fetcher = DefaultOrderedDict{NTuple{4, Int}, Vector{NTuple{5, Int}}}(Vector{NTuple{5, Int}}[])
+    nsh = length(shs)
+    ijk2lm = make_ijk2lm()
+
+    i = 0
+    index = 0
+    for ish in 1:nsh
+        shi = shs[ish]
+        for ibf in shi.cgbfs
+            i += 1
+            mi = ijk2lm[ibf.I,ibf.J,ibf.K][2]
+
+            j = 0
+            for jsh in 1:ish
+                shj = shs[jsh]
+                for jbf in shj.cgbfs
+                    j += 1
+                    if j > i break end
+                    mj = ijk2lm[jbf.I,jbf.J,jbf.K][2]
+
+                    k = 0
+                    for ksh in 1:nsh
+                        shk = shs[ksh]
+                        for kbf in shk.cgbfs
+                            k += 1
+                            mk = ijk2lm[kbf.I,kbf.J,kbf.K][2]
+
+                            l = 0
+                            for lsh in 1:ksh
+                                shl = shs[lsh]
+                                for lbf in shl.cgbfs
+                                    l += 1
+                                    if l > k break end
+                                    if k*l > i*j break end
+                                    ml = ijk2lm[lbf.I,lbf.J,lbf.K][2]
+                                    index += 1
+                                    push!(fetcher[ish,jsh,ksh,lsh],(index,mi,mj,mk,ml))
+                                end # lbf
+                            end # lsh
+
+                        end # kbf
+                    end # ksh
+
+                end # jbf
+            end # jsh
+
+        end # ibf
+    end # ish
+       
     return fetcher
 end
 
@@ -285,7 +346,6 @@ function make_shift_index()
 end
 const shift_index = make_shift_index()
 
-
 function make_shift_direction()
     n = length(ao2m)
     shift_direction = zeros(Int,n)
@@ -326,3 +386,13 @@ function make_shift_index_plus()
     return shift_index
 end
 const shift_index_plus = make_shift_index_plus()
+
+function make_ijk2lm(maxl=4)
+    ijk2lm = Dict{NTuple{3,Int},NTuple{2,Int}}()
+    for l in 0:maxl
+        for (m,(i,j,k)) in enumerate(shell_indices[l])
+            ijk2lm[i,j,k] = (l,m)
+        end
+    end
+    return ijk2lm
+end
