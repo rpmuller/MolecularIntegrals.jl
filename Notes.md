@@ -1,4 +1,8 @@
 # Notes on changes to MolecularIntegrals.jl
+## 2021-05-31
+Playing with @inbounds and @turbo. No effect in the full code, but a 30% effect
+in the standalone_vrr code. Don't know why.
+
 ## 2021-05-24
 Wrote a eri_fetcher that runs over shells instead of bfs, with the hope that it
 would be faster than the one that uses bfs. But they're about the same speed (273 for bfs,

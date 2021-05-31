@@ -8,6 +8,7 @@ using InteractiveUtils
 begin
 	using BenchmarkTools, LinearAlgebra, OffsetArrays, SpecialFunctions, StaticArrays
 	using Plots, Profile, ProfileSVG, PlutoUI
+	using LoopVectorization
 end
 
 # ╔═╡ 7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
@@ -24,7 +25,8 @@ bit of speed is important here.
 
 I'd be grateful for any help people could give me on speeding things up. Thus far,
 I have not had any luck speeding this up further using macros like `@simd`
-or `@avx`/`@turbo`. `@inbounds` appears to have a very slight positive effect. 
+or `@turbo`. To confuse things further, @turbo
+does speed up this code, but doesn't speed up the full code.
 
 I've read through and checked everything in the [Julia Performance Tips](https://docs.julialang.org/en/v1/manual/performance-tips/) page and @ChrisRackauckas' [7 Julia Gotchas and How to Handle Them](https://www.stochasticlifestyle.com/7-julia-gotchas-handle/) blog post.
 
@@ -38,7 +40,7 @@ md"## vrr routine"
 
 # ╔═╡ 7fe4e843-7543-45ea-8765-ed04dfab157e
 md"## Timing results
-The standalone `vrr` routine is coming in at ~41 μs on my current dev box.
+The standalone `vrr` routine is coming in at ~29 μs on my development box (old mac mini).
 "
 
 # ╔═╡ 6a50233d-3948-4a0f-835e-171587e615fc
@@ -88,11 +90,11 @@ function boys_array_gamma(mmax,T,SMALL=1e-18)
     boys_array = zeros(Float64,mmax)
     ooT = 1/T
     denom = sqrt(ooT)
-    @inbounds boys_array[1] = 0.5*denom*gammainc(0.5,T) 
+    boys_array[1] = 0.5*denom*gammainc(0.5,T) 
     for m in 2:mmax
         denom *= ooT
         # Could speed this up more by expressing gamma(m) in terms of gamma(m±1)
-        @inbounds boys_array[m] = 0.5*denom*gammainc(m-0.5,T) 
+        boys_array[m] = 0.5*denom*gammainc(m-0.5,T) 
     end
     return boys_array
 end;
@@ -263,8 +265,8 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 	# but can be replaced with table lookup or interpolation. The
 	# simple version is included here.
     boys_array = boys_array_gamma(mmax,T)
-    for m in 1:mmax
-        @inbounds vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
+    @turbo for m in 1:mmax
+        vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
     end
 
     # Generate (A,1,m) 
@@ -280,13 +282,13 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         aminus = shift_index[a,i]
         if aminus > 0
             a_i = 0.5*ooz*ao2m[a][i]
-            for m in 1:lim
-                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
+            @turbo for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
 					a_i*(vrrs[m,aminus,1]-eta*ooze*vrrs[m+1,aminus,1])
             end
         else
-            for m in 1:lim
-                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
+            @turbo for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
             end    
         end
     end
@@ -309,26 +311,26 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                 c_i = 0.5*ooe*ao2m[c][i]
                 if aminus > 0
                     a_i = 0.5*ooze*ao2m[a][i]
-                    for m in 1:lim
-                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                    @turbo for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
                             a_i*vrrs[m+1,aminus,c] +
                             c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
                     end
                 else
-                    for m in 1:lim
-                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
+                    @turbo for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
                             c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
                     end
                 end
             elseif aminus > 0
                 a_i = 0.5*ooze*ao2m[a][i]
-                for m in 1:lim
-                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                @turbo for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
                         a_i*vrrs[m+1,aminus,c]
                 end
             else
-                for m in 1:lim
-                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
+                @turbo for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
                 end
             end
         end
@@ -349,7 +351,7 @@ end;
 # ╟─927fecfa-bb26-11eb-3126-6393fad683fd
 # ╠═9282d572-29e6-4c48-8981-4280cf0de817
 # ╠═7ebda10b-54e4-4def-bb72-831dc9637183
-# ╟─7fe4e843-7543-45ea-8765-ed04dfab157e
+# ╠═7fe4e843-7543-45ea-8765-ed04dfab157e
 # ╠═6a50233d-3948-4a0f-835e-171587e615fc
 # ╠═b3f833a8-2195-4547-a6d8-4157116b2789
 # ╟─1fb56ae0-654d-4288-9da7-1ac4869115a4
