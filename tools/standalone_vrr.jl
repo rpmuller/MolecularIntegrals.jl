@@ -1,89 +1,113 @@
 ### A Pluto.jl notebook ###
-# v0.14.5
+# v0.14.7
 
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ 57b56aa8-d641-406d-9632-a9073ba69c29
-import Pkg; Pkg.add("ProfileSVG")
-
 # ╔═╡ b7c63d26-0827-491f-908a-02c3c8bf5d0c
 begin
 	using BenchmarkTools, LinearAlgebra, OffsetArrays, SpecialFunctions, StaticArrays
-	using Plots, Profile, ProfileSVG
+	using Plots, Profile, ProfileSVG, PlutoUI
 end
 
+# ╔═╡ 7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
+md"# Standalone Quantum Chemistry Molecular Integrals"
+
+# ╔═╡ e109b7eb-725d-499c-b136-9552fff9da38
+PlutoUI.TableOfContents()
+
 # ╔═╡ 927fecfa-bb26-11eb-3126-6393fad683fd
-md"# Standalone Quantum Chemistry Molecular Integrals
-The following file is the time-intensive part of the [MolecularIntegrals.jl]()
-package, to make it easier to get help from other people about improving 
-the performance of the code.
-"
-
-# ╔═╡ 281b3f52-d3fc-44f7-89bc-ec62b480ce32
 md"
-`vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)`
+The following file is the time-intensive part of the [MolecularIntegrals.jl]()
+package. This is called thousands of times in a typical calculation, and every
+bit of speed is important here.
 
-Use Head-Gordon/Pople's vertical recurrence relations to compute
-an array of two-electron integrals.
+I'd be grateful for any help people could give me on speeding things up. Thus far,
+I have not had any luck speeding this up further using macros like `@simd`
+or `@avx`/`@turbo`. `@inbounds` appears to have a very slight positive effect. 
 
-`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
-`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
-`amax` and `cmax` are related to the sum of the shell angular
-momenta for the `a+b`, and `c+d` shells, respectively.
-    
-The function returns an `n`x`m` array, where `n` is the number
-of aos in the `a+b` shell, and `m` is the number of aos in the
-`c+d` shell.
+I've read through and checked everything in the [Julia Performance Tips](https://docs.julialang.org/en/v1/manual/performance-tips/) page and @ChrisRackauckas' [7 Julia Gotchas and How to Handle Them](https://www.stochasticlifestyle.com/7-julia-gotchas-handle/) blog post.
 
-Equations refer to 
-[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988.
+I believe there are still performance gains to be had, because the head to head timing of my code against those C/C++ libraries shows that the Julia code is still 5-10 times slower.
+
+The best algorithms in common use make use of recurrence relations to generate integrals for higher angular momentum basis functions in terms of the lower angular momentum integrals, which are ultimate worked on in terms of incomplete error functions. These methods involve a certain amount of irregular memory access.
 "
+
+# ╔═╡ 9282d572-29e6-4c48-8981-4280cf0de817
+md"## vrr routine"
+
+# ╔═╡ 7fe4e843-7543-45ea-8765-ed04dfab157e
+md"## Timing results
+The standalone `vrr` routine is coming in at ~41 μs on my current dev box.
+"
+
+# ╔═╡ 6a50233d-3948-4a0f-835e-171587e615fc
+begin
+	# Define variables for the timing functions
+	amax = cmax = 4  # Max angular momentum of the Gaussian function
+	aexp = bexp = cexp = dexp = 1.0 # exponent of the Gaussian function
+	A = [0.0,0.0,0.0] # coordinates of the Gaussian function centers.
+	B = [0.0,0.0,1.0]
+	C = [0.0,1.0,0.0]
+	D = [1.0,0.0,0.0]
+end;
+
+# ╔═╡ 1fb56ae0-654d-4288-9da7-1ac4869115a4
+md"""## Profiling
+Profiling is not working well from Pluto. For comparison, here's a recent screenshot of the full MolecularIntegrals.jl profile from vscode.
+![MolecularIntegrals.jl profile](https://raw.githubusercontent.com/rpmuller/MolecularIntegrals.jl/master/profile-2021-05-22.png)
+`vrr!` is toward the bottom. `Fgamma` takes up a big chunk, and much of the rest are standard Julia functions like `*` and `Base.math.exp` and `getindex`.
+"""
+
+# ╔═╡ 63626a39-616b-4264-932d-114e3e7aca30
+ProfileSVG.view(maxdepth=65)
 
 # ╔═╡ 92bf1847-1b11-4a2d-9231-ef629ccbf0f6
-md"Utility functions"
+md"## Utility functions
+"
 
 # ╔═╡ d01acace-1209-425f-826a-5efadb27b947
-factorial2(n::Int64) = prod(n:-2:1); # double factorial !!
-
-# ╔═╡ bc891c80-ac5c-484f-afbe-cf2752d99251
-dist2(dx,dy,dz) = dx*dx+dy*dy+dz*dz; # TODO: use hypot()^2?
+@inline factorial2(n::Int64) = prod(n:-2:1); # double factorial !!
 
 # ╔═╡ 9174abad-51b6-4dbe-b326-2ee25b56b8af
-dist2(dxyz) = dot(dxyz,dxyz);
+@inline dist2(dxyz) = dot(dxyz,dxyz);
 
 # ╔═╡ 0b75d079-bdb6-48c2-bb7f-d3d257bc17f6
-dist2(xyz1,xyz2) = dist2(xyz1-xyz2);
-
-# ╔═╡ 17a919da-822c-4d96-9753-46b7f241ef72
-md"boys\_array\_gamma - Compute the Boys Fm(T) function"
-
-# ╔═╡ 079d906b-3172-46be-b515-a9679682a42e
-md"`gammainc` - return the lower incomplete gamma function"
+@inline dist2(xyz1,xyz2) = dist2(xyz1-xyz2);
 
 # ╔═╡ 7111c63d-bbc7-4343-8941-0b87228a9694
+"gammainc - return the lower incomplete gamma function"
 @inline gammainc(a,x) = gamma(a)*gamma_inc(a,x)[1];
 
 # ╔═╡ b4dde3a6-7ab4-4f4f-8270-ff32d8d3e12b
+"boys_array_gamma - Compute the Boys Fm(T) function.
+This is currently one of the rate determining steps of the program, but
+it's a *separate* problem than the one I want to explore in this notebook."
 function boys_array_gamma(mmax,T,SMALL=1e-18)
     T = max(T,SMALL) # needs underflow protection because of inverse
     boys_array = zeros(Float64,mmax)
     ooT = 1/T
     denom = sqrt(ooT)
-    boys_array[1] = 0.5*denom*gammainc(0.5,T) 
+    @inbounds boys_array[1] = 0.5*denom*gammainc(0.5,T) 
     for m in 2:mmax
         denom *= ooT
         # Could speed this up more by expressing gamma(m) in terms of gamma(m±1)
-        boys_array[m] = 0.5*denom*gammainc(m-0.5,T) 
+        @inbounds boys_array[m] = 0.5*denom*gammainc(m-0.5,T) 
     end
     return boys_array
 end;
 
-# ╔═╡ 8539ea6c-3257-4728-948f-9b354739a849
-md"`shell_indices` map from a shell l-value to the Cartesian version of m-values that are the powers of the Cartesian Gaussian basis functions."
+# ╔═╡ ce86e563-3dee-4c0c-9cc7-a3efbfc3e326
+md"## Global data
+I define global data, which I understand is discouraged,
+but which are all defined `const`. Timing increases
+when I inline these in `vrr`."
 
 # ╔═╡ 828390fb-fe8c-4a8d-8882-642ea78e3555
 const shell_indices = Dict(
+	# map from a shell l-value to the Cartesian version of m-values that 
+	# are the powers of the Cartesian Gaussian basis functions. 
+	# Uses `StaticArrays` for some speed gains."
     0 => [MVector(0,0,0)], # 1
     1 => [MVector(1,0,0),MVector(0,1,0),MVector(0,0,1)], # 3
     2 => [MVector(2,0,0),MVector(1,1,0),MVector(1,0,1),MVector(0,2,0),
@@ -99,10 +123,8 @@ const shell_indices = Dict(
 			MVector(0,1,3),MVector(0,0,4)] # 15
 );
 
-# ╔═╡ cc71e7e8-1d0e-4c42-9312-2ee048738557
-md"`make_m2ao` - Map between a sequential list of `(mx,my,mz)` values and ao indices"
-
 # ╔═╡ 3b321740-b76a-4b81-896d-a328398e6477
+"make_m2ao - Map between a sequential list of `(mx,my,mz)` values and ao indices"
 function make_m2ao(lmax=4)
     m2ao = Dict{Vector{Int64}, Int64}()
     iao = 0
@@ -126,18 +148,44 @@ function make_ao2m(lmax=4)
     return ao2m
 end;
 
-# ╔═╡ 9430e278-c67b-43b7-b471-eca65a8c7a6c
-const m2ao = make_m2ao();
-
-# ╔═╡ 8f9d377b-416d-4567-a035-d3504fe25c89
-const ao2m = make_ao2m();
-
 # ╔═╡ f6b8a5d1-18fd-41d3-bd2d-9eb85001af2c
 "make_nao - Number of AOs for system with l shells"
 make_nao(l) = sum(length(shell_indices[i]) for i in 0:l);
 
-# ╔═╡ ef214991-956b-40f4-93df-68c95090e965
+# ╔═╡ c6d84970-9d30-4214-a456-eb03db812aa9
+const ao2m = make_ao2m();
+
+# ╔═╡ ec367e77-8eb0-4e66-89a1-249841e1ecfe
+function make_shift_direction()
+    n = length(ao2m)
+    shift_direction = zeros(Int,n)
+    for a in 1:n
+        shift_direction[a] = argmax(ao2m[a])
+    end
+    return shift_direction
+end;
+
+# ╔═╡ b9142292-e0e8-4bb7-98df-16ab5c23a8c6
+const shift_direction = make_shift_direction();
+
+# ╔═╡ 82f11fe4-e95d-4f3d-be43-e65b9c0b3058
+function make_shell_number()
+    n = length(ao2m)
+    shell_number = zeros(Int,n)
+    for a in 1:n
+        shell_number[a] = sum(ao2m[a])
+    end
+    return shell_number
+end;
+
+# ╔═╡ 58071e7c-13d3-406d-9e93-4ca5e0906b6e
+const shell_number = make_shell_number();
+
+# ╔═╡ 474085ee-1a0f-458a-af9a-c746e988dff9
 const nao = OffsetArray([make_nao(l) for l in 0:4],0:4);
+
+# ╔═╡ 21bf15f1-661e-4859-86d5-12ace608a7b9
+const m2ao = make_m2ao();
 
 # ╔═╡ c376bf6b-a153-4efa-9f4a-0e299377a170
 function make_shift_index()
@@ -159,43 +207,37 @@ function make_shift_index()
     return shift_index
 end;
 
-# ╔═╡ e0c579d2-61d7-4263-8e34-9d538abe927a
+# ╔═╡ 21fafb54-d7c7-4dfc-83ad-7142a618ab91
 const shift_index = make_shift_index();
 
-# ╔═╡ ec367e77-8eb0-4e66-89a1-249841e1ecfe
-function make_shift_direction()
-    n = length(ao2m)
-    shift_direction = zeros(Int,n)
-    for a in 1:n
-        shift_direction[a] = argmax(ao2m[a])
-    end
-    return shift_direction
-end;
-
-# ╔═╡ 4b1e88e0-f78b-460a-ba2c-2677472a5dec
-const shift_direction = make_shift_direction();
-
-# ╔═╡ 82f11fe4-e95d-4f3d-be43-e65b9c0b3058
-function make_shell_number()
-    n = length(ao2m)
-    shell_number = zeros(Int,n)
-    for a in 1:n
-        shell_number[a] = sum(ao2m[a])
-    end
-    return shell_number
-end;
-
-# ╔═╡ 4ca93908-c10b-4b0f-87c0-59338d14212f
-const shell_number = make_shell_number();
-
 # ╔═╡ 7ebda10b-54e4-4def-bb72-831dc9637183
+"vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns an `n`x`m` array, where `n` is the number
+of aos in the `a+b` shell, and `m` is the number of aos in the
+`c+d` shell.
+
+Equations refer to 
+[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
 function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+	# Get indexing arrays 
     mmax=amax+cmax+1
+	
+	# Allocate main space
     vrrs = zeros(Float64,mmax,nao[amax],nao[cmax])
 
+	# Prefactors arising from multiplying Gaussians together
     zeta,eta = aexpn+bexpn,cexpn+dexpn
     ze = zeta+eta
-    ooz,ooe,ooze = 1/zeta,1/eta,1/ze
+    ooz,ooe,ooze = 1/zeta,1/eta,1/ze # "ooz = one over zeta, etc."
     oortze = sqrt(ooze)
     P = (aexpn*A + bexpn*B)*ooz
     Q = (cexpn*C + dexpn*D)*ooe
@@ -216,10 +258,13 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
     #        + ci/2(zeta+eta)[a,c-1]m+1
 
-    # First generate (1,1,m) using eq 12
+    # First generate (1,1,m) using eq 12 using an array of calls to
+	# the incomplete gamma function. This is ~40% of the time here,
+	# but can be replaced with table lookup or interpolation. The
+	# simple version is included here.
     boys_array = boys_array_gamma(mmax,T)
     for m in 1:mmax
-        vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
+        @inbounds vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
     end
 
     # Generate (A,1,m) 
@@ -236,12 +281,12 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         if aminus > 0
             a_i = 0.5*ooz*ao2m[a][i]
             for m in 1:lim
-                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
+                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
 					a_i*(vrrs[m,aminus,1]-eta*ooze*vrrs[m+1,aminus,1])
             end
         else
             for m in 1:lim
-                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
+                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
             end    
         end
     end
@@ -265,25 +310,25 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                 if aminus > 0
                     a_i = 0.5*ooze*ao2m[a][i]
                     for m in 1:lim
-                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
                             a_i*vrrs[m+1,aminus,c] +
                             c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
                     end
                 else
                     for m in 1:lim
-                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
+                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
                             c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
                     end
                 end
             elseif aminus > 0
                 a_i = 0.5*ooze*ao2m[a][i]
                 for m in 1:lim
-                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
                         a_i*vrrs[m+1,aminus,c]
                 end
             else
                 for m in 1:lim
-                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
+                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
                 end
             end
         end
@@ -291,52 +336,42 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return vrrs[1,:,:] # We only need the higher m values to compute intermediate terms, so don't return them
 end;
 
-# ╔═╡ 6a50233d-3948-4a0f-835e-171587e615fc
-begin
-	amax = cmax = 4
-	aexp = bexp = cexp = dexp = 1.0
-	A = [0.0,0.0,0.0]
-	B = [0.0,0.0,1.0]
-	C = [0.0,1.0,0.0]
-	D = [1.0,0.0,0.0]
-end
-
 # ╔═╡ b3f833a8-2195-4547-a6d8-4157116b2789
 @btime vrr(amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D)
 
 # ╔═╡ fe06d209-8826-4410-b83e-ccf6e28136bf
-@profview [vrr(amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D) for _ in 1:200]
+@profile [vrr(amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D) for _ in 1:500]
 
 # ╔═╡ Cell order:
-# ╟─57b56aa8-d641-406d-9632-a9073ba69c29
+# ╟─7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
 # ╠═b7c63d26-0827-491f-908a-02c3c8bf5d0c
+# ╠═e109b7eb-725d-499c-b136-9552fff9da38
 # ╟─927fecfa-bb26-11eb-3126-6393fad683fd
-# ╟─281b3f52-d3fc-44f7-89bc-ec62b480ce32
+# ╠═9282d572-29e6-4c48-8981-4280cf0de817
 # ╠═7ebda10b-54e4-4def-bb72-831dc9637183
-# ╟─92bf1847-1b11-4a2d-9231-ef629ccbf0f6
-# ╠═d01acace-1209-425f-826a-5efadb27b947
-# ╠═bc891c80-ac5c-484f-afbe-cf2752d99251
-# ╠═9174abad-51b6-4dbe-b326-2ee25b56b8af
-# ╠═0b75d079-bdb6-48c2-bb7f-d3d257bc17f6
-# ╟─17a919da-822c-4d96-9753-46b7f241ef72
-# ╠═b4dde3a6-7ab4-4f4f-8270-ff32d8d3e12b
-# ╠═079d906b-3172-46be-b515-a9679682a42e
-# ╠═7111c63d-bbc7-4343-8941-0b87228a9694
-# ╟─8539ea6c-3257-4728-948f-9b354739a849
-# ╠═828390fb-fe8c-4a8d-8882-642ea78e3555
-# ╠═cc71e7e8-1d0e-4c42-9312-2ee048738557
-# ╠═3b321740-b76a-4b81-896d-a328398e6477
-# ╠═f364fe16-17d3-42d0-9ad4-f562168a4a35
-# ╠═9430e278-c67b-43b7-b471-eca65a8c7a6c
-# ╠═8f9d377b-416d-4567-a035-d3504fe25c89
-# ╠═f6b8a5d1-18fd-41d3-bd2d-9eb85001af2c
-# ╠═ef214991-956b-40f4-93df-68c95090e965
-# ╠═c376bf6b-a153-4efa-9f4a-0e299377a170
-# ╠═e0c579d2-61d7-4263-8e34-9d538abe927a
-# ╠═ec367e77-8eb0-4e66-89a1-249841e1ecfe
-# ╠═4b1e88e0-f78b-460a-ba2c-2677472a5dec
-# ╠═82f11fe4-e95d-4f3d-be43-e65b9c0b3058
-# ╠═4ca93908-c10b-4b0f-87c0-59338d14212f
+# ╟─7fe4e843-7543-45ea-8765-ed04dfab157e
 # ╠═6a50233d-3948-4a0f-835e-171587e615fc
 # ╠═b3f833a8-2195-4547-a6d8-4157116b2789
+# ╟─1fb56ae0-654d-4288-9da7-1ac4869115a4
 # ╠═fe06d209-8826-4410-b83e-ccf6e28136bf
+# ╠═63626a39-616b-4264-932d-114e3e7aca30
+# ╟─92bf1847-1b11-4a2d-9231-ef629ccbf0f6
+# ╠═d01acace-1209-425f-826a-5efadb27b947
+# ╠═9174abad-51b6-4dbe-b326-2ee25b56b8af
+# ╠═0b75d079-bdb6-48c2-bb7f-d3d257bc17f6
+# ╠═b4dde3a6-7ab4-4f4f-8270-ff32d8d3e12b
+# ╠═7111c63d-bbc7-4343-8941-0b87228a9694
+# ╠═3b321740-b76a-4b81-896d-a328398e6477
+# ╠═f364fe16-17d3-42d0-9ad4-f562168a4a35
+# ╠═f6b8a5d1-18fd-41d3-bd2d-9eb85001af2c
+# ╠═c376bf6b-a153-4efa-9f4a-0e299377a170
+# ╠═ec367e77-8eb0-4e66-89a1-249841e1ecfe
+# ╠═82f11fe4-e95d-4f3d-be43-e65b9c0b3058
+# ╟─ce86e563-3dee-4c0c-9cc7-a3efbfc3e326
+# ╠═828390fb-fe8c-4a8d-8882-642ea78e3555
+# ╠═58071e7c-13d3-406d-9e93-4ca5e0906b6e
+# ╠═b9142292-e0e8-4bb7-98df-16ab5c23a8c6
+# ╠═21fafb54-d7c7-4dfc-83ad-7142a618ab91
+# ╠═c6d84970-9d30-4214-a456-eb03db812aa9
+# ╠═474085ee-1a0f-458a-af9a-c746e988dff9
+# ╠═21bf15f1-661e-4859-86d5-12ace608a7b9
