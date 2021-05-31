@@ -218,31 +218,28 @@ function eri_fetcher(shs::Vector{Shell})
 
     i = 0
     index = 0
-    for ish in 1:nsh
+    for (ish,shi) in enumerate(shs)
         shi = shs[ish]
         for ibf in shi.cgbfs
             i += 1
             mi = ijk2lm[ibf.I,ibf.J,ibf.K][2]
 
             j = 0
-            for jsh in 1:ish
-                shj = shs[jsh]
+            for (jsh,shj) in enumerate(take(shs,ish))
                 for jbf in shj.cgbfs
                     j += 1
                     if j > i break end
                     mj = ijk2lm[jbf.I,jbf.J,jbf.K][2]
 
                     k = 0
-                    for ksh in 1:nsh
-                        shk = shs[ksh]
+                    for (ksh,shk) in enumerate(shs)
                         for kbf in shk.cgbfs
                             k += 1
                             mk = ijk2lm[kbf.I,kbf.J,kbf.K][2]
 
                             l = 0
-                            for lsh in 1:ksh
-                                shl = shs[lsh]
-                                for lbf in shl.cgbfs
+                            for (lsh,shl) in enumerate(take(shs,ksh))
+                                @inbounds for lbf in shl.cgbfs
                                     l += 1
                                     if l > k break end
                                     if k*l > i*j break end
