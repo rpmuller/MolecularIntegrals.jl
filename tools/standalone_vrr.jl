@@ -6,7 +6,6 @@ using InteractiveUtils
 
 # ╔═╡ b7c63d26-0827-491f-908a-02c3c8bf5d0c
 begin
-	using MolecularIntegrals
 	using BenchmarkTools, LinearAlgebra, OffsetArrays, SpecialFunctions, StaticArrays
 	using Plots, Profile, ProfileSVG, PlutoUI
 	using LoopVectorization
