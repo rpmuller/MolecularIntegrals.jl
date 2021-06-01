@@ -6,6 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ b7c63d26-0827-491f-908a-02c3c8bf5d0c
 begin
+	using MolecularIntegrals
 	using BenchmarkTools, LinearAlgebra, OffsetArrays, SpecialFunctions, StaticArrays
 	using Plots, Profile, ProfileSVG, PlutoUI
 	using LoopVectorization
@@ -25,8 +26,7 @@ bit of speed is important here.
 
 I'd be grateful for any help people could give me on speeding things up. Thus far,
 I have not had any luck speeding this up further using macros like `@simd`
-or `@turbo`. To confuse things further, @turbo
-does speed up this code, but doesn't speed up the full code.
+or `@turbo`. Often one of these macros speeds up the timing of the `vrr!` routine, but slows down the overall code for [reasons I don't understand](https://discourse.julialang.org/t/turbo-speeds-routine-slows-down-everything-else/62163).
 
 I've read through and checked everything in the [Julia Performance Tips](https://docs.julialang.org/en/v1/manual/performance-tips/) page and @ChrisRackauckas' [7 Julia Gotchas and How to Handle Them](https://www.stochasticlifestyle.com/7-julia-gotchas-handle/) blog post.
 
@@ -40,19 +40,8 @@ md"## vrr routine"
 
 # ╔═╡ 7fe4e843-7543-45ea-8765-ed04dfab157e
 md"## Timing results
-The standalone `vrr` routine is coming in at ~29 μs on my development box (old mac mini).
+The standalone `vrr` routine is coming in at ~27 μs on my development box (old mac mini); the one with `@turbo` clocks at ~20 μs.
 "
-
-# ╔═╡ 6a50233d-3948-4a0f-835e-171587e615fc
-begin
-	# Define variables for the timing functions
-	amax = cmax = 4  # Max angular momentum of the Gaussian function
-	aexp = bexp = cexp = dexp = 1.0 # exponent of the Gaussian function
-	A = [0.0,0.0,0.0] # coordinates of the Gaussian function centers.
-	B = [0.0,0.0,1.0]
-	C = [0.0,1.0,0.0]
-	D = [1.0,0.0,0.0]
-end;
 
 # ╔═╡ 1fb56ae0-654d-4288-9da7-1ac4869115a4
 md"""## Profiling
@@ -186,6 +175,20 @@ const shell_number = make_shell_number();
 # ╔═╡ 474085ee-1a0f-458a-af9a-c746e988dff9
 const nao = OffsetArray([make_nao(l) for l in 0:4],0:4);
 
+# ╔═╡ 6a50233d-3948-4a0f-835e-171587e615fc
+begin
+	# Define variables for the timing functions
+	amax = cmax = 4  # Max angular momentum of the Gaussian function
+	aexp = bexp = cexp = dexp = 1.0 # exponent of the Gaussian function
+	A = [0.0,0.0,0.0] # coordinates of the Gaussian function centers.
+	B = [0.0,0.0,1.0]
+	C = [0.0,1.0,0.0]
+	D = [1.0,0.0,0.0]
+
+	# Allocate main space
+    vrrs = zeros(Float64,amax+cmax+1,nao[amax],nao[cmax])
+end;
+
 # ╔═╡ 21bf15f1-661e-4859-86d5-12ace608a7b9
 const m2ao = make_m2ao();
 
@@ -212,8 +215,8 @@ end;
 # ╔═╡ 21fafb54-d7c7-4dfc-83ad-7142a618ab91
 const shift_index = make_shift_index();
 
-# ╔═╡ 7ebda10b-54e4-4def-bb72-831dc9637183
-"vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+# ╔═╡ 52972c5d-2d1c-487f-826e-a9d1196219f7
+"vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
 Use Head-Gordon/Pople's vertical recurrence relations to compute
 an array of two-electron integrals.
@@ -229,13 +232,137 @@ of aos in the `a+b` shell, and `m` is the number of aos in the
 
 Equations refer to 
 [A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
-function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
-	# Get indexing arrays 
+function vrr!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
 	
-	# Allocate main space
-    vrrs = zeros(Float64,mmax,nao[amax],nao[cmax])
+	# Prefactors arising from multiplying Gaussians together
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    ooz,ooe,ooze = 1/zeta,1/eta,1/ze # "ooz = one over zeta, etc."
+    oortze = sqrt(ooze)
+    P = (aexpn*A + bexpn*B)*ooz
+    Q = (cexpn*C + dexpn*D)*ooe
+    W = (zeta*P + eta*Q)*ooze
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2*ooze
+    KabKcd_rtze = 2pi*pi*sqrt(pi)*ooze*oortze*exp(
+		-aexpn*bexpn*rab2*ooz-cexpn*dexpn*rcd2*ooe)
+    PA = P-A
+    WP = W-P
+    QC = Q-C
+    WQ = W-Q
 
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (1,1,m) using eq 12 using an array of calls to
+	# the incomplete gamma function. This is ~40% of the time here,
+	# but can be replaced with table lookup or interpolation. The
+	# simple version is included here.
+    boys_array = boys_array_gamma(mmax,T)
+    for m in 1:mmax
+        vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
+    end
+
+    # Generate (A,1,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    for aplus in 2:nao[amax]
+        ashell = shell_number[aplus]
+        i = shift_direction[aplus]
+        a = shift_index[aplus,i]
+        lim = mmax-ashell
+        aminus = shift_index[a,i]
+        if aminus > 0
+            a_i = 0.5*ooz*ao2m[a][i]
+            for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
+					a_i*(vrrs[m,aminus,1]-eta*ooze*vrrs[m+1,aminus,1])
+            end
+        else
+            for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
+            end    
+        end
+    end
+
+    # Now build (A,C,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
+    for cplus in 2:nao[cmax]
+        cshell = shell_number[cplus]
+        i = shift_direction[cplus]
+        c = shift_index[cplus,i]
+        cminus = shift_index[c,i]
+        for a in 1:nao[amax]
+            ashell = shell_number[a]    
+            lim = mmax-cshell-ashell
+            aminus = shift_index[a,i]
+            if cminus > 0
+                c_i = 0.5*ooe*ao2m[c][i]
+                if aminus > 0
+                    a_i = 0.5*ooze*ao2m[a][i]
+                    for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                            a_i*vrrs[m+1,aminus,c] +
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                else
+                    for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                end
+            elseif aminus > 0
+                a_i = 0.5*ooze*ao2m[a][i]
+                for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                        a_i*vrrs[m+1,aminus,c]
+                end
+            else
+                for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
+                end
+            end
+        end
+    end
+    return nothing
+end;
+
+# ╔═╡ b3f833a8-2195-4547-a6d8-4157116b2789
+@btime vrr!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
+
+# ╔═╡ fe06d209-8826-4410-b83e-ccf6e28136bf
+@profile [vrr!(vrrs, amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D) for _ in 1:500]
+
+# ╔═╡ 7ebda10b-54e4-4def-bb72-831dc9637183
+"vrr_turbo!(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns an `n`x`m` array, where `n` is the number
+of aos in the `a+b` shell, and `m` is the number of aos in the
+`c+d` shell.
+
+Equations refer to 
+[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
+function vrr_turbo!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+	
 	# Prefactors arising from multiplying Gaussians together
     zeta,eta = aexpn+bexpn,cexpn+dexpn
     ze = zeta+eta
@@ -335,25 +462,24 @@ function vrr(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
             end
         end
     end
-    return vrrs[1,:,:] # We only need the higher m values to compute intermediate terms, so don't return them
+    return nothing
 end;
 
-# ╔═╡ b3f833a8-2195-4547-a6d8-4157116b2789
-@btime vrr(amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D)
-
-# ╔═╡ fe06d209-8826-4410-b83e-ccf6e28136bf
-@profile [vrr(amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D) for _ in 1:500]
+# ╔═╡ d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
+@btime vrr_turbo!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
 # ╔═╡ Cell order:
 # ╟─7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
 # ╠═b7c63d26-0827-491f-908a-02c3c8bf5d0c
 # ╠═e109b7eb-725d-499c-b136-9552fff9da38
 # ╟─927fecfa-bb26-11eb-3126-6393fad683fd
-# ╠═9282d572-29e6-4c48-8981-4280cf0de817
+# ╟─9282d572-29e6-4c48-8981-4280cf0de817
+# ╠═52972c5d-2d1c-487f-826e-a9d1196219f7
 # ╠═7ebda10b-54e4-4def-bb72-831dc9637183
-# ╠═7fe4e843-7543-45ea-8765-ed04dfab157e
+# ╟─7fe4e843-7543-45ea-8765-ed04dfab157e
 # ╠═6a50233d-3948-4a0f-835e-171587e615fc
 # ╠═b3f833a8-2195-4547-a6d8-4157116b2789
+# ╠═d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
 # ╟─1fb56ae0-654d-4288-9da7-1ac4869115a4
 # ╠═fe06d209-8826-4410-b83e-ccf6e28136bf
 # ╠═63626a39-616b-4264-932d-114e3e7aca30
