@@ -214,7 +214,7 @@ function vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
                     end
                 else
                     for m in 1:lim
-                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m,a,c] + 
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
                             c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
                     end
                 end
