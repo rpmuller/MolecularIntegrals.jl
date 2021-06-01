@@ -60,6 +60,7 @@ function cvrr(ash::Shell,bsh::Shell,csh::Shell,dsh::Shell)
         for (bexpn,bcoef) in zip(bsh.expns,bsh.coefs), (aexpn,acoef) in zip(ash.expns,ash.coefs)
             #fill!(vrrs,0) # I don't know if this is really necessary
             vrr!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
+            #vrr_turbo!(vrrs, amax,cmax, aexpn,bexpn,cexpn,dexpn,A,B,C,D)
             for j in 1:nao[cmax], i in 1:nao[amax]
                 cvrrs[i,j] += (acoef*bcoef*ccoef*dcoef)*vrrs[1,i,j]
             end

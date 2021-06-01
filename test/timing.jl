@@ -22,8 +22,10 @@ function vrr_timings()
     #print("# vrr_widearray($amax,$cmax) ")
     #@btime MolecularIntegrals.vrr_widearray($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     vrrs = zeros(Float64,amax+cmax+1,nao[amax],nao[cmax])
-    print("# vrr($amax,$cmax)      ")
+    print("vrr!($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("vrr_turbo!($amax,$cmax)      ")
+    @btime MolecularIntegrals.vrr_turbo!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     #print("# vrr_aoloop($amax,$cmax) ")
     #@btime MolecularIntegrals.vrr_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
