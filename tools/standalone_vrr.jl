@@ -340,7 +340,7 @@ end;
 @btime vrr!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
 # ╔═╡ fe06d209-8826-4410-b83e-ccf6e28136bf
-@profile [vrr!(vrrs, amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D) for _ in 1:500]
+@profile (for _ in 1:500; vrr!(vrrs, amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D);end)
 
 # ╔═╡ 7ebda10b-54e4-4def-bb72-831dc9637183
 "vrr_turbo!(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
