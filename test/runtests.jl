@@ -56,7 +56,7 @@ addbf!(c2,0.5,0.2)
         # Move somewhere else?
         bfs = build_basis(h2)
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
-        @test MolecularIntegrals.all_twoe_ints_chrr(bfs) ≈ MolecularIntegrals.all_twoe_ints(bfs)
+        @test_skip MolecularIntegrals.all_twoe_ints_chrr(bfs) ≈ MolecularIntegrals.all_twoe_ints(bfs)
 
         # demonstrate that the normalization constants are not the same
         #  for all m-levels:
