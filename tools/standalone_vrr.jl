@@ -37,9 +37,20 @@ The best algorithms in common use make use of recurrence relations to generate i
 # ╔═╡ 9282d572-29e6-4c48-8981-4280cf0de817
 md"## vrr routine"
 
+# ╔═╡ 94bcfcc1-5216-4a2d-a136-0c8d3dae675a
+md"""
+Here's the version that has @turbo turned on. It's faster for the tests here, but
+for some reason slows down the full 2e integral code.
+"""
+
+# ╔═╡ d4aa62ea-7bd3-4094-ac77-1d50a97d3b6d
+md"""
+Here's a version that has @inbounds turned on. It has similar results to @turbo: ie faster for the single-routine behchmark, but slower on the full 2e integral code.
+"""
+
 # ╔═╡ 7fe4e843-7543-45ea-8765-ed04dfab157e
 md"## Timing results
-The standalone `vrr` routine is coming in at ~27 μs on my development box (old mac mini); the one with `@turbo` clocks at ~20 μs.
+The standalone `vrr` routine is coming in at ~28 μs on my development box (old mac mini); the one with `@turbo` clocks at ~19 μs, the one with @inbounds is ~25 μs.
 "
 
 # ╔═╡ 1fb56ae0-654d-4288-9da7-1ac4869115a4
@@ -467,6 +478,131 @@ end;
 # ╔═╡ d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
 @btime vrr_turbo!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
+# ╔═╡ 581b59ec-4d43-4601-bd9a-990a50261603
+"vrr_inbounds!(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns an `n`x`m` array, where `n` is the number
+of aos in the `a+b` shell, and `m` is the number of aos in the
+`c+d` shell.
+
+Equations refer to 
+[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
+function vrr_inbounds!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+	
+	# Prefactors arising from multiplying Gaussians together
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    ooz,ooe,ooze = 1/zeta,1/eta,1/ze # "ooz = one over zeta, etc."
+    oortze = sqrt(ooze)
+    P = (aexpn*A + bexpn*B)*ooz
+    Q = (cexpn*C + dexpn*D)*ooe
+    W = (zeta*P + eta*Q)*ooze
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2*ooze
+    KabKcd_rtze = 2pi*pi*sqrt(pi)*ooze*oortze*exp(
+		-aexpn*bexpn*rab2*ooz-cexpn*dexpn*rcd2*ooe)
+    PA = P-A
+    WP = W-P
+    QC = Q-C
+    WQ = W-Q
+
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (1,1,m) using eq 12 using an array of calls to
+	# the incomplete gamma function. This is ~40% of the time here,
+	# but can be replaced with table lookup or interpolation. The
+	# simple version is included here.
+    boys_array = boys_array_gamma(mmax,T)
+    for m in 1:mmax
+        @inbounds vrrs[m,1,1] = KabKcd_rtze*boys_array[m]
+    end
+
+    # Generate (A,1,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    for aplus in 2:nao[amax]
+        ashell = shell_number[aplus]
+        i = shift_direction[aplus]
+        a = shift_index[aplus,i]
+        lim = mmax-ashell
+        aminus = shift_index[a,i]
+        if aminus > 0
+            a_i = 0.5*ooz*ao2m[a][i]
+            for m in 1:lim
+                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
+					a_i*(vrrs[m,aminus,1]-eta*ooze*vrrs[m+1,aminus,1])
+            end
+        else
+            for m in 1:lim
+                @inbounds vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
+            end    
+        end
+    end
+
+    # Now build (A,C,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
+    for cplus in 2:nao[cmax]
+        cshell = shell_number[cplus]
+        i = shift_direction[cplus]
+        c = shift_index[cplus,i]
+        cminus = shift_index[c,i]
+        for a in 1:nao[amax]
+            ashell = shell_number[a]    
+            lim = mmax-cshell-ashell
+            aminus = shift_index[a,i]
+            if cminus > 0
+                c_i = 0.5*ooe*ao2m[c][i]
+                if aminus > 0
+                    a_i = 0.5*ooze*ao2m[a][i]
+                    for m in 1:lim
+                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                            a_i*vrrs[m+1,aminus,c] +
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                else
+                    for m in 1:lim
+                        @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                end
+            elseif aminus > 0
+                a_i = 0.5*ooze*ao2m[a][i]
+                for m in 1:lim
+                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                        a_i*vrrs[m+1,aminus,c]
+                end
+            else
+                for m in 1:lim
+                    @inbounds vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
+                end
+            end
+        end
+    end
+    return nothing
+end;
+
+# ╔═╡ ea3639bd-89c5-4b8f-b2d0-066c677824af
+@btime vrr_inbounds!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
+
 # ╔═╡ Cell order:
 # ╟─7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
 # ╠═b7c63d26-0827-491f-908a-02c3c8bf5d0c
@@ -474,11 +610,15 @@ end;
 # ╟─927fecfa-bb26-11eb-3126-6393fad683fd
 # ╟─9282d572-29e6-4c48-8981-4280cf0de817
 # ╠═52972c5d-2d1c-487f-826e-a9d1196219f7
+# ╟─94bcfcc1-5216-4a2d-a136-0c8d3dae675a
 # ╠═7ebda10b-54e4-4def-bb72-831dc9637183
-# ╟─7fe4e843-7543-45ea-8765-ed04dfab157e
+# ╠═d4aa62ea-7bd3-4094-ac77-1d50a97d3b6d
+# ╠═581b59ec-4d43-4601-bd9a-990a50261603
+# ╠═7fe4e843-7543-45ea-8765-ed04dfab157e
 # ╠═6a50233d-3948-4a0f-835e-171587e615fc
 # ╠═b3f833a8-2195-4547-a6d8-4157116b2789
 # ╠═d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
+# ╠═ea3639bd-89c5-4b8f-b2d0-066c677824af
 # ╟─1fb56ae0-654d-4288-9da7-1ac4869115a4
 # ╠═fe06d209-8826-4410-b83e-ccf6e28136bf
 # ╠═63626a39-616b-4264-932d-114e3e7aca30
