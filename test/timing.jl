@@ -24,13 +24,7 @@ function vrr_timings()
     vrrs = zeros(Float64,amax+cmax+1,nao[amax],nao[cmax])
     print("vrr!($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("vrr_turbo!($amax,$cmax)      ")
-    @btime MolecularIntegrals.vrr_turbo!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    print("vrr_inbounds!($amax,$cmax)      ")
-    @btime MolecularIntegrals.vrr_turbo!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    #print("# vrr_aoloop($amax,$cmax) ")
-    #@btime MolecularIntegrals.vrr_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
-    nothing
+    return nothing
 end
 
 # vrr2(4,4)            17.560 ms (166510 allocations: 6.46 MiB)
@@ -93,12 +87,6 @@ function ethane_timing()
         #@btime MolecularIntegrals.all_twoe_ints($bfs);
         print("HGP      ")
         @btime MolecularIntegrals.all_twoe_ints_chrr($bfs);
-        print("turbo      ")
-        @btime MolecularIntegrals.all_twoe_ints_chrr_turbo($bfs);
-
-        print("inbounds     ")
-        @btime MolecularIntegrals.all_twoe_ints_chrr_inbounds($bfs);
-
     end
     return nothing
 end
