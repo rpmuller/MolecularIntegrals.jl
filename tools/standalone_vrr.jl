@@ -347,8 +347,11 @@ function vrr!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     return nothing
 end;
 
-# ╔═╡ b3f833a8-2195-4547-a6d8-4157116b2789
+# ╔═╡ 7cb6a914-ea03-4a30-956e-67be78c4547c
 @btime vrr!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
+
+# ╔═╡ 53b65f59-8fcd-4124-b1d1-3e5f8fd85417
+@btime vrr!($vrrs, 1,1, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
 # ╔═╡ fe06d209-8826-4410-b83e-ccf6e28136bf
 @profile (for _ in 1:500; vrr!(vrrs, amax,cmax, aexp,bexp,cexp,dexp, A,B,C,D);end)
@@ -478,6 +481,9 @@ end;
 # ╔═╡ d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
 @btime vrr_turbo!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
+# ╔═╡ 79740deb-f4d1-4c55-8a9c-f709ebcbfbe2
+@btime vrr_turbo!($vrrs, 1,1, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
+
 # ╔═╡ 581b59ec-4d43-4601-bd9a-990a50261603
 "vrr_inbounds!(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 
@@ -603,6 +609,9 @@ end;
 # ╔═╡ ea3639bd-89c5-4b8f-b2d0-066c677824af
 @btime vrr_inbounds!($vrrs, $amax,$cmax, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
 
+# ╔═╡ efb4e0c9-f620-4a38-bf60-660c646a4663
+@btime vrr_inbounds!($vrrs, 1,1, $aexp,$bexp,$cexp,$dexp, $A,$B,$C,$D)
+
 # ╔═╡ Cell order:
 # ╟─7f1163a2-5a4b-4892-a5ed-cac70c41d3b7
 # ╠═b7c63d26-0827-491f-908a-02c3c8bf5d0c
@@ -616,9 +625,12 @@ end;
 # ╠═581b59ec-4d43-4601-bd9a-990a50261603
 # ╠═7fe4e843-7543-45ea-8765-ed04dfab157e
 # ╠═6a50233d-3948-4a0f-835e-171587e615fc
-# ╠═b3f833a8-2195-4547-a6d8-4157116b2789
+# ╠═7cb6a914-ea03-4a30-956e-67be78c4547c
 # ╠═d07a14a5-6a5f-4889-bdd3-89e8b134ffdf
 # ╠═ea3639bd-89c5-4b8f-b2d0-066c677824af
+# ╠═53b65f59-8fcd-4124-b1d1-3e5f8fd85417
+# ╠═79740deb-f4d1-4c55-8a9c-f709ebcbfbe2
+# ╠═efb4e0c9-f620-4a38-bf60-660c646a4663
 # ╟─1fb56ae0-654d-4288-9da7-1ac4869115a4
 # ╠═fe06d209-8826-4410-b83e-ccf6e28136bf
 # ╠═63626a39-616b-4264-932d-114e3e7aca30
