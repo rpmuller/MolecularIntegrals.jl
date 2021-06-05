@@ -41,13 +41,15 @@ As a starting point to motivate the development, we will consider Table 5 from t
 | aug-cc-pVQZ | 436  | 444.23 | 324.29 | 151.04  | 107.24 |
 
 ### Preliminary Julia Timings for Ethane/6-31G
-Compare to roughly 0.1 sec albeit on *completely different hardware*. This is mostly just to set a crude benchmark to compare coding improvements to.
+Compare to roughly 0.1 sec albeit on *completely different hardware*. This is mostly just to set a crude benchmark to compare coding improvements.
+
+Results using a single thread:
 
 | Basis   | size   | Huz    | HGP    |
 | ------- | ------ | ------ | ------ |
 | sto-3G  | 16     | 1.71   | 0.041  |
 | 6-31G   | 30     | 6.56   | 0.202  |
-| cc-pVDZ | 58     | 115.4  | 2.586  |
+| cc-pVDZ | 58     | 115.4  | 2.451  |
 
 The HGP results hopefully still have lots of room for speedups.
 These last set of improvements are coming with a loss of accuracy from the interpolation.
