@@ -1,7 +1,8 @@
 # Notes on changes to MolecularIntegrals.jl
 
 ## 2021-06-05
-Figured out the issue with [turbo speeding vrr but slowing down the overall code](https://discourse.julialang.org/t/turbo-speeds-routine-slows-down-everything-else/).
+Figured out the issue with [turbo speeding vrr but slowing down the overall code](https://discourse.julialang.org/t/turbo-speeds-routine-slows-down-everything-else/). Keeping @inbounds @simd, but it has neglegible, if any
+benefit, and I might take it out again.
 
 Got basic threading to work. Roughly a factor of 2 speed up at 4 threads.
 
