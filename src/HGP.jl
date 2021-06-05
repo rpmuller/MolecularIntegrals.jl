@@ -26,7 +26,7 @@ function all_twoe_ints_chrr(bfs)
     nints = length(collect(MolecularIntegrals.iiterator(nbf)))
     fetcher = eri_fetcher(bfs)
     ints = zeros(Float64,nints)
-    for (ishell,jshell,kshell,lshell) in keys(fetcher)
+    Threads.@threads for (ishell,jshell,kshell,lshell) in collect(keys(fetcher))
         hrrs = chrr(bfs.shells[ishell],bfs.shells[jshell],bfs.shells[kshell],bfs.shells[lshell])
         for (ijkl,hi,hj,hk,hl) in fetcher[ishell,jshell,kshell,lshell] 
             ints[ijkl] = hrrs[hi,hj,hk,hl]
