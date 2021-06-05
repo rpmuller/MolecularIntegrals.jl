@@ -26,6 +26,8 @@ function vrr_timings()
     @btime MolecularIntegrals.vrr!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     print("vrr_turbo!($amax,$cmax)      ")
     @btime MolecularIntegrals.vrr_turbo!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
+    print("vrr_inbounds!($amax,$cmax)      ")
+    @btime MolecularIntegrals.vrr_turbo!($vrrs, $amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     #print("# vrr_aoloop($amax,$cmax) ")
     #@btime MolecularIntegrals.vrr_aoloop($amax,$cmax, $ex,$ex,$ex,$ex, $xyz,$xyz,$xyza,$xyza);
     nothing
@@ -91,6 +93,12 @@ function ethane_timing()
         #@btime MolecularIntegrals.all_twoe_ints($bfs);
         print("HGP      ")
         @btime MolecularIntegrals.all_twoe_ints_chrr($bfs);
+        print("turbo      ")
+        @btime MolecularIntegrals.all_twoe_ints_chrr_turbo($bfs);
+
+        print("inbounds     ")
+        @btime MolecularIntegrals.all_twoe_ints_chrr_inbounds($bfs);
+
     end
     return nothing
 end
