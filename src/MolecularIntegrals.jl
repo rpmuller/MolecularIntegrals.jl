@@ -7,6 +7,7 @@ include("Boys.jl")
 include("Utils.jl")
 include("ERI.jl")
 include("HGP.jl")
+include("Rys.jl")
 #include("HGPgen2.jl")
 include("Data.jl")
 
