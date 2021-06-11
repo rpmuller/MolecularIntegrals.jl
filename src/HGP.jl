@@ -132,7 +132,8 @@ of aos in the `a+b` shell, and `m` is the number of aos in the
 `c+d` shell.
 
 Equations refer to 
-[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
+[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). 
+Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
 function vrr!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
     mmax=amax+cmax+1
 	
@@ -171,7 +172,134 @@ function vrr!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
         vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)
     end
 
-    if (amax == cmax == 0) return nothing end
+    if (mmax == 1) return nothing end
+
+    # Generate (A,1,m) 
+    # Eq 6a, with c=0 also:
+    #   [a+1,0]m = (Pi-Ai)[a,1]m + (Wi-Pi)[a,1]m+1 
+    #        + a_i/2zeta ([a-1,0]m - eta/zeta+eta[a-1,0]m+1)        # eq 6b
+
+    for aplus in 2:nao[amax]
+        ashell = shell_number[aplus]
+        i = shift_direction[aplus]
+        a = shift_index[aplus,i]
+        lim = mmax-ashell
+        aminus = shift_index[a,i]
+        if aminus > 0
+            a_i = 0.5*ooz*ao2m[a][i]
+            for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1] +
+					a_i*(vrrs[m,aminus,1]-eta*ooze*vrrs[m+1,aminus,1])
+            end
+        else
+            for m in 1:lim
+                vrrs[m,aplus,1] = PA[i]*vrrs[m,a,1] + WP[i]*vrrs[m+1,a,1]
+            end    
+        end
+    end
+
+    # Now build (A,C,m)
+    # The c-based version of 6a is:
+    #   [a,c+1]m = (Qj-Bi)[a,c]m + (Wj-Qj)[a,c]m+1
+    #       + c_j/2eta ([a,c-1]m - zeta/zeta+eta[a,c-1]m+1)         # eq 6d
+    #       + a_j/2(zeta+eta)[a-1,c]m+1
+    for cplus in 2:nao[cmax]
+        cshell = shell_number[cplus]
+        i = shift_direction[cplus]
+        c = shift_index[cplus,i]
+        cminus = shift_index[c,i]
+        for a in 1:nao[amax]
+            ashell = shell_number[a]    
+            lim = mmax-cshell-ashell
+            aminus = shift_index[a,i]
+            if cminus > 0
+                c_i = 0.5*ooe*ao2m[c][i]
+                if aminus > 0
+                    a_i = 0.5*ooze*ao2m[a][i]
+                    for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                            a_i*vrrs[m+1,aminus,c] +
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                else
+                    for m in 1:lim
+                        vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                            c_i*(vrrs[m,a,cminus]-zeta*ooze*vrrs[m+1,a,cminus])
+                    end
+                end
+            elseif aminus > 0
+                a_i = 0.5*ooze*ao2m[a][i]
+                for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c] + 
+                        a_i*vrrs[m+1,aminus,c]
+                end
+            else
+                for m in 1:lim
+                    vrrs[m,a,cplus] = QC[i]*vrrs[m,a,c]+WQ[i]*vrrs[m+1,a,c]
+                end
+            end
+        end
+    end
+    return nothing
+end
+
+
+"vrr_simd!(amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+
+Use Head-Gordon/Pople's vertical recurrence relations to compute
+an array of two-electron integrals.
+
+`A`, `B`, `C`, `D` are the centers of four Gaussian functions.
+`aexpn`, `bexpn`, `cexpn`, `dexpn` are their exponents.
+`amax` and `cmax` are related to the sum of the shell angular
+momenta for the `a+b`, and `c+d` shells, respectively.
+    
+The function returns an `n`x`m` array, where `n` is the number
+of aos in the `a+b` shell, and `m` is the number of aos in the
+`c+d` shell.
+
+Equations refer to 
+[A method for two-electron Gaussian integral and integral derivative evaluation using recurrence relations](https://doi.org/10.1063/1.455553). 
+Martin Head-Gordon and John A. Pople. JCP, 89 (9), 5777, 1988."
+function vrr_simd!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
+    mmax=amax+cmax+1
+	
+	# Prefactors arising from multiplying Gaussians together
+    zeta,eta = aexpn+bexpn,cexpn+dexpn
+    ze = zeta+eta
+    ooz,ooe,ooze = 1/zeta,1/eta,1/ze # "ooz = one over zeta, etc."
+    oortze = sqrt(ooze)
+    P = (aexpn*A + bexpn*B)*ooz
+    Q = (cexpn*C + dexpn*D)*ooe
+    W = (zeta*P + eta*Q)*ooze
+    rab2 = dist2(A-B)
+    rcd2 = dist2(C-D)
+    rpq2 = dist2(P-Q)
+    T = zeta*eta*rpq2*ooze
+    KabKcd_rtze = 2pi*pi*sqrt(pi)*ooze*oortze*exp(
+		-aexpn*bexpn*rab2*ooz-cexpn*dexpn*rcd2*ooe)
+    PA = P-A
+    WP = W-P
+    QC = Q-C
+    WQ = W-Q
+
+    # HGP equation 6, with b=d=0:
+    #   [a+1,c]m = (Pi-Ai)[a,c]m + (Wi-Pi)[a,c]m+1 
+    #        + a_i/2zeta ([a-1,c]m - eta/zeta+eta[a-1,c]m+1)        # eq 6a
+    #        + ci/2(zeta+eta)[a,c-1]m+1
+
+    # First generate (1,1,m) using eq 12 using an array of calls to
+	# the incomplete gamma function. This is ~40% of the time here,
+	# but can be replaced with table lookup or interpolation. The
+	# simple version is included here.
+    # First generate (1,1,m) using eq 12
+    Tcrit=20.0 # Most code uses a much higher Tcrit (117)
+    #boys_array = boys_array_Fgamma(mmax,T)
+    for m in 1:mmax
+        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)
+    end
+
+    if (mmax == 1) return nothing end
 
     # Generate (A,1,m) 
     # Eq 6a, with c=0 also:
