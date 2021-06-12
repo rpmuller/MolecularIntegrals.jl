@@ -73,8 +73,8 @@ function Int1d(t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     return Ix
 end
 
+"Form G(n,m)=I(n,0,m,0) intermediate values for a Rys polynomial"
 function Recur(t,i,j,k,l,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
-    "Form G(n,m)=I(n,0,m,0) intermediate values for a Rys polynomial"
     n = i+j
     m = k+l        
     A = alphai+alphaj 
@@ -110,8 +110,8 @@ function Recur(t,i,j,k,l,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     end
     return G
 end
+"Compute and  output I(i,j,k,l) from I(i+j,0,k+l,0) (G)"
 function Shift(G,i,k,xij,xkl)
-    "Compute and  output I(i,j,k,l) from I(i+j,0,k+l,0) (G)"
     # xij = xi-xj, xkl = xk-xl
     # ndim = i+j+1, mdim = k+l+1
     ndim,mdim = size(G)
@@ -163,10 +163,8 @@ function Roots(n,X)
         return Root4(X)
     elseif n==5
         return Root5(X)
-    else
-        return Root6(n,X)
     end
-    error("rys: Roots called with incorrect parameters")
+    error("rys: Roots called with incorrect parameters $n, $X")
 end
 
 function Root123(n,X)
@@ -1452,9 +1450,4 @@ function Root5(X)
         WW1 = WW1-WW2-WW3-WW4-WW5
     end
     return  [RT1,RT2,RT3,RT4,RT5],[WW1,WW2,WW3,WW4,WW5]
-end
-
-function Root6(n,X)
-    error("Root6: not yet implemented")
-    return None
 end
