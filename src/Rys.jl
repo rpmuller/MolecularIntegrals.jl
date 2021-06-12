@@ -31,13 +31,16 @@ function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
 
     roots,weights = Roots(norder,X)
 
+    n,m = max(la+lb,ma+mb,na+nb),max(lc+ld,mc+md,nc+nd)
+    G = OffsetArray(zeros(Float64,n+1,m+1),0:n,0:m) # keep from re-allocating
+
     sum = 0.
     for (t,w) in zip(roots,weights)
-        Ix = Int1d(t,la,lb,lc,ld,xa,xb,xc,xd,
+        Ix = Int1d(G,t,la,lb,lc,ld,xa,xb,xc,xd,
                    alphaa,alphab,alphac,alphad)
-        Iy = Int1d(t,ma,mb,mc,md,ya,yb,yc,yd,
+        Iy = Int1d(G,t,ma,mb,mc,md,ya,yb,yc,yd,
                    alphaa,alphab,alphac,alphad)
-        Iz = Int1d(t,na,nb,nc,nd,za,zb,zc,zd,
+        Iz = Int1d(G,t,na,nb,nc,nd,za,zb,zc,zd,
                    alphaa,alphab,alphac,alphad)
         sum += Ix*Iy*Iz*w # ABD eq 5 & 9
     end
@@ -66,23 +69,20 @@ function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
 end
 
 
-function Int1d(t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
-    G = Recur(t,ix,jx,kx,lx,xi,xj,xk,xl,
-                  alphai,alphaj,alphak,alphal)
-    Ix = Shift(G,ix,kx,xi-xj,xk-xl)
+function Int1d(G,t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
+    Recur(G,t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
+    Ix = Shift(G,ix,jx,kx,lx,xi-xj,xk-xl)
     return Ix
 end
 
 "Form G(n,m)=I(n,0,m,0) intermediate values for a Rys polynomial"
-function Recur(t,i,j,k,l,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
+function Recur(G,t,i,j,k,l,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     n = i+j
     m = k+l        
     A = alphai+alphaj 
     B = alphak+alphal 
     Px = (alphai*xi+alphaj*xj)/A
     Qx = (alphak*xk+alphal*xl)/B
-
-    G = OffsetArray(zeros(Float64,n+1,m+1),0:n,0:m)
 
     C,Cp,B0,B1,B1p = RecurFactorsGamess(t,A,B,Px,Qx,xi,xk)
 
@@ -111,15 +111,9 @@ function Recur(t,i,j,k,l,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     return G
 end
 "Compute and  output I(i,j,k,l) from I(i+j,0,k+l,0) (G)"
-function Shift(G,i,k,xij,xkl)
-    # xij = xi-xj, xkl = xk-xl
-    # ndim = i+j+1, mdim = k+l+1
-    ndim,mdim = size(G)
-    j = ndim-i-1
-    l = mdim-k-1
-
+function Shift(G,i,j,k,l,xij,xkl)
     ijkl = 0.
-    for m in 0:l # Warning: range starts from zero: check binomial factors
+    for m in 0:l 
         ijm0 = 0
         for n in 0:j # I(i,j,m,0)<-I(n,0,m,0)
             ijm0 += binomial(j,n)*xij^(j-n)*G[n+i,m+k]
