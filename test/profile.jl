@@ -19,7 +19,9 @@ function profints()
 end
 
 function profall()
-    bfs = build_basis(ethane,"cc-pvdz") #"6-31G")
+    #bfs = build_basis(ethane,"cc-pvdz") #"6-31G")
+    #@profview MolecularIntegrals.all_twoe_ints_chrr(bfs)
+    bfs = build_basis(ethane,"6-31G") # use a smaller basis set for Rys for now
     @profview MolecularIntegrals.all_twoe_ints_rys(bfs)
 end
 

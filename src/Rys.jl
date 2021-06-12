@@ -24,8 +24,8 @@ function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
     A = alphaa+alphab 
     B = alphac+alphad
     rho = A*B/(A+B)
-    xyzp = gaussian_product_center(alphaa,xa,ya,za,alphab,xb,yb,zb)
-    xyzq = gaussian_product_center(alphac,xc,yc,zc,alphad,xd,yd,zd)
+    xyzp = gaussian_product_center(alphaa,[xa,ya,za],alphab,[xb,yb,zb])
+    xyzq = gaussian_product_center(alphac,[xc,yc,zc],alphad,[xd,yd,zd])
     rpq2 = dist2(xyzp,xyzq)
     X = rpq2*rho
 
@@ -67,7 +67,6 @@ function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
   end
   return val
 end
-
 
 function Int1d(G,t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     Recur(G,t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
@@ -223,8 +222,8 @@ function Root1(X)
   else  # X > 33
     WW1 = sqrt(PIE4/X)
     RT1 = 0.5E+00/(X-0.5E+00)
-    end
-    return [RT1],[WW1]
+  end
+  return [RT1],[WW1]
 end
 
 function Root2(X)
