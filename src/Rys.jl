@@ -16,17 +16,17 @@ export coulomb_rys, all_twoe_ints_rys
 all_twoe_ints_rys(bfs) = all_twoe_ints(bfs,coulomb_rys)
 
 "Form coulomb repulsion integral using Rys quadrature"
-function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
-                      xb,yb,zb,normb,lb,mb,nb,alphab,
-                      xc,yc,zc,normc,lc,mc,nc,alphac,
-                      xd,yd,zd,normd,ld,md,nd,alphad)
+function coulomb_rys(xyza,norma,la,ma,na,alphaa,
+                      xyzb,normb,lb,mb,nb,alphab,
+                      xyzc,normc,lc,mc,nc,alphac,
+                      xyzd,normd,ld,md,nd,alphad)
     norder = (la+ma+na+lb+nb+mb+lc+mc+nc+ld+md+nd)÷2 + 1  
     A = alphaa+alphab 
     B = alphac+alphad
     rho = A*B/(A+B)
-    xyzp = gaussian_product_center(alphaa,[xa,ya,za],alphab,[xb,yb,zb])
-    xyzq = gaussian_product_center(alphac,[xc,yc,zc],alphad,[xd,yd,zd])
-    rpq2 = dist2(xyzp,xyzq)
+    xyzp = gaussian_product_center(alphaa,xyza,alphab,xyzb)
+    xyzq = gaussian_product_center(alphac,xyzc,alphad,xyzd)
+    rpq2 = dist2(xyzp-xyzq)
     X = rpq2*rho
 
     roots,weights = Roots(norder,X)
@@ -36,22 +36,33 @@ function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
 
     sum = 0.
     for (t,w) in zip(roots,weights)
-        Ix = Int1d(G,t,la,lb,lc,ld,xa,xb,xc,xd,
+        Ix = Int1d(G,t,la,lb,lc,ld,xyza[1],xyzb[1],xyzc[1],xyzd[1],
                    alphaa,alphab,alphac,alphad)
-        Iy = Int1d(G,t,ma,mb,mc,md,ya,yb,yc,yd,
+        Iy = Int1d(G,t,ma,mb,mc,md,xyza[2],xyzb[2],xyzc[2],xyzd[2],
                    alphaa,alphab,alphac,alphad)
-        Iz = Int1d(G,t,na,nb,nc,nd,za,zb,zc,zd,
+        Iz = Int1d(G,t,na,nb,nc,nd,xyza[3],xyzb[3],xyzc[3],xyzd[3],
                    alphaa,alphab,alphac,alphad)
         sum += Ix*Iy*Iz*w # ABD eq 5 & 9
     end
     return 2*sqrt(rho/pi)*norma*normb*normc*normd*sum # ABD eq 5 & 9
 end
 
+function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
+    xb,yb,zb,normb,lb,mb,nb,alphab,
+    xc,yc,zc,normc,lc,mc,nc,alphac,
+    xd,yd,zd,normd,ld,md,nd,alphad)
+  return coulomb_rys([xa,ya,za],norma,la,ma,na,alphaa,
+    [xb,yb,zb],normb,lb,mb,nb,alphab,
+    [xc,yc,zc],normc,lc,mc,nc,alphac,
+    [xd,yd,zd],normd,ld,md,nd,alphad)
+end
+
+
 function coulomb_rys(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
-  return coulomb_rys(a.xyz...,a.norm,a.I,a.J,a.K,a.expn,
-                    b.xyz...,b.norm,b.I,b.J,b.K,b.expn,
-                    c.xyz...,c.norm,c.I,c.J,c.K,c.expn,
-                    d.xyz...,d.norm,d.I,d.J,d.K,d.expn)
+  return coulomb_rys(a.xyz,a.norm,a.I,a.J,a.K,a.expn,
+                    b.xyz,b.norm,b.I,b.J,b.K,b.expn,
+                    c.xyz,c.norm,c.I,c.J,c.K,c.expn,
+                    d.xyz,d.norm,d.I,d.J,d.K,d.expn)
 end
 
 function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
