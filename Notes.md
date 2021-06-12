@@ -7,6 +7,8 @@ Lots of memory allocated. Going to profile.
 Moved the allocation of the G matrix up several levels, but had
 very little impact on either the memory or the speed.
 
+Got perhaps a factor of 2 by being smarter about calling gaussian_product_center().
+
 ## 2021-06-05
 Figured out the issue with [turbo speeding vrr but slowing down the overall code](https://discourse.julialang.org/t/turbo-speeds-routine-slows-down-everything-else/). Keeping @inbounds @simd, but it has neglegible, if any
 benefit, and I might take it out again.
