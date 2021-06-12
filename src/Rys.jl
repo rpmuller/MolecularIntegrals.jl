@@ -11,12 +11,16 @@
 
 """
 
+export coulomb_rys, all_twoe_ints_rys
+
+all_twoe_ints_rys(bfs) = all_twoe_ints(bfs,coulomb_rys)
+
 "Form coulomb repulsion integral using Rys quadrature"
 function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
                       xb,yb,zb,normb,lb,mb,nb,alphab,
                       xc,yc,zc,normc,lc,mc,nc,alphac,
                       xd,yd,zd,normd,ld,md,nd,alphad)
-    norder = (la+ma+na+lb+nb+mb+lc+mc+nc+ld+md+nd)/2 + 1  
+    norder = (la+ma+na+lb+nb+mb+lc+mc+nc+ld+md+nd)÷2 + 1  
     A = alphaa+alphab 
     B = alphac+alphad
     rho = A*B/(A+B)
@@ -39,6 +43,28 @@ function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
     end
     return 2*sqrt(rho/pi)*norma*normb*normc*normd*sum # ABD eq 5 & 9
 end
+
+function coulomb_rys(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
+  return coulomb_rys(a.xyz...,a.norm,a.I,a.J,a.K,a.expn,
+                    b.xyz...,b.norm,b.I,b.J,b.K,b.expn,
+                    c.xyz...,c.norm,c.I,c.J,c.K,c.expn,
+                    d.xyz...,d.norm,d.I,d.J,d.K,d.expn)
+end
+
+function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
+  val = 0
+  for (ap,ac) in zip(a.pgbfs,a.coefs)
+    for (bp,bc) in zip(b.pgbfs,b.coefs)
+      for (cp,cc) in zip(c.pgbfs,c.coefs)
+        for (dp,dc) in zip(d.pgbfs,d.coefs)
+          val += ac*bc*cc*dc*coulomb_rys(ap,bp,cp,dp)
+        end
+      end
+    end
+  end
+  return val
+end
+
 
 function Int1d(t,ix,jx,kx,lx,xi,xj,xk,xl,alphai,alphaj,alphak,alphal)
     G = Recur(t,ix,jx,kx,lx,xi,xj,xk,xl,
@@ -88,7 +114,7 @@ function Shift(G,i,k,xij,xkl)
     "Compute and  output I(i,j,k,l) from I(i+j,0,k+l,0) (G)"
     # xij = xi-xj, xkl = xk-xl
     # ndim = i+j+1, mdim = k+l+1
-    ndim,mdim = G.shape
+    ndim,mdim = size(G)
     j = ndim-i-1
     l = mdim-k-1
 
@@ -484,8 +510,8 @@ function Root123(n,X)
             WW2 = (T3*A1-A2)/((T3-T2)*(T2-T1))
             WW1 = WW1-WW2-WW3
             return [RT1,RT2,RT3],[WW1,WW2,WW3]
-        end
-    elseif X < 33
+          end
+      elseif X < 33
         E = exp(-X)
         WW1 = (( 1.9623264149430E-01/X-4.9695241464490E-01)/X -
                6.0156581186481E-05)*E + sqrt(PIE4/X)
@@ -534,17 +560,17 @@ function Root123(n,X)
                 RT3 = ((((-1.38368602394293E-02*X-1.77293428863008E+00)*X +
                          1.73639054044562E+01)*X-3.57615122086961E+02)*X -
                        1.45734701095912E+04 /X+2.69831813951849E+03)*E + R33/(X-R33)
-                T1 = RT1/(RT1+1.0E+00)
-                T2 = RT2/(RT2+1.0E+00)
-                T3 = RT3/(RT3+1.0E+00)
-                A2 = F2-T1*F1
-                A1 = F1-T1*WW1
-                WW3 = (A2-T2*A1)/((T3-T2)*(T3-T1))
-                WW2 = (T3*A1-A2)/((T3-T2)*(T2-T1))
-                WW1 = WW1-WW2-WW3
-                return [RT1,RT2,RT3],[WW1,WW2,WW3]
             end
-        end
+            T1 = RT1/(RT1+1.0E+00)
+            T2 = RT2/(RT2+1.0E+00)
+            T3 = RT3/(RT3+1.0E+00)
+            A2 = F2-T1*F1
+            A1 = F1-T1*WW1
+            WW3 = (A2-T2*A1)/((T3-T2)*(T3-T1))
+            WW2 = (T3*A1-A2)/((T3-T2)*(T2-T1))
+            WW1 = WW1-WW2-WW3
+            return [RT1,RT2,RT3],[WW1,WW2,WW3]
+          end
     else  # X > 33
         WW1 = sqrt(PIE4/X)
         if n == 1
@@ -562,9 +588,9 @@ function Root123(n,X)
                 RT2 = R22/(X-R22)
                 WW2 = W22*WW1
                 WW1 = WW1-WW2
-                return [RT1,RT2],[WW1,WW2]  
             end 
-        elseif n == 3
+            return [RT1,RT2],[WW1,WW2]  
+          elseif n == 3
             if X < 47
                 E = exp(-X)
                 RT1 = ((-7.39058467995275E+00*X+3.21318352526305E+02)*X -
@@ -585,13 +611,10 @@ function Root123(n,X)
                 WW2 = W23*WW1
                 WW3 = W33*WW1
                 WW1 = WW1-WW2-WW3
-                return [RT1,RT2,RT3],[WW1,WW2,WW3]  
             end
-        end
-
+            return [RT1,RT2,RT3],[WW1,WW2,WW3]  
+          end
       end
-
-
 end
 
 function Root4(X)
@@ -900,19 +923,19 @@ function Root4(X)
                          7.58735928102351E-05)*X +2.35072857922892E-04)*X-
                       3.78812134013125E-03)*X +3.09871652785805E-01)*X-
                     7.11108633061306E+00)*X +5.55297573149528E+01)*E + W44*WW1
-            WW3 = (((((( 2.36392855180768E-04*X-9.16785337967013E-03)*X +
-                    4.62186525041313E-01)*X-1.96943786006540E+01)*X +
-                    4.99169195295559E+02)*X-6.21419845845090E+03)*X +
-                ((+5.21445053212414E+07/X-1.34113464389309E+07)/X +
-                    1.13673298305631E+06)/X-2.81501182042707E+03)*E + W34*WW1
-            WW2 = (((((( 7.29841848989391E-04*X-3.53899555749875E-02)*X +
-                    2.07797425718513E+00)*X-1.00464709786287E+02)*X +
-                    3.15206108877819E+03)*X-6.27054715090012E+04)*X +
-                (+1.54721246264919E+07/X-5.26074391316381E+06)/X +
-                7.67135400969617E+05)*E + W24*WW1
-            WW1 = (( 1.9623264149430E-01/X-4.9695241464490E-01)/X -
-                6.0156581186481E-05)*E + WW1-WW2-WW3-WW4
         end
+        WW3 = (((((( 2.36392855180768E-04*X-9.16785337967013E-03)*X +
+          4.62186525041313E-01)*X-1.96943786006540E+01)*X +
+          4.99169195295559E+02)*X-6.21419845845090E+03)*X +
+          ((+5.21445053212414E+07/X-1.34113464389309E+07)/X +
+          1.13673298305631E+06)/X-2.81501182042707E+03)*E + W34*WW1
+        WW2 = (((((( 7.29841848989391E-04*X-3.53899555749875E-02)*X +
+                2.07797425718513E+00)*X-1.00464709786287E+02)*X +
+                3.15206108877819E+03)*X-6.27054715090012E+04)*X +
+            (+1.54721246264919E+07/X-5.26074391316381E+06)/X +
+            7.67135400969617E+05)*E + W24*WW1
+        WW1 = (( 1.9623264149430E-01/X-4.9695241464490E-01)/X -
+            6.0156581186481E-05)*E + WW1-WW2-WW3-WW4
     elseif X <= 53
         WW1 = sqrt(PIE4/X)
         E = exp(-X)*(X*X)^2

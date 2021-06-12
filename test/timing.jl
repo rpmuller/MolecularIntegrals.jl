@@ -87,11 +87,13 @@ function ethane_timing()
         #@btime MolecularIntegrals.all_twoe_ints($bfs);
         print("HGP      ")
         @btime MolecularIntegrals.all_twoe_ints_chrr($bfs);
+        print("Rys      ")
+        @btime MolecularIntegrals.all_twoe_ints_rys($bfs);
     end
     return nothing
 end
 
-vrr_timings()
+#vrr_timings()
 #hand_vrr_timings()
 #hrr_timings()
 ethane_timing()

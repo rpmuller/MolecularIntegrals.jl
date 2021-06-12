@@ -45,11 +45,10 @@ Compare to roughly 0.1 sec albeit on *completely different hardware*. This is mo
 
 Results using a single thread:
 
-| Basis   | size   | Huz    | HGP    |
-| ------- | ------ | ------ | ------ |
-| sto-3G  | 16     | 1.71   | 0.041  |
-| 6-31G   | 30     | 6.56   | 0.202  |
-| cc-pVDZ | 58     | 115.4  | 2.451  |
+| Basis   | size   | Huz    | HGP    | Rys   |
+| ------- | ------ | ------ | ------ | ----- |
+| sto-3G  | 16     | 1.71   | 0.041  | 1.264 |
+| 6-31G   | 30     | 6.56   | 0.202  | 4.820 |
+| cc-pVDZ | 58     | 115.4  | 2.451  | 74.69 |
 
-The HGP results hopefully still have lots of room for speedups.
-These last set of improvements are coming with a loss of accuracy from the interpolation.
+These results hopefully still have lots of room for speedups.

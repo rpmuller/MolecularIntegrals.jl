@@ -57,7 +57,8 @@ addbf!(c2,0.5,0.2)
         bfs = build_basis(h2)
         fetcher = MolecularIntegrals.eri_fetcher(bfs)
         @test_skip MolecularIntegrals.all_twoe_ints_chrr(bfs) ≈ MolecularIntegrals.all_twoe_ints(bfs)
-
+        @test isapprox(MolecularIntegrals.all_twoe_ints(bfs),MolecularIntegrals.all_twoe_ints_rys(bfs),rtol=1e-7)
+    
         # demonstrate that the normalization constants are not the same
         #  for all m-levels:
         #sh = Shell([0.0,0.0,0.0],2,[1.0],[1.0])
@@ -125,6 +126,29 @@ addbf!(c2,0.5,0.2)
             @test coulomb(s,s,s3,s3) ≈ val
         end
     end
+
+    @testset "Rys tests" begin
+        # Tests from pyquante2:
+        #@test coulomb(1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0, 1, 0,0,0, 0,0,0) ≈ 4.37335458
+        #@test coulomb(c,c,c,c) ≈ 1.128379167
+        @test coulomb_rys(s,s,px,px) ≈ 0.9403159725793302
+        @test coulomb_rys(s,s,s,px) == 0.0
+
+        for (r,val) in [(0.0, 1.1283791670951362),
+                        (1.0, 0.8427007900292186),
+                        (2.0, 0.49766113257563993),
+                        (3.0, 0.33332596983445223),
+                        (4.0, 0.2499999961456855), # coulomb's law hereafter:
+                        (5.0, 1/5), 
+                        (6.0, 1/6),
+                        (7.0, 1/7),
+                        (8.0, 1/8),
+                        (9.0, 1/9)]
+            s3 = pgbf(1.0, 0.0,0.0,r)
+            @test coulomb_rys(s,s,s3,s3) ≈ val
+        end
+    end
+
 
     @testset "VRR tests" begin
         ax=ay=az=bx=by=bz=cx=cy=cz=dx=dy=dz=0.0
