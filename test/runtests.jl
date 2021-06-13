@@ -129,10 +129,6 @@ addbf!(c2,0.5,0.2)
 
     @testset "Rys tests" begin
         # Tests from pyquante2:
-        @test coulomb_rys(0,0,0, 1, 0,0,0, 1, 
-                          0,0,0, 1, 0,0,0, 1, 
-                          0,0,0, 1, 0,0,0, 1, 
-                          0,0,0, 1, 0,0,0, 1) ≈ 4.37335458
         @test coulomb_rys(c,c,c,c) ≈ 1.128379167
         @test coulomb_rys(s,s,px,px) ≈ 0.9403159725793302
         @test coulomb_rys(s,s,s,px) == 0.0

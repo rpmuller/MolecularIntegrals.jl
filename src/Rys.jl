@@ -13,84 +13,73 @@
 
 export coulomb_rys, all_twoe_ints_rys
 
-# Allocate global space to cut down on memory allocation
-const maxorder = 5
-const maxam = 5
-const G = OffsetArray(zeros(Float64,2*maxam+1,2*maxam+1),0:2*maxam,0:2*maxam) 
-const roots = zeros(Float64,maxorder)
-const weights = zeros(Float64,maxorder)
-
 function all_twoe_ints_rys(bfs,maxam2=10,maxorder=5)
   n = length(bfs)
   totlen = div(n*(n+1)*(n*n+n+2),8)
   ints2e = zeros(Float64,totlen)
-  for (i,j,k,l) in iiterator(n) # Can't use Threads.@threads here because I have global G,roots, weights
+  Threads.@threads for (i,j,k,l) in collect(iiterator(n))
       ints2e[iindex(i,j,k,l)] = coulomb_rys(bfs[i],bfs[j],bfs[k],bfs[l])
   end
   return ints2e
 end
 
 "Form coulomb repulsion integral using Rys quadrature"
-function coulomb_rys(xa,ya,za,norma,la,ma,na,alphaa,
-  xb,yb,zb,normb,lb,mb,nb,alphab,
-  xc,yc,zc,normc,lc,mc,nc,alphac,
-  xd,yd,zd,normd,ld,md,nd,alphad)
-return coulomb_rys([xa,ya,za],norma,la,ma,na,alphaa,
-  [xb,yb,zb],normb,lb,mb,nb,alphab,
-  [xc,yc,zc],normc,lc,mc,nc,alphac,
-  [xd,yd,zd],normd,ld,md,nd,alphad)
+function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
+  # Allocate space here to keep from repeatedly allocating the same space
+  norder = (a.I+a.J+a.K+b.I+b.J+b.K+c.I+c.J+c.K+d.I+d.J+d.K)÷2 + 1  
+  n = max(a.I+b.I,a.J+b.J,a.K+b.K)
+  m = max(c.I+d.I,c.J+d.J,c.K+d.K)
+  G = OffsetArray(zeros(Float64,n+1,m+1),0:n,0:m) 
+  roots = zeros(Float64,norder)
+  weights = zeros(Float64,norder)
+
+  val = 0
+  for (ap,ac) in zip(a.pgbfs,a.coefs), (bp,bc) in zip(b.pgbfs,b.coefs)
+    for (cp,cc) in zip(c.pgbfs,c.coefs), (dp,dc) in zip(d.pgbfs,d.coefs)
+        val += ac*bc*cc*dc*coulomb_rys(ap,bp,cp,dp,G,roots,weights)
+    end
+  end
+  return val
 end
 
 "Form coulomb repulsion integral using Rys quadrature"
 function coulomb_rys(a::PGBF,b::PGBF,c::PGBF,d::PGBF)
-return coulomb_rys(a.xyz,a.norm,a.I,a.J,a.K,a.expn,
-                  b.xyz,b.norm,b.I,b.J,b.K,b.expn,
-                  c.xyz,c.norm,c.I,c.J,c.K,c.expn,
-                  d.xyz,d.norm,d.I,d.J,d.K,d.expn)
+  # Allocate space if it isn't passed in
+  norder = (a.I+a.J+a.K+b.I+b.J+b.K+c.I+c.J+c.K+d.I+d.J+d.K)÷2 + 1  
+  n = max(a.I+b.I,a.J+b.J,a.K+b.K)
+  m = max(c.I+d.I,c.J+d.J,c.K+d.K)
+  G = OffsetArray(zeros(Float64,n+1,m+1),0:n,0:m) 
+  roots = zeros(Float64,norder)
+  weights = zeros(Float64,norder)
+
+  return coulomb_rys(a,b,c,d,G,roots,weights)
 end
 
 "Form coulomb repulsion integral using Rys quadrature"
-function coulomb_rys(a::CGBF,b::CGBF,c::CGBF,d::CGBF)
-val = 0
-for (ap,ac) in zip(a.pgbfs,a.coefs)
-  for (bp,bc) in zip(b.pgbfs,b.coefs)
-    for (cp,cc) in zip(c.pgbfs,c.coefs)
-      for (dp,dc) in zip(d.pgbfs,d.coefs)
-        val += ac*bc*cc*dc*coulomb_rys(ap,bp,cp,dp)
-      end
-    end
+function coulomb_rys(a::PGBF,b::PGBF,c::PGBF,d::PGBF,G,roots,weights)
+  norder = (a.I+a.J+a.K+b.I+b.J+b.K+c.I+c.J+c.K+d.I+d.J+d.K)÷2 + 1  
+
+  A = a.expn+b.expn 
+  B = c.expn+d.expn
+  rho = A*B/(A+B)
+  xyzp = gaussian_product_center(a.expn,a.xyz,b.expn,b.xyz)
+  xyzq = gaussian_product_center(c.expn,c.xyz,d.expn,d.xyz)
+  rpq2 = dist2(xyzp-xyzq)
+  X = rpq2*rho
+
+  Roots(norder,X,roots,weights)
+
+  ijkl = 0.
+  for i in 1:norder
+      Ix = Int1d(G,roots[i],a.I,b.I,c.I,d.I,a.xyz[1],b.xyz[1],c.xyz[1],d.xyz[1],
+                 a.expn,b.expn,c.expn,d.expn)
+      Iy = Int1d(G,roots[i],a.J,b.J,c.J,d.J,a.xyz[2],b.xyz[2],c.xyz[2],d.xyz[2],
+                 a.expn,b.expn,c.expn,d.expn)
+      Iz = Int1d(G,roots[i],a.K,b.K,c.K,d.K,a.xyz[3],b.xyz[3],c.xyz[3],d.xyz[3],
+                 a.expn,b.expn,c.expn,d.expn)
+      ijkl += Ix*Iy*Iz*weights[i] # ABD eq 5 & 9
   end
-end
-return val
-end
-
-"Form coulomb repulsion integral using Rys quadrature"
-function coulomb_rys(xyza,norma,la,ma,na,alphaa,
-                      xyzb,normb,lb,mb,nb,alphab,
-                      xyzc,normc,lc,mc,nc,alphac,
-                      xyzd,normd,ld,md,nd,alphad)
-    norder = (la+ma+na+lb+nb+mb+lc+mc+nc+ld+md+nd)÷2 + 1  
-    A = alphaa+alphab 
-    B = alphac+alphad
-    rho = A*B/(A+B)
-    xyzp = gaussian_product_center(alphaa,xyza,alphab,xyzb)
-    xyzq = gaussian_product_center(alphac,xyzc,alphad,xyzd)
-    rpq2 = dist2(xyzp-xyzq)
-    X = rpq2*rho
-
-    Roots(norder,X)
-
-    ijkl = 0.
-    for i in 1:norder
-        Ix = Int1d(G,roots[i],la,lb,lc,ld,xyza[1],xyzb[1],xyzc[1],xyzd[1],
-                   alphaa,alphab,alphac,alphad)
-        Iy = Int1d(G,roots[i],ma,mb,mc,md,xyza[2],xyzb[2],xyzc[2],xyzd[2],
-                   alphaa,alphab,alphac,alphad)
-        Iz = Int1d(G,roots[i],na,nb,nc,nd,xyza[3],xyzb[3],xyzc[3],xyzd[3],
-                   alphaa,alphab,alphac,alphad)
-        ijkl += Ix*Iy*Iz*weights[i] # ABD eq 5 & 9
-    end
-    return 2*sqrt(rho/pi)*norma*normb*normc*normd*ijkl # ABD eq 5 & 9
+  return 2*sqrt(rho/pi)*a.norm*b.norm*c.norm*d.norm*ijkl # ABD eq 5 & 9
 end
 
 
@@ -138,18 +127,18 @@ end
 "Compute and  output I(i,j,k,l) from I(i+j,0,k+l,0) (G)"
 function Shift(G,i,j,k,l,xij,xkl)
   ijkl = 0. 
-  @inbounds @simd for m in 0:l 
+  for m in 0:l 
     ijm0 = sum(binomial(j,n)*xij^(j-n)*G[n+i,m+k] for n in 0:j)
     ijkl += binomial(l,m)*xkl^(l-m)*ijm0 # I(i,j,k,l)<-I(i,j,m,0)
   end  
   return ijkl
 end
 # This works too, but it isn't any faster, and is harder to understand
-@inline Shift_oneloop(G,i,j,k,l,xij,xkl) = sum(binomial(l,m)*xkl^(l-m)*binomial(j,n)*xij^(j-n)*G[n+i,m+k] for m in 0:l for n in 0:j)
+Shift_oneloop(G,i,j,k,l,xij,xkl) = sum(binomial(l,m)*xkl^(l-m)*binomial(j,n)*xij^(j-n)*G[n+i,m+k] for m in 0:l for n in 0:j)
 # This also works, but is slower; I thought it would be much faster. Vector lengths must be short.
 function Shift_matmul(G,i,j,k,l,xij,xkl)
-  bj = MVector{j+1}([binomial(j,n)*xij^(j-n) for n in 0:j])
-  bl = MVector{l+1}([binomial(l,m)*xkl^(l-m) for m in 0:l])
+  bj = [binomial(j,n)*xij^(j-n) for n in 0:j]
+  bl = [binomial(l,m)*xkl^(l-m) for m in 0:l]
   return bj'*G[i:(i+j),k:(k+l)]*bl
 end
 
@@ -168,23 +157,23 @@ end
 
 # Everything after this computes the Roots and Weights of the Rys polynomial.
 # Would be nice to find a more intuitive way to do this.
-"Roots(n,X) - Return roots and weights of nth order Rys quadrature"
-function Roots(n,X)
+"Roots(n,X,roots,weights) - Return roots and weights of nth order Rys quadrature"
+function Roots(n,X,roots,weights)
   if n == 1
-    return Root1(X)
+    return Root1(X,roots,weights)
   elseif n == 2
-    return Root2(X)
+    return Root2(X,roots,weights)
   elseif n == 3
-    return Root3(X)
+    return Root3(X,roots,weights)
   elseif n==4
-    return Root4(X)
+    return Root4(X,roots,weights)
   elseif n==5
-    return Root5(X)
+    return Root5(X,roots,weights)
   end
   error("rys: Roots called with incorrect parameters $n, $X")
 end
 
-function Root1(X)
+function Root1(X,roots,weights)
   R12,PIE4 = 2.75255128608411E-01, 7.85398163397448E-01
   R22,W22 =  2.72474487139158E+00, 9.17517095361369E-02
   R13 = 1.90163509193487E-01
@@ -248,7 +237,7 @@ function Root1(X)
   return #[RT1],[weights[1]]
 end
 
-function Root2(X)
+function Root2(X,roots,weights)
   R12,PIE4 = 2.75255128608411E-01, 7.85398163397448E-01
   R22,W22 =  2.72474487139158E+00, 9.17517095361369E-02
   R13 = 1.90163509193487E-01
@@ -398,7 +387,7 @@ function Root2(X)
   return #[RT1,roots[2]],[weights[1],weights[2]]  
 end
 
-function Root3(X)
+function Root3(X,roots,weights)
   R12,PIE4 = 2.75255128608411E-01, 7.85398163397448E-01
   R22,W22 =  2.72474487139158E+00, 9.17517095361369E-02
   R13 = 1.90163509193487E-01
@@ -651,7 +640,7 @@ function Root3(X)
   return #[roots[1],roots[2],roots[3]],[weights[1],weights[2],weights[3]]
 end
 
-function Root4(X)
+function Root4(X,roots,weights)
     R14,PIE4 = 1.45303521503316E-01, 7.85398163397448E-01
     R24,W24 = 1.33909728812636E+00, 2.34479815323517E-01
     R34,W34 = 3.92696350135829E+00, 1.92704402415764E-02
@@ -1002,7 +991,7 @@ function Root4(X)
     return #[roots[1],roots[2],roots[3],roots[4]],[weights[1],weights[2],weights[3],weights[4]]
 end
 
-function Root5(X)
+function Root5(X,roots,weights)
     R15,PIE4 = 1.17581320211778E-01, 7.85398163397448E-01
     R25,W25 = 1.07456201243690E+00, 2.70967405960535E-01
     R35,W35 = 3.08593744371754E+00, 3.82231610015404E-02
