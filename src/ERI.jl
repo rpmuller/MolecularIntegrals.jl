@@ -105,7 +105,7 @@ function all_twoe_ints(bfs,ERI=coulomb)
     n = length(bfs)
     totlen = div(n*(n+1)*(n*n+n+2),8)
     ints2e = zeros(Float64,totlen)
-    for (i,j,k,l) in iiterator(n)
+    Threads.@threads for (i,j,k,l) in collect(iiterator(n))
         ints2e[iindex(i,j,k,l)] = ERI(bfs[i],bfs[j],bfs[k],bfs[l])
     end
     return ints2e
