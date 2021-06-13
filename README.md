@@ -47,8 +47,8 @@ Results using a single thread:
 
 | Basis   | size   | Huz    | HGP    | Rys   |
 | ------- | ------ | ------ | ------ | ----- |
-| sto-3G  | 16     | 1.71   | 0.041  | 0.604 |
-| 6-31G   | 30     | 6.56   | 0.202  | 2.314 |
-| cc-pVDZ | 58     | 115.4  | 2.451  | 37.01 |
+| sto-3G  | 16     | 1.71   | 0.041  | 0.415 |
+| 6-31G   | 30     | 6.56   | 0.202  | 1.550 |
+| cc-pVDZ | 58     | 115.4  | 2.451  | 25.94 |
 
 These results hopefully still have lots of room for speedups.

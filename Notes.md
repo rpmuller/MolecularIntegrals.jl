@@ -1,5 +1,9 @@
 # Notes on changes to MolecularIntegrals.jl
 
+## 2021-06-13
+Moved the G, roots, weights arrays out to the global scope to keep
+from multiple reallocations of the same space.
+
 ## 2021-06-11
 Rys quadrature is working, but is about 30 times slower than HGP. 
 Lots of memory allocated. Going to profile.
