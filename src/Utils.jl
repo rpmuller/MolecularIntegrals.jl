@@ -20,3 +20,4 @@ triangle(i::Int64,j::Int64) = i<j ? triangle(j-1)+i : triangle(i-1)+j
 
 
 
+
