@@ -1,5 +1,3 @@
-using LoopVectorization
-
 export vrr,hrr,chrr,cvrr,all_twoe_ints_chrr, vrr_autogen
 # HGP - A (hopefully) fast, simple implementation of Head-Gordon, Pople's [^1]
 # ERI recurrence relations.
