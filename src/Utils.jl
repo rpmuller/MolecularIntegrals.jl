@@ -18,6 +18,9 @@ triangle(i::Int64,j::Int64) = i<j ? triangle(j-1)+i : triangle(i-1)+j
 
 @inline iindex(i::Int64,j::Int64,k::Int64,l::Int64) = triangle(triangle(i,j),triangle(k,l))
 
+struct Val{x} end
+Val(x) = Val{x}()
+
 
 
 
