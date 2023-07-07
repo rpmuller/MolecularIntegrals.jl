@@ -164,10 +164,10 @@ function vrr!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 	# but can be replaced with table lookup or interpolation. The
 	# simple version is included here.
     # First generate (1,1,m) using eq 12
-    Tcrit=20.0 # Most code uses a much higher Tcrit (117)
-    #boys_array = boys_array_Fgamma(mmax,T)
+    #Tcrit=20.0 # Most code uses a much higher Tcrit (117)
+    Fms = farray(mmax,T)
     for m in 1:mmax
-        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)
+        vrrs[m,1,1] = KabKcd_rtze*Fms[m]
     end
 
     if (mmax == 1) return nothing end
@@ -291,10 +291,10 @@ function vrr_simd!(vrrs,amax,cmax, aexpn,bexpn,cexpn,dexpn, A,B,C,D)
 	# but can be replaced with table lookup or interpolation. The
 	# simple version is included here.
     # First generate (1,1,m) using eq 12
-    Tcrit=20.0 # Most code uses a much higher Tcrit (117)
-    #boys_array = boys_array_Fgamma(mmax,T)
+    #Tcrit=20.0 # Most code uses a much higher Tcrit (117)
+    Fms = farray(mmax,T)
     for m in 1:mmax
-        vrrs[m,1,1] = KabKcd_rtze*Fgamma(m-1,T)
+        vrrs[m,1,1] = KabKcd_rtze*Fms[m]
     end
 
     if (mmax == 1) return nothing end
@@ -438,7 +438,7 @@ function vrr_autogen(amax,cmax)
     csize = nao[cmax]
     lines = []
     for m in 1:mmax
-        push!(lines,"$(indent)vrrs[1,1,$m] = KabKcd_rtze*Fgamma($(m-1),T)")
+        push!(lines,"$(indent)vrrs[1,1,$m] = KabKcd_rtze*Fm($(m-1),T)")
     end
     slines = join(lines,"\n")
 
