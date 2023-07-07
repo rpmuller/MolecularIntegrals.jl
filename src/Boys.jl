@@ -17,7 +17,7 @@ end
 function farray(mmax,T,fm=Fm_ref,Tmax=30)
     if T < Tmax return farray_recur(mmax,T,fm) end
     Fms = zeros(Float64,mmax)
-    Fms[mmax] = Fasymp(mmax-1,T)
+    Fms[mmax] = Fm_asymp(mmax-1,T)
     for m in mmax-1:-1:1
 	Fms[m] = T*Fms[m+1]/(m-0.5)
     end
