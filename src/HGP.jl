@@ -25,7 +25,7 @@ function all_twoe_ints_chrr(bfs)
     fetcher = eri_fetcher(bfs)
     ints = zeros(Float64,nints)
     Threads.@threads for (ishell,jshell,kshell,lshell) in collect(keys(fetcher))
-        hrrs = chrr(bfs.shells[ishell],bfs.shells[jshell],bfs.shells[kshell],bfs.shells[lshell])
+            hrrs = chrr(bfs.shells[ishell],bfs.shells[jshell],bfs.shells[kshell],bfs.shells[lshell])
         for (ijkl,hi,hj,hk,hl) in fetcher[ishell,jshell,kshell,lshell] 
             ints[ijkl] = hrrs[hi,hj,hk,hl]
         end

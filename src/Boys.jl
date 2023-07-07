@@ -2,24 +2,24 @@
 using SpecialFunctions
 
 # Functions to make arrays out of multiple m values:
-farray_full(mmax,T,fm=Fm_ref) = fm.(0:mmax-1,T)
+farray_full(mmax,T,fm=fmspline) = fm.(0:mmax-1,T)
 
-function farray_recur(mmax,T,fm=Fm_ref)
+function farray_recur(mmax,T,fm=fmspline)
     Fms = zeros(Float64,mmax)
     Fms[mmax] = fm(mmax-1,T)
     emt = exp(-T)
     for m in mmax-1:-1:1
-	Fms[m] = (2*T*Fms[m+1]+emt)/(2*(m-1)+1)
+	    Fms[m] = (2*T*Fms[m+1]+emt)/(2*(m-1)+1)
     end
     return Fms
 end
 
-function farray(mmax,T,fm=Fm_ref,Tmax=30)
+function farray(mmax,T,fm=fmspline,Tmax=30)
     if T < Tmax return farray_recur(mmax,T,fm) end
     Fms = zeros(Float64,mmax)
     Fms[mmax] = Fm_asymp(mmax-1,T)
     for m in mmax-1:-1:1
-	Fms[m] = T*Fms[m+1]/(m-0.5)
+	    Fms[m] = T*Fms[m+1]/(m-0.5)
     end
     return Fms		
 end
@@ -65,13 +65,13 @@ Fgamma(m,T) = Fm(m,T) # backwards compatibility in case something still calls th
 #     end
 #     return retval
 # end
-# using Interpolations
-# function make_interpolator(mmax=10,Tmax=20.0)
-#     Tgrid = 0:0.005:Tmax
-#     mgrid = 0:mmax
-#     fmvalues = [Fm(m,T) for m in mgrid, T in Tgrid]
-#     itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
-#     sitp = scale(itp,mgrid,Tgrid)
-#     return sitp
-# end
-# const fmspline = make_interpolator()
+using Interpolations
+function make_interpolator(mmax=10,Tmax=20.0)
+    Tgrid = 0:0.005:Tmax
+    mgrid = 0:mmax
+    fmvalues = [Fm(m,T) for m in mgrid, T in Tgrid]
+    itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
+    sitp = scale(itp,mgrid,Tgrid)
+    return sitp
+end
+const fmspline = make_interpolator()

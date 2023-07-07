@@ -1,5 +1,19 @@
 # Notes on changes to MolecularIntegrals.jl
 
+## 2021-07-07
+Picking this up again after a long absence. Rewrote the Boys routines in a more intelligent way that correctly calls recursive values for the routine. However, I don't thik I'm seeing any substantial timing improvements yet.
+
+Since it has been so long I'm not convinced that I'm donig everything properly. Here are the timing results for future reference:
+
+Ethane/sto3g: nbf=16
+HGP        66.349 ms (532033 allocations: 37.49 MiB)
+Rys        198.081 ms (27966 allocations: 3.37 MiB)
+Ethane/6-31G: nbf=30
+HGP        260.098 ms (2046240 allocations: 170.56 MiB)
+Rys        744.653 ms (325055 allocations: 30.03 MiB)
+Ethane/cc-pvdz: nbf=60
+HGP        2.521 s (16072732 allocations: 2.04 GiB)
+
 ## 2021-06-13
 Moved the G, roots, weights arrays out to the global scope to keep
 from multiple reallocations of the same space.
