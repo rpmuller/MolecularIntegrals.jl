@@ -1,4 +1,5 @@
-using MolecularIntegrals, Profile
+using MolecularIntegrals
+using Profile
 
 function profints()
     x=y=z=0.0
