@@ -1,10 +1,12 @@
 # Boys.jl contains different implementations and approximations to the Boys function
 using SpecialFunctions
 
-# Functions to make arrays out of multiple m values:
-farray_full(mmax,T,fm=fmspline) = fm.(0:mmax-1,T)
+export farray, Fm, Fm_asymp, Fm_ref, farray_full, farray_recur
 
-function farray_recur(mmax,T,fm=fmspline)
+# Functions to make arrays out of multiple m values:
+farray_full(mmax,T,fm=Fm) = fm.(0:mmax-1,T)
+
+@inline function farray_recur(mmax,T,fm=Fm)
     Fms = zeros(Float64,mmax)
     Fms[mmax] = fm(mmax-1,T)
     emt = exp(-T)
@@ -14,7 +16,7 @@ function farray_recur(mmax,T,fm=fmspline)
     return Fms
 end
 
-function farray(mmax,T,fm=fmspline,Tmax=30)
+function farray(mmax,T,fm=Fm,Tmax=30)
     if T < Tmax return farray_recur(mmax,T,fm) end
     Fms = zeros(Float64,mmax)
     Fms[mmax] = Fm_asymp(mmax-1,T)
@@ -26,7 +28,8 @@ end
 
 function Fm(m,T,SMALL=1e-18)
     mhalf = m+0.5
-    T = max(T,SMALL) # Underflow; is there a better way to fix this?
+    #T = max(T,SMALL) # Underflow; is there a better way to fix this?
+    if T<SMALL return 1/(2m+1) end # This seems to work??
     return gamma(mhalf)*gamma_inc(mhalf,T,0)[1]/(2T^(mhalf))
 end
 
@@ -65,13 +68,13 @@ Fgamma(m,T) = Fm(m,T) # backwards compatibility in case something still calls th
 #     end
 #     return retval
 # end
-using Interpolations
-function make_interpolator(mmax=10,Tmax=20.0)
-    Tgrid = 0:0.005:Tmax
-    mgrid = 0:mmax
-    fmvalues = [Fm(m,T) for m in mgrid, T in Tgrid]
-    itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
-    sitp = scale(itp,mgrid,Tgrid)
-    return sitp
-end
-const fmspline = make_interpolator()
+# using Interpolations
+# function make_interpolator(mmax=10,Tmax=20.0)
+#     Tgrid = 0:0.005:Tmax
+#     mgrid = 0:mmax
+#     fmvalues = [Fm(m,T) for m in mgrid, T in Tgrid]
+#     itp = interpolate(fmvalues, BSpline(Cubic(Line(OnGrid()))))
+#     sitp = scale(itp,mgrid,Tgrid)
+#     return sitp
+# end
+# const fmspline = make_interpolator()
