@@ -48,6 +48,7 @@ def _init_julia():
     # Add package to Julia's load path and import
     jl.seval(f'push!(LOAD_PATH, "{_PACKAGE_ROOT}")')
     jl.seval('using MolecularIntegrals')
+    jl.seval('using StaticArrays')
 
     return jl
 
